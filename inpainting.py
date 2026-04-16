@@ -25,6 +25,9 @@ import matplotlib
 import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
+OUTPUT_DIR = "results"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 import numpy as np
 from models.resnet import ResNet
 from models.unet import UNet
@@ -240,7 +243,10 @@ def closure():
     print ('Iteration %05d    Loss %f' % (i, total_loss.item()), '\r', end='')
     if  PLOT and i % show_every == 0:
         out_np = torch_to_np(out)
-        plot_image_grid([np.clip(out_np, 0, 1)], factor=figsize, nrow=1)
+        img = np.clip(out_np, 0, 1)
+        plot_image_grid([img], factor=figsize, nrow=1)
+
+        plt.imsave(f"{OUTPUT_DIR}/iter_{i:05d}.png", img.transpose(1,2,0))
         
     i += 1
 
@@ -256,4 +262,7 @@ optimize(OPTIMIZER, p, closure, LR, num_iter)
 
 
 out_np = torch_to_np(net(net_input))
-plot_image_grid([out_np], factor=5);
+img = np.clip(out_np, 0, 1)
+plot_image_grid([img], factor=5)
+
+plt.imsave(f"{OUTPUT_DIR}/final.png", img.transpose(1,2,0))

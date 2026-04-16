@@ -2,3 +2,5 @@ results/
 *.png
 *.jpg
 *.jpeg
+venv/
+venv/
