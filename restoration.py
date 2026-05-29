@@ -60,7 +60,7 @@ dtype = torch.FloatTensor
 f = './data/restoration/barbara.png'
 
 # fig. 14 of supmat
-# f = './data/restoration/kate.png'
+#f = './data/restoration/kate.png'
 
 
 img_pil, img_np = get_image(f, imsize)
