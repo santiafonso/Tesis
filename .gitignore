@@ -1,6 +1,35 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+venv/
+.venv/
+
+# --- DIP / restoration outputs ---
 results/
+results_*/
+result_*/
+GRIS/
+logs/
+*.npy
+*.npz
+
+# --- KMC artifacts / large simulation data ---
+kmc_fast
+*.o
+vmd-*.xyz
+CS-*.xyz
+datos-*.dat
+parametros.dat
+kmc_*points*.txt
+kmc_launched_points.txt
+
+# --- Reference papers (kept locally, not in the repo) ---
+*.pdf
+
+# --- Generated images, but keep input assets under data/ ---
 *.png
 *.jpg
 *.jpeg
-venv/
-venv/
+!data/**

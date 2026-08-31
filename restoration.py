@@ -37,7 +37,7 @@ from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 from utils.inpainting_utils import *
 
 #carpeta imagenes
-OUTPUT_DIR = "results_RGB"
+OUTPUT_DIR = "results_16G"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -56,45 +56,36 @@ dtype = torch.FloatTensor
 # In[3]:
 
 
-# fig. 7 (bottom)
+# fig. 7 (bottom) — mismo pipeline para barbara y mapa_suave
+f = './data/restoration/mapa_suave.png'
 #f = './data/restoration/barbara.png'
 
 # fig. 14 of supmat
 #f = './data/restoration/kate.png'
 
-f = './data/restoration/mapa_suave.png'
+BARBARA_PIPELINE = ('barbara', 'mapa_suave')
+
 
 img_pil, img_np = get_image(f, imsize)
 
-img_pil = img_pil.convert("RGB")
-img_np = pil_to_np(img_pil)
-new_h = img_np.shape[1] - img_np.shape[1] % 32
-new_w = img_np.shape[2] - img_np.shape[2] % 32
+if any(name in f for name in BARBARA_PIPELINE):
+    if img_np.shape[0] != 1:
+        img_pil = img_pil.convert('L')
+        img_np = pil_to_np(img_pil)
 
-img_np = img_np[:, :new_h, :new_w]
-img_pil = np_to_pil(img_np)
-
-print("Nuevo shape:", img_np.shape)
-print("Modo PIL:", img_pil.mode)
-print("Shape img_np:", img_np.shape)
-
-print("Modo PIL:", img_pil.mode)
-print("Shape img_np:", img_np.shape)
-
-if 'barbara' in f:
     img_np = nn.ReflectionPad2d(1)(np_to_torch(img_np))[0].numpy()
     img_pil = np_to_pil(img_np)
 
     img_mask = get_bernoulli_mask(img_pil, 0.50)
     img_mask_np = pil_to_np(img_mask)
-    
-else:
+elif 'kate' in f:
     img_mask = get_bernoulli_mask(img_pil, 0.98)
 
     img_mask_np = pil_to_np(img_mask)
-
     img_mask_np[1] = img_mask_np[0]
     img_mask_np[2] = img_mask_np[0]
+else:
+    assert False
 
 
 img_masked = img_np * img_mask_np
@@ -118,7 +109,7 @@ INPUT = 'noise'
 input_depth = 32
 OPTIMIZER = 'adam'
 OPT_OVER =  'net'
-if 'barbara' in f:
+if any(name in f for name in BARBARA_PIPELINE):
     OPTIMIZER = 'adam'
 
     LR = 0.001
@@ -132,12 +123,12 @@ if 'barbara' in f:
                   skip_n11=4, 
                   num_scales=5,
                   upsample_mode='bilinear').type(dtype)
-else:
+elif 'kate' in f:
     OPT_OVER = 'net'
-    num_iter = 11000
-    LR = 0.001
+    num_iter = 1000
+    LR = 0.01
     reg_noise_std = 0.00
-        
+
     net = skip(input_depth, 
                img_np.shape[0], 
                num_channels_down = [16, 32, 64, 128, 128],
@@ -147,7 +138,7 @@ else:
                upsample_mode='bilinear', 
                downsample_mode='avg',
                need_sigmoid=True, need_bias=True, pad=pad).type(dtype)
-    
+
 # Loss
 mse = torch.nn.MSELoss().type(dtype)
 img_var = np_to_torch(img_np).type(dtype)
@@ -247,4 +238,3 @@ print(x.device)
 
 
 print(next(net.parameters()).device)
-
