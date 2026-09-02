@@ -8,7 +8,7 @@ Todo se corre **como módulo desde la raíz del repo**, para que `import models`
 `import utils` resuelvan sin trucos de `sys.path`:
 
 ```bash
-./venv/bin/python -m dip.inpaint
+./venv/bin/python -m dip.restoration
 ./venv/bin/python -m dip.phase_diagram
 ./venv/bin/python -m dip.sample_points
 ```
@@ -17,12 +17,12 @@ Todo se corre **como módulo desde la raíz del repo**, para que `import models`
 
 | Módulo | Qué hace | Reemplaza a |
 |---|---|---|
-| `inpaint` | Runner de inpainting DIP (gris o RGB) sobre una imagen con máscara Bernoulli. Máscara → red `skip` → MSE sólo sobre pixeles observados → backtracking por caída de PSNR. Guarda snapshots, `metrics.csv`, figuras anotadas. | `restoration.py`, `restorationGRIS.py`, `restorationRGB.py` |
+| `restoration` | Runner de inpainting DIP (gris o RGB) sobre una imagen con máscara Bernoulli. Máscara → red `skip` → MSE sólo sobre pixeles observados → backtracking por caída de PSNR. Guarda snapshots, `metrics.csv`, figuras anotadas. | `restoration.py`, `restorationGRIS.py`, `restorationRGB.py` |
 | `metrics` | PSNR / SSIM / MAE + mapa `|error|`. Wrappers finos sobre `skimage.metrics` y numpy. | (estaba inline en `restorationGRIS.py`) |
 | `phase_diagram` | Genera el diagrama de fases SoC_max(log Ξ, log ℓ) con el modelo del continuo (`galpynostatic`). La imagen "original" densa que consume el barrido DIP. | `generate_phase_diagram.py` |
 | `sample_points` | Elige un subconjunto disperso de puntos (ξ, ℓ) de la grilla del diagrama de fases para correr KMC real. | `sample_sparse_points.py` |
 
-## `dip.inpaint` — variables de entorno
+## `dip.restoration` — variables de entorno
 
 Todas opcionales, con defaults sanos en el script:
 
@@ -48,7 +48,7 @@ Todas opcionales, con defaults sanos en el script:
 
 ## Barrido de máscaras (cluster)
 
-`slurm/dip_sweep.slurm` corre `dip.inpaint` para
+`slurm/dip_sweep.slurm` corre `dip.restoration` para
 `MASK_FRAC ∈ {0.50, 0.70, 0.80, 0.90, 0.95, 0.98, 0.99}`:
 
 ```bash

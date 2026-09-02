@@ -48,7 +48,7 @@ for mf in $MASKS; do
     echo "==================================================================="
     echo "RES=$RES  MASK_FRAC=$mf  ->  $OUTPUT_DIR   ($(date))"
     echo "==================================================================="
-    ./venv/bin/python -m dip.inpaint
+    ./venv/bin/python -m dip.restoration
 done
 
 echo "Barrido ${RES}x${RES} completo ($(date)). Resultados en ${SWEEP_DIR}/"

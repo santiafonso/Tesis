@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=dip_inpaint
+#SBATCH --job-name=dip_restoration
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
@@ -7,10 +7,10 @@
 #SBATCH --time=10:00:00
 #SBATCH --partition=multi
 #SBATCH --gres=gpu:1
-#SBATCH --output=logs/dip_inpaint_%j.out
-#SBATCH --error=logs/dip_inpaint_%j.err
+#SBATCH --output=logs/dip_restoration_%j.out
+#SBATCH --error=logs/dip_restoration_%j.err
 
-# Una corrida de inpainting DIP sobre una sola imagen/mascara (dip.inpaint).
+# Una corrida de restauracion (inpainting DIP) sobre una sola imagen/mascara (dip.restoration).
 # Reemplaza al viejo job.sh.
 #
 # La ruta al repo se toma de REPO_DIR, si no del dir desde el que se hizo sbatch,
@@ -22,11 +22,11 @@ mkdir -p logs
 
 export PYTHONUNBUFFERED=1
 
-# Parametros (ver dip/inpaint.py para la lista completa y los defaults):
+# Parametros (ver dip/restoration.py para la lista completa y los defaults):
 export IMAGE_PATH="${IMAGE_PATH:-./data/restoration/phase_diagram_sim_128.png}"
-export OUTPUT_DIR="${OUTPUT_DIR:-results/dip_inpaint}"
+export OUTPUT_DIR="${OUTPUT_DIR:-results/dip_restoration}"
 export MASK_FRAC="${MASK_FRAC:-0.90}"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
 
-./venv/bin/python -m dip.inpaint
+./venv/bin/python -m dip.restoration

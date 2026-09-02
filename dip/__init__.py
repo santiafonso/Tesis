@@ -4,7 +4,7 @@ No confundir con el fork upstream de deep-image-prior, que vive en `models/` y
 `utils/` en la raiz del repo y no se toca.
 
 Modulos:
-  - inpaint        : runner unificado de inpainting DIP (gris o RGB) sobre una
+  - restoration    : runner unificado de restauracion (inpainting DIP), gris o RGB,
                      imagen con mascara Bernoulli. Reemplaza a los antiguos
                      restoration.py / restorationGRIS.py / restorationRGB.py.
   - metrics        : PSNR / SSIM / MAE y el mapa de error absoluto.
@@ -14,5 +14,5 @@ Modulos:
                      grilla del diagrama de fases para correr KMC real.
 
 Todos se ejecutan como modulo desde la raiz del repo, p. ej.:
-    ./venv/bin/python -m dip.inpaint
+    ./venv/bin/python -m dip.restoration
 """

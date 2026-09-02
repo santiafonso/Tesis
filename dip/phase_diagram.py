@@ -5,7 +5,7 @@
 `galpynostatic` -- la misma herramienta y version (0.5.13) que usa
 entropy-27-00663.pdf para construir su Figura 2b/11f -- en vez de un barrido KMC
 real. Es rapido y corre local (sin cluster): sirve como imagen "original" densa
-para probar el pipeline de reconstruccion DIP (dip.inpaint) con muestreo
+para probar el pipeline de reconstruccion DIP (dip.restoration) con muestreo
 disperso, antes de gastar tiempo de cluster en puntos KMC reales.
 
 Se ejecuta como modulo desde la raiz del repo:
@@ -32,7 +32,7 @@ from PIL import Image
 
 import galpynostatic.simulation as gpsim
 
-# --- Config (variables de entorno, mismo patron que dip.inpaint) ---
+# --- Config (variables de entorno, mismo patron que dip.restoration) ---
 NUM_XI = int(os.environ.get("NUM_XI", "64"))
 NUM_ELL = int(os.environ.get("NUM_ELL", "64"))
 GRID_SIZE = int(os.environ.get("GRID_SIZE", "1000"))

@@ -10,7 +10,7 @@ rendimientos decrecientes despues. Se usa 5% como punto de partida costo/benefic
 Al usar los mismos valores de xi/el que la grilla del continuo, la mascara real
 resultante se puede comparar pixel a pixel contra `phase_diagram_soc.npy`
 (el "gold standard" del modelo continuo) ademas de usarse como input real de
-`dip.inpaint`.
+`dip.restoration`.
 
 Se ejecuta como modulo desde la raiz del repo:
     ./venv/bin/python -m dip.sample_points

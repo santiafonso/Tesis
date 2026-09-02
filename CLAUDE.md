@@ -35,7 +35,7 @@ These live side by side with no shared code path; treat them as separate project
 Run every module from the repo root so `import models` / `import utils` resolve:
 `./venv/bin/python -m dip.<module>`. See `dip/README.md` for the full env-var tables.
 
-- **`dip/inpaint.py`** — the single DIP inpainting runner (**the actively developed one**; extend this).
+- **`dip/restoration.py`** — the single DIP inpainting runner (**the actively developed one**; extend this).
   Merges the three old root scripts (`restoration.py`, `restorationGRIS.py`, `restorationRGB.py`).
   Method: Bernoulli mask → `skip` encoder-decoder → MSE on observed pixels only → PSNR-drop backtracking;
   crop to a multiple of 64, `ReflectionPad2d(1)`, `matplotlib.use("Agg")`. Grayscale or RGB via
@@ -55,7 +55,7 @@ Run every module from the repo root so `import models` / `import utils` resolve:
 
 ### SLURM jobs (`slurm/`)
 
-- `slurm/dip_inpaint.slurm` — one DIP inpainting run (was `job.sh`).
+- `slurm/dip_restoration.slurm` — one DIP inpainting run (was `job.sh`).
 - `slurm/dip_sweep.slurm` — mask-fraction sweep `{0.50 … 0.99}` (merges `run_gris_sweep.slurm` +
   `run_gris_sweep_128.slurm`); pick resolution with `RES=64|128` (default 128) → reads
   `data/restoration/phase_diagram_sim_${RES}.png`, writes `results/dip_sweep_${RES}/mf<frac>/`.
@@ -81,7 +81,7 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   backtrack to a previous checkpoint if PSNR drops sharply (regularization against overfitting to noise).
 - `notebooks/*.ipynb` (`denoising`, `inpainting`, `super-resolution`, `flash-no-flash`,
   `feature_inversion`, `activation_maximization`, `sr_prior_effect`, `restoration`) are the original
-  per-figure notebooks from the paper; `notebooks/restoration.ipynb` is the one `dip/inpaint.py` was
+  per-figure notebooks from the paper; `notebooks/restoration.ipynb` is the one `dip/restoration.py` was
   originally exported from and now replaces for headless runs.
 - `data/` holds the sample images per task (`data/restoration/`, `data/inpainting/`, `data/denoising/`,
   `data/sr/`, `data/flash_no_flash/`, `data/feature_inversion/`).
@@ -112,7 +112,7 @@ Run every module from the repo root so `import models` / `import utils` resolve:
 ## Repo layout
 
 ```
-dip/            our DIP thesis code (inpaint, metrics, phase_diagram, sample_points) — run as -m dip.*
+dip/            our DIP thesis code (restoration, metrics, phase_diagram, sample_points) — run as -m dip.*
 models/ utils/  upstream deep-image-prior fork — do not refactor
 slurm/          job scripts: dip_*.slurm + phase_diagram.slurm; slurm/kmc/ for the C++ sim
 notebooks/      upstream per-figure .ipynb

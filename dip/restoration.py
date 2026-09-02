@@ -17,7 +17,7 @@ reproduce lo que hacia restorationRGB.py y ademas se calculan SSIM, MAE, el CSV 
 las figuras anotadas (que la version RGB no tenia).
 
 Se ejecuta como modulo desde la raiz del repo:
-    ./venv/bin/python -m dip.inpaint
+    ./venv/bin/python -m dip.restoration
 
 Variables de entorno (todas opcionales):
     IMAGE_PATH      imagen de entrada         (def: ./data/restoration/mapa_suave.png)
@@ -34,11 +34,11 @@ Variables de entorno (todas opcionales):
 Reproduccion de los casos historicos de restoration.py:
     # barbara (gris, 50% oculto)
     IMAGE_PATH=./data/restoration/barbara.png OUTPUT_DIR=results/barbara \
-        MASK_FRAC=0.50 ./venv/bin/python -m dip.inpaint
+        MASK_FRAC=0.50 ./venv/bin/python -m dip.restoration
     # kate (RGB, 98% oculto, sin reg-noise, 1000 iter)
     IMAGE_PATH=./data/restoration/kate.png OUTPUT_DIR=results/kate N_CHANNELS=3 \
         MASK_FRAC=0.98 REG_NOISE_STD=0 LR=0.01 NUM_ITER=1000 \
-        ./venv/bin/python -m dip.inpaint
+        ./venv/bin/python -m dip.restoration
 """
 from __future__ import print_function
 

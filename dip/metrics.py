@@ -1,4 +1,4 @@
-"""Metricas de calidad de reconstruccion usadas por dip.inpaint.
+"""Metricas de calidad de reconstruccion usadas por dip.restoration.
 
 Nada nuevo respecto de restorationGRIS.py: son los mismos calculos que ya estaban
 inline, movidos a un solo lugar para poder leerlos/testearlos aparte.
