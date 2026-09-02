@@ -7,8 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This repo holds two unrelated bodies of work for the user's thesis (`Tesis`):
 
 1. **Deep Image Prior (DIP) restoration experiments** — a fork of Dmitry Ulyanov's
-   [deep-image-prior](https://github.com/DmitryUlyanov/deep-image-prior) (CVPR 2018), extended with
-   custom inpainting/restoration scripts at the repo root.
+   [deep-image-prior](https://github.com/DmitryUlyanov/deep-image-prior) (CVPR 2018). The upstream
+   network/util code stays in `models/` and `utils/`; our own thesis code lives in the `dip/` package
+   and is run as `./venv/bin/python -m dip.<module>` from the repo root.
 2. **KMC galvanostatic simulation** — a standalone, OpenMP-parallel C++ kinetic Monte Carlo simulation
    of electrochemical intercalation, run via SLURM on a cluster. Shares nothing with the Python code
    except the repo.
@@ -29,25 +30,38 @@ These live side by side with no shared code path; treat them as separate project
   Dockerfile re-clones the upstream repo rather than using local sources — treat it as a reference for
   dependency setup, not for running this repo's local scripts).
 
-### Running restoration scripts
+### `dip/` package — our thesis code
 
-- `restoration.py`, `restorationRGB.py`, `restorationGRIS.py` are non-interactive `.py` exports of the
-  `restoration.ipynb` notebook (script cells, no `%matplotlib inline`), meant to run headless on a SLURM
-  cluster.
-  - `restoration.py` — original grayscale ("barbara"/"mapa_suave") + "kate" pipeline, hardcoded paths and
-    hyperparameters, outputs to `results_16G/`.
-  - `restorationGRIS.py` — same as `restoration.py` but outputs to `results_gris/`.
-  - `restorationRGB.py` — reworked color (3-channel) version, fully parameterized via environment
-    variables instead of hardcoded constants, uses `matplotlib.use("Agg")` for headless plotting, and adds
-    a fixed random seed. **This is the actively developed script** — prefer extending this one.
-- `restorationRGB.py` environment variables (all optional, sane defaults in the script):
-  `IMAGE_PATH`, `OUTPUT_DIR`, `MAX_SIDE` (0 = no resize), `MASK_FRAC`, `NUM_ITER`, `LR`, `REG_NOISE_STD`,
-  `SHOW_EVERY`, `SEED`.
-- Run directly: `./venv/bin/python restorationRGB.py`, or via the cluster job:
-  `sbatch job.sh` (SLURM, requests 1 GPU, calls `restorationRGB.py`; edit the `cd` path at the top for
-  the target user's home directory before submitting).
-- Outputs (mask preview, periodic iteration snapshots, final restored image, `restored.npy`, PSNR) go to
-  the script's `OUTPUT_DIR` (`results_16G/`, `results_gris/`, `results_rgb/`, etc. depending on script/env).
+Run every module from the repo root so `import models` / `import utils` resolve:
+`./venv/bin/python -m dip.<module>`. See `dip/README.md` for the full env-var tables.
+
+- **`dip/inpaint.py`** — the single DIP inpainting runner (**the actively developed one**; extend this).
+  Merges the three old root scripts (`restoration.py`, `restorationGRIS.py`, `restorationRGB.py`).
+  Method: Bernoulli mask → `skip` encoder-decoder → MSE on observed pixels only → PSNR-drop backtracking;
+  crop to a multiple of 64, `ReflectionPad2d(1)`, `matplotlib.use("Agg")`. Grayscale or RGB via
+  `N_CHANNELS` (`0` = infer from image). Env vars (all optional): `IMAGE_PATH`, `OUTPUT_DIR`,
+  `N_CHANNELS`, `MASK_FRAC` (fraction *hidden*), `NUM_ITER`, `LR`, `REG_NOISE_STD`, `SHOW_EVERY`,
+  `MAX_SIDE` (0 = no resize), `SEED` (unset = historical non-seeded behaviour of `restorationGRIS.py`).
+  Outputs to `OUTPUT_DIR` (default `results/dip`): `mask.png`, `iter_XXXXX.png`, `final_comparison.png`,
+  `comparison_annotated.png`, `psnr_curve.png`, `metrics.csv`, `restored.png`/`.npy`, `original.npy`.
+- **`dip/metrics.py`** — PSNR / SSIM / MAE + `|error|` map, lifted out of the runner. Thin wrappers over
+  `skimage.metrics` and numpy. PSNR is the only metric that controls the algorithm (backtracking);
+  SSIM/MAE are reporting only.
+- **`dip/phase_diagram.py`** — generates the continuum-model phase diagram `SoC_max(log Ξ, log ℓ)` with
+  `galpynostatic` (the dense "original" image the DIP sweep consumes). Env: `NUM_XI`, `NUM_ELL`,
+  `GRID_SIZE`, `TIME_STEPS`, `OUT_PNG`, `OUT_REF_PNG`, `OUT_NPY`. Fast, no GPU, runs local.
+- **`dip/sample_points.py`** — picks a sparse subset of `(ξ, ℓ)` grid points for real KMC runs. Env:
+  `SEED`, `SAMPLE_FRAC`, `PHASE_DIR`.
+
+### SLURM jobs (`slurm/`)
+
+- `slurm/dip_inpaint.slurm` — one DIP inpainting run (was `job.sh`).
+- `slurm/dip_sweep.slurm` — mask-fraction sweep `{0.50 … 0.99}` (merges `run_gris_sweep.slurm` +
+  `run_gris_sweep_128.slurm`); pick resolution with `RES=64|128` (default 128) → reads
+  `data/restoration/phase_diagram_sim_${RES}.png`, writes `results/dip_sweep_${RES}/mf<frac>/`.
+- `slurm/phase_diagram.slurm` — runs `dip.phase_diagram` on the cluster (also fine locally without it).
+- All three `cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"` — no hardcoded home path to edit anymore.
+- `slurm/kmc/` — the KMC job scripts (Part 2), moved unchanged; still submitted from the repo root.
 
 ### Architecture (upstream deep-image-prior code)
 
@@ -65,10 +79,10 @@ These live side by side with no shared code path; treat them as separate project
   optimize the network's weights (not the image) to reconstruct the corrupted/masked target image via MSE
   on the *observed* pixels only, track PSNR each `show_every`/`SHOW_EVERY` iterations, and optionally
   backtrack to a previous checkpoint if PSNR drops sharply (regularization against overfitting to noise).
-- `*.ipynb` at the root (`denoising.ipynb`, `inpainting.ipynb`, `super-resolution.ipynb`,
-  `flash-no-flash.ipynb`, `feature_inversion.ipynb`, `activation_maximization.ipynb`, `sr_prior_effect.ipynb`,
-  `restoration.ipynb`) are the original per-figure notebooks from the paper; `restoration.ipynb` is the one
-  the root-level `restoration*.py` scripts were exported from and are meant to replace for headless runs.
+- `notebooks/*.ipynb` (`denoising`, `inpainting`, `super-resolution`, `flash-no-flash`,
+  `feature_inversion`, `activation_maximization`, `sr_prior_effect`, `restoration`) are the original
+  per-figure notebooks from the paper; `notebooks/restoration.ipynb` is the one `dip/inpaint.py` was
+  originally exported from and now replaces for headless runs.
 - `data/` holds the sample images per task (`data/restoration/`, `data/inpainting/`, `data/denoising/`,
   `data/sr/`, `data/flash_no_flash/`, `data/feature_inversion/`).
 
@@ -86,16 +100,36 @@ These live side by side with no shared code path; treat them as separate project
   `has_surface_neighbor[]`, no per-step cluster BFS).
 - Run: `./kmc_fast <xi> <el> <numValue>` (galvanostatic parameter `xi`, lattice energy parameter `el`, and
   a run/trajectory index used to tag output files).
-- `run_kmc_param.slurm` — SLURM driver that sweeps a grid of `xi` × `el` × `NRUNS` combinations (edit the
-  `xi_list`/`el_list`/`NRUNS` arrays at the top), and self-throttles to `$SLURM_NTASKS` concurrent
-  `srun --exclusive` jobs using a named-pipe semaphore, stopping early if within `SAFETY_MARGIN` seconds of
-  the partition's time limit. Submit with `sbatch run_kmc_param.slurm`.
+- `slurm/kmc/kmc_param.slurm` — SLURM driver that sweeps a grid of `xi` × `el` × `NRUNS` combinations
+  (edit the `xi_list`/`el_list`/`NRUNS` arrays at the top), and self-throttles to `$SLURM_NTASKS`
+  concurrent `srun --exclusive` jobs using a named-pipe semaphore, stopping early if within
+  `SAFETY_MARGIN` seconds of the partition's time limit. Submit from the repo root:
+  `sbatch slurm/kmc/kmc_param.slurm` (the `run_kmc_*.slurm` scripts moved into `slurm/kmc/` unchanged;
+  they run in `$SLURM_SUBMIT_DIR` and expect the compiled binary at the repo root).
 - `parametros.dat` / `datos-*.dat` / `CS-40x40x40.xyz` are sample parameter logs and lattice
   configuration/output data from prior runs, not inputs required to build or run the code.
+
+## Repo layout
+
+```
+dip/            our DIP thesis code (inpaint, metrics, phase_diagram, sample_points) — run as -m dip.*
+models/ utils/  upstream deep-image-prior fork — do not refactor
+slurm/          job scripts: dip_*.slurm + phase_diagram.slurm; slurm/kmc/ for the C++ sim
+notebooks/      upstream per-figure .ipynb
+analysis/       one-off analysis scripts (job-specific, not part of the pipeline)
+data/           input images (tracked)
+papers/         reference PDFs (git-ignored)
+archive/        old / superseded run-output dirs, kept locally, never committed (git-ignored)
+presentaciones/ slide decks + their generators (the user's; leave alone)
+KMC-*.cpp acumulador_claude.h   the KMC simulation (Part 2), plus its .dat/.xyz artifacts at root
+```
+
+New DIP runs write under `results/` (git-ignored); nothing there is precious — the images that back
+the presentation live in `archive/dip_sweep_{64,128}/` and `archive/phase_diagram/`.
 
 ## Working across both parts
 
 - Do not assume shared conventions between the two parts (e.g. Python formatting rules do not apply to the
   C++ code, and vice versa). When editing one, don't "clean up" or refactor the other unless asked.
-- Large binary/reference files at the root (`*.pdf`, `*.xyz`, the `kmc_fast` binary) are reference papers
-  and simulation artifacts, not something to regenerate or edit.
+- Large binary/artifact files at the repo root (`*.xyz`, `*.dat`, the `kmc_fast` binary) and the PDFs in
+  `papers/` are reference papers and simulation artifacts — not something to regenerate or edit.

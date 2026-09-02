@@ -1,17 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 """Elige un subconjunto disperso de puntos (xi, el) sobre la misma grilla usada
-por generate_phase_diagram.py (64x64, log in [-4,2]) para correrlos con KMC real
-en el cluster. La fraccion de muestreo se fijo en base al barrido de
-MASK_FRAC hecho sobre el mapa del modelo continuo: por debajo de ~2% el DIP
-no reconstruye la frontera de fase; a partir de ~5% ya esta cerca del techo de
-calidad (SSIM~0.96) con rendimientos decrecientes despues. Se usa 5% como
-punto de partida costo/beneficio.
+por dip.phase_diagram (log in [-4,2]) para correrlos con KMC real en el cluster.
+La fraccion de muestreo se fijo en base al barrido de MASK_FRAC hecho sobre el
+mapa del modelo continuo: por debajo de ~2% el DIP no reconstruye la frontera de
+fase; a partir de ~5% ya esta cerca del techo de calidad (SSIM~0.96) con
+rendimientos decrecientes despues. Se usa 5% como punto de partida costo/beneficio.
 
 Al usar los mismos valores de xi/el que la grilla del continuo, la mascara real
 resultante se puede comparar pixel a pixel contra `phase_diagram_soc.npy`
 (el "gold standard" del modelo continuo) ademas de usarse como input real de
-`restorationGRIS.py`.
+`dip.inpaint`.
+
+Se ejecuta como modulo desde la raiz del repo:
+    ./venv/bin/python -m dip.sample_points
+
+Variables de entorno:
+    SEED           semilla del muestreo            (def: 42)
+    SAMPLE_FRAC    fraccion de puntos a elegir     (def: 0.05)
+    PHASE_DIR      carpeta con phase_diagram_soc*  (def: results_phase_diagram)
 """
 from __future__ import print_function
 
@@ -25,15 +32,14 @@ import numpy as np
 
 SEED = int(os.environ.get("SEED", "42"))
 SAMPLE_FRAC = float(os.environ.get("SAMPLE_FRAC", "0.05"))
+PHASE_DIR = os.environ.get("PHASE_DIR", "results_phase_diagram")
 
-AXES_NPZ = "results_phase_diagram/phase_diagram_soc.npy".replace(
-    "phase_diagram_soc.npy", "phase_diagram_soc_axes.npz"
-)
-REFERENCE_NPY = "results_phase_diagram/phase_diagram_soc.npy"
+REFERENCE_NPY = os.path.join(PHASE_DIR, "phase_diagram_soc.npy")
+AXES_NPZ = os.path.join(PHASE_DIR, "phase_diagram_soc_axes.npz")
 
 OUT_POINTS_TXT = "kmc_sample_points.txt"
-OUT_MASK_NPY = "results_phase_diagram/kmc_sample_mask.npy"
-OUT_PREVIEW_PNG = "results_phase_diagram/kmc_sample_preview.png"
+OUT_MASK_NPY = os.path.join(PHASE_DIR, "kmc_sample_mask.npy")
+OUT_PREVIEW_PNG = os.path.join(PHASE_DIR, "kmc_sample_preview.png")
 
 axes = np.load(AXES_NPZ)
 xi_values = axes["xi"]
