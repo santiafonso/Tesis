@@ -41,12 +41,21 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   crop to a multiple of 64, `ReflectionPad2d(1)`, `matplotlib.use("Agg")`. Grayscale or RGB via
   `N_CHANNELS` (`0` = infer from image). Env vars (all optional): `IMAGE_PATH`, `OUTPUT_DIR`,
   `N_CHANNELS`, `MASK_FRAC` (fraction *hidden*), `NUM_ITER`, `LR`, `REG_NOISE_STD`, `SHOW_EVERY`,
-  `MAX_SIDE` (0 = no resize), `SEED` (unset = historical non-seeded behaviour of `restorationGRIS.py`).
+  `MAX_SIDE` (0 = no resize), `SEED` (unset = historical non-seeded behaviour of `restorationGRIS.py`),
+  `MASK_PATH` (optional `.npy` bool `H×W` fixed observed-pixel mask — overrides `MASK_FRAC`/Bernoulli;
+  gets the same `ReflectionPad2d(1)` as the image).
   Outputs to `OUTPUT_DIR` (default `results/dip`): `mask.png`, `iter_XXXXX.png`, `final_comparison.png`,
   `comparison_annotated.png`, `psnr_curve.png`, `metrics.csv`, `restored.png`/`.npy`, `original.npy`.
 - **`dip/metrics.py`** — PSNR / SSIM / MAE + `|error|` map, lifted out of the runner. Thin wrappers over
   `skimage.metrics` and numpy. PSNR is the only metric that controls the algorithm (backtracking);
   SSIM/MAE are reporting only.
+- **`dip/frontier_mask.py`** — builds non-uniform observed-pixel masks for the "points on the phase
+  frontier vs not" experiment. Defines the frontier as smoothed, normalised `|∇SoC|`; samples `N`
+  observed pixels per family — `frontier` (∝ `edge³`), `frontier_mix` (mostly frontier + `MIX_FRAC`
+  uniform), `spread` (∝ `(1−edge)³`), `uniform` (Bernoulli). Nested across `OBS_FRACS`. Writes
+  `data/restoration/masks/mf<hidden>/mask_<name>.npy` (+ `.png`, `preview.png`) — consumed by
+  `dip.restoration` via `MASK_PATH`. Env: `IMAGE_PATH`, `SOC_NPY`, `OUT_DIR`, `OBS_FRACS`, `SEED`,
+  `SMOOTH_SIGMA`, `EDGE_GAMMA`, `MIX_FRAC`. Fast, no GPU, runs local.
 - **`dip/phase_diagram.py`** — generates the continuum-model phase diagram `SoC_max(log Ξ, log ℓ)` with
   `galpynostatic` (the dense "original" image the DIP sweep consumes). Env: `NUM_XI`, `NUM_ELL`,
   `GRID_SIZE`, `TIME_STEPS`, `OUT_PNG`, `OUT_REF_PNG`, `OUT_NPY`. Fast, no GPU, runs local.
@@ -59,8 +68,12 @@ Run every module from the repo root so `import models` / `import utils` resolve:
 - `slurm/dip_sweep.slurm` — mask-fraction sweep `{0.50 … 0.99}` (merges `run_gris_sweep.slurm` +
   `run_gris_sweep_128.slurm`); pick resolution with `RES=64|128` (default 128) → reads
   `data/restoration/phase_diagram_sim_${RES}.png`, writes `results/dip_sweep_${RES}/mf<frac>/`.
+- `slurm/dip_frontier.slurm` — frontier-mask experiment: nested loop over `MFS`
+  `{0.980 … 0.999}` × `MASKS` `{uniform, frontier, frontier_mix, spread}`, feeding
+  `data/restoration/masks/mf<frac>/mask_<name>.npy` into `dip.restoration` via `MASK_PATH`; writes
+  `results/dip_frontier/mf<frac>/<name>/`. Masks pre-generated with `dip.frontier_mask`.
 - `slurm/phase_diagram.slurm` — runs `dip.phase_diagram` on the cluster (also fine locally without it).
-- All three `cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"` — no hardcoded home path to edit anymore.
+- All `cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"` — no hardcoded home path to edit anymore.
 - `slurm/kmc/` — the KMC job scripts (Part 2), moved unchanged; still submitted from the repo root.
 
 ### Architecture (upstream deep-image-prior code)

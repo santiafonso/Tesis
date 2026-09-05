@@ -30,6 +30,9 @@ Variables de entorno (todas opcionales):
     SHOW_EVERY      cada cuantas iter se guarda snapshot + metricas (def: 100)
     MAX_SIDE        si >0, redimensiona el lado mayor a este valor (def: 0)
     SEED           si se define, fija la semilla (mascara + init reproducibles)
+    MASK_PATH      .npy (bool H x W) con una mascara fija de pixeles observados;
+                   si se define, ignora MASK_FRAC y no usa Bernoulli. Se le aplica
+                   el mismo reflection-pad(+1) que a la imagen. Ver dip.frontier_mask.
 
 Reproduccion de los casos historicos de restoration.py:
     # barbara (gris, 50% oculto)
@@ -83,6 +86,7 @@ REG_NOISE_STD = float(os.environ.get("REG_NOISE_STD", "0.03"))
 SHOW_EVERY = int(os.environ.get("SHOW_EVERY", "100"))
 MAX_SIDE = int(os.environ.get("MAX_SIDE", "0"))  # 0 = sin redimensionar
 SEED = os.environ.get("SEED")  # None => sin fijar semilla (comportamiento historico)
+MASK_PATH = os.environ.get("MASK_PATH")  # si se define, mascara fija en vez de Bernoulli
 
 DIM_DIV_BY = 64  # la red 'skip' baja/sube 5 escalas -> el lado debe ser multiplo
 PAD = "reflection"
@@ -143,8 +147,29 @@ img_np = nn.ReflectionPad2d(1)(np_to_torch(img_np))[0].numpy()
 img_pil = np_to_pil(img_np)
 print("Tras reflection pad(+1):", img_np.shape, "-- este es el tamano de salida")
 
-img_mask = get_bernoulli_mask(img_pil, MASK_FRAC)
-img_mask_np = pil_to_np(img_mask)
+if MASK_PATH:
+    m = np.load(MASK_PATH).astype(np.float32)
+    if m.ndim == 3:
+        m = m[0]
+    ph = img_np.shape[1] - m.shape[0]
+    pw = img_np.shape[2] - m.shape[1]
+    if (ph, pw) == (2, 2):
+        m = np.pad(m, 1, mode="reflect")  # mismo reflection-pad(+1) que la imagen
+    elif (ph, pw) != (0, 0):
+        raise RuntimeError(
+            "MASK_PATH %s: shape %s incompatible con la imagen %s "
+            "(se admite igual, o 2 px menos por el pad)"
+            % (MASK_PATH, m.shape, tuple(img_np.shape[1:]))
+        )
+    img_mask_np = np.repeat(m[None], n_channels, axis=0).astype(np.float32)
+    _obs = float(img_mask_np[0].mean())
+    print(
+        "Mascara fija:", MASK_PATH,
+        "-> %.2f%% observado (MASK_FRAC efectivo %.3f)" % (100 * _obs, 1 - _obs),
+    )
+else:
+    img_mask = get_bernoulli_mask(img_pil, MASK_FRAC)
+    img_mask_np = pil_to_np(img_mask)
 img_masked = img_np * img_mask_np
 mask_var = np_to_torch(img_mask_np).to(device)
 
