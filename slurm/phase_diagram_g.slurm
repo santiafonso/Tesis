@@ -6,7 +6,11 @@
 #SBATCH --mem=8G
 #SBATCH --time=00:58:00
 #SBATCH --partition=short
+#SBATCH --gres=gpu:1
 #SBATCH --array=0-10%11
+
+# NB: las particiones de Mendieta (short/multi) exigen pedir >=1 GPU aunque el
+# job sea 100% CPU (galpynostatic no usa GPU). Se pide gpu:1 y queda ocioso.
 #SBATCH --output=logs/phase_diagram_g_%A_%a.out
 #SBATCH --error=logs/phase_diagram_g_%A_%a.err
 
