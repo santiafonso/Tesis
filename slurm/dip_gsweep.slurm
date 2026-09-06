@@ -16,13 +16,15 @@
 # varias fracciones enmascaradas.
 #   11 g x 5 MASK_FRAC = 55 tareas; %12 = hasta 12 simultaneas.
 #
-#   lee  data/restoration/phase_diagram_g/g<val>/sim_<RES>.png   (generado local
-#        con scripts/gen_phase_diagram_g_local.sh y promovido a data/)
+#   lee  results/phase_diagram_g/g<val>/sim_<RES>.png   (lo deja slurm/phase_diagram_g.slurm)
+#        o, si no esta ahi, data/restoration/phase_diagram_g/g<val>/sim_<RES>.png
 #   escribe results/dip_gsweep/g<val>/mf<frac>/
 #
 # Idempotente: salta si results/dip_gsweep/g<val>/mf<frac>/restored.npy existe.
 #
 # Submit:  sbatch slurm/dip_gsweep.slurm
+#          # encadenado a la generacion de mapas:
+#          sbatch --dependency=afterok:<jobid_phase_diagram_g> slurm/dip_gsweep.slurm
 cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}" || exit 1
 
 RES="${RES:-128}"
@@ -35,7 +37,9 @@ g=${GS[$((i / NMF))]}
 mf=${MFS[$((i % NMF))]}
 
 export PYTHONUNBUFFERED=1
-export IMAGE_PATH="data/restoration/phase_diagram_g/g${g}/sim_${RES}.png"
+IMAGE_PATH="results/phase_diagram_g/g${g}/sim_${RES}.png"
+[ -f "$IMAGE_PATH" ] || IMAGE_PATH="data/restoration/phase_diagram_g/g${g}/sim_${RES}.png"
+export IMAGE_PATH
 export MASK_FRAC="$mf"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
