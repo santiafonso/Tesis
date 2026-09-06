@@ -173,6 +173,10 @@ else:
 img_masked = img_np * img_mask_np
 mask_var = np_to_torch(img_mask_np).to(device)
 
+# Fraccion realmente oculta (de la mascara aplicada). Con MASK_PATH puede diferir
+# de MASK_FRAC; se usa para rotular figuras.
+mask_frac_eff = 1.0 - float(img_mask_np[0].mean())
+
 
 def save_grid(images_np, path):
     """Concatena imagenes C x H x W en [0, 1] lado a lado y guarda un PNG con PIL
@@ -311,7 +315,7 @@ _cmap = "gray" if n_channels == 1 else None
 fig, axes = plt.subplots(1, 4, figsize=(16, 4.5))
 for ax, title, data in [
     (axes[0], "Original", img_np),
-    (axes[1], "Enmascarada (%.0f%% oculto)" % (MASK_FRAC * 100), img_masked),
+    (axes[1], "Enmascarada (%.1f%% oculto)" % (mask_frac_eff * 100), img_masked),
     (axes[2], "Reconstruida DIP", out_np),
 ]:
     ax.imshow(_disp(data), cmap=_cmap, vmin=0, vmax=1)
@@ -322,7 +326,8 @@ axes[3].set_title("|error|  (MAE=%.4f)" % final_mae)
 axes[3].axis("off")
 fig.colorbar(im, ax=axes[3], fraction=0.046, pad=0.04)
 fig.suptitle(
-    "MASK_FRAC=%.3f   PSNR=%.2f dB   SSIM=%.4f" % (MASK_FRAC, final_psnr, final_ssim)
+    "MASK_FRAC=%.3f   PSNR=%.2f dB   SSIM=%.4f"
+    % (mask_frac_eff, final_psnr, final_ssim)
 )
 fig.tight_layout()
 fig.savefig(os.path.join(OUTPUT_DIR, "comparison_annotated.png"), dpi=120)
@@ -343,7 +348,7 @@ if metrics_log:
     ax2.set_ylabel("SSIM", color="tab:red")
     lines = ax1.get_lines() + ax2.get_lines()
     ax1.legend(lines, [l.get_label() for l in lines], loc="lower right", fontsize=8)
-    ax1.set_title("MASK_FRAC=%.3f  -  metricas vs iteracion" % MASK_FRAC)
+    ax1.set_title("MASK_FRAC=%.3f  -  metricas vs iteracion" % mask_frac_eff)
     fig.tight_layout()
     fig.savefig(os.path.join(OUTPUT_DIR, "psnr_curve.png"), dpi=120)
     plt.close(fig)
