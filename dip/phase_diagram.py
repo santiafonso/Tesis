@@ -15,6 +15,7 @@ Variables de entorno (todas opcionales):
     NUM_XI, NUM_ELL   resolucion de la grilla         (def: 64 x 64)
     GRID_SIZE         puntos del solver de particula  (def: 1000)
     TIME_STEPS        pasos temporales del solver     (def: 100000)
+    NTHREADS         cores OpenMP, -1 = todos         (def: -1)
     VCUT             phi_cut                          (def: -0.15)
     G                parametro de interaccion (Frumkin); g<0 atractivo,
                      g>0 repulsivo, g=0 Langmuir      (def: 0.0)
@@ -46,6 +47,7 @@ NUM_XI = int(os.environ.get("NUM_XI", "64"))
 NUM_ELL = int(os.environ.get("NUM_ELL", "64"))
 GRID_SIZE = int(os.environ.get("GRID_SIZE", "1000"))
 TIME_STEPS = int(os.environ.get("TIME_STEPS", "100000"))
+NTHREADS = int(os.environ.get("NTHREADS", "-1"))  # -1 = todos los cores (OpenMP)
 
 LOGXI_LOW, LOGXI_HIGH = -4.0, 2.0
 LOGELL_LOW, LOGELL_HIGH = -4.0, 2.0
@@ -80,7 +82,7 @@ gm = gpsim.GalvanostaticMap(
     num_ell=NUM_ELL,
     grid_size=GRID_SIZE,
     time_steps=TIME_STEPS,
-    nthreads=-1,
+    nthreads=NTHREADS,
 )
 gm.run()
 df = gm.map_dataframe

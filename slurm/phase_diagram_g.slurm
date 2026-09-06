@@ -6,14 +6,14 @@
 #SBATCH --mem=8G
 #SBATCH --time=02:00:00
 #SBATCH --partition=multi
-#SBATCH --array=0-8%9
+#SBATCH --array=0-10%11
 #SBATCH --output=logs/phase_diagram_g_%A_%a.out
 #SBATCH --error=logs/phase_diagram_g_%A_%a.err
 
 # Barrido del parametro de interaccion g (isoterma de Frumkin) del modelo del
 # continuo: un mapa SoC_max(log Xi, log l) por valor de g, una tarea por g.
 # El profe marco que "los mas conflictivos son los negativos", asi que el barrido
-# carga sobre todo g<0 (y g=0 como referencia Langmuir).
+# carga sobre todo g<0 (mas g=0 Langmuir y g=2,4 repulsivos de contraste).
 #
 # Salida por g (en results/, git-ignored; se promueve a data/ el/los g que se
 # terminen usando como input DIP):
@@ -28,7 +28,7 @@
 cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}" || exit 1
 
 RES="${RES:-128}"
-GS=(-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0)
+GS=(-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 2.0 4.0)
 g=${GS[${SLURM_ARRAY_TASK_ID:-0}]}
 
 OUT_DIR="results/phase_diagram_g/g${g}"
