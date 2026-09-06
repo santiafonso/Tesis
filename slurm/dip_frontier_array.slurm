@@ -7,7 +7,7 @@
 #SBATCH --time=00:58:00
 #SBATCH --partition=short
 #SBATCH --gres=gpu:1
-#SBATCH --array=0-103%12
+#SBATCH --array=0-107%12
 #SBATCH --output=logs/dip_frontier_%A_%a.out
 #SBATCH --error=logs/dip_frontier_%A_%a.err
 
@@ -18,8 +18,8 @@
 # aplana, asi no hay que barrer N en los experimentos siguientes):
 #   - grilla fina  mf 0.80 .. 0.99  paso 0.01   (obs 20 % .. 1 %)
 #   - anclas altas mf 0.500, 0.700               (obs 50 %, 30 %)
-#   - cola rala    mf 0.995 .. 0.999             (obs 0.5 % .. 0.1 %)
-# 26 mf x 4 distribuciones = 104 tareas; %12 = hasta 12 simultaneas.
+#   - cola rala    mf 0.995 .. 0.999  paso 0.001 (obs 0.5 % .. 0.1 %)
+# 27 mf x 4 distribuciones = 108 tareas; %12 = hasta 12 simultaneas.
 #
 # Idempotente: si results/dip_frontier/mf<frac>/<name>/restored.npy ya existe, la
 # tarea se saltea. Para reforzar una corrida, borrar su carpeta de salida.
@@ -35,7 +35,7 @@ RES="${RES:-128}"
 MFS=(0.500 0.700 \
      0.800 0.810 0.820 0.830 0.840 0.850 0.860 0.870 0.880 0.890 \
      0.900 0.910 0.920 0.930 0.940 0.950 0.960 0.970 0.980 0.990 \
-     0.995 0.997 0.998 0.999)
+     0.995 0.996 0.997 0.998 0.999)
 MASKS=(uniform frontier frontier_mix spread)
 NM=${#MASKS[@]}
 
