@@ -20,7 +20,7 @@ Todo se corre **como módulo desde la raíz del repo**, para que `import models`
 |---|---|---|
 | `restoration` | Runner de inpainting DIP (gris o RGB) sobre una imagen con máscara Bernoulli. Máscara → red `skip` → MSE sólo sobre pixeles observados → backtracking por caída de PSNR. Guarda snapshots, `metrics.csv`, figuras anotadas. | `restoration.py`, `restorationGRIS.py`, `restorationRGB.py` |
 | `metrics` | PSNR / SSIM / MAE + mapa `|error|`. Wrappers finos sobre `skimage.metrics` y numpy. | (estaba inline en `restorationGRIS.py`) |
-| `phase_diagram` | Genera el diagrama de fases SoC_max(log Ξ, log ℓ) con el modelo del continuo (`galpynostatic`). La imagen "original" densa que consume el barrido DIP. | `generate_phase_diagram.py` |
+| `phase_diagram` | Genera el diagrama de fases SoC_max(log Ξ, log ℓ) con el modelo del continuo (`galpynostatic`). La imagen "original" densa que consume el barrido DIP. Env extra: `G` (interacción Frumkin, def 0.0; g<0 atractivo), `VCUT` (def -0.15). | `generate_phase_diagram.py` |
 | `sample_points` | Elige un subconjunto disperso de puntos (ξ, ℓ) de la grilla del diagrama de fases para correr KMC real. | `sample_sparse_points.py` |
 | `frontier_mask` | Genera máscaras de pixeles observados **no uniformes** (frontera / frontier_mix / spread / uniform), anidadas en varios %, para el experimento "puntos sobre la frontera de fase vs no". Se consumen desde `dip.restoration` con `MASK_PATH`. | (nuevo) |
 

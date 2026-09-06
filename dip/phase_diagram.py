@@ -11,6 +11,15 @@ disperso, antes de gastar tiempo de cluster en puntos KMC reales.
 Se ejecuta como modulo desde la raiz del repo:
     ./venv/bin/python -m dip.phase_diagram
 
+Variables de entorno (todas opcionales):
+    NUM_XI, NUM_ELL   resolucion de la grilla         (def: 64 x 64)
+    GRID_SIZE         puntos del solver de particula  (def: 1000)
+    TIME_STEPS        pasos temporales del solver     (def: 100000)
+    VCUT             phi_cut                          (def: -0.15)
+    G                parametro de interaccion (Frumkin); g<0 atractivo,
+                     g>0 repulsivo, g=0 Langmuir      (def: 0.0)
+    OUT_PNG, OUT_REF_PNG, OUT_NPY   rutas de salida
+
 Salidas:
   - data/restoration/phase_diagram_sim.png : escala de grises, valores crudos
     de SoC_fin normalizados [0,1] -- este es el input que consume DIP.
@@ -40,8 +49,11 @@ TIME_STEPS = int(os.environ.get("TIME_STEPS", "100000"))
 
 LOGXI_LOW, LOGXI_HIGH = -4.0, 2.0
 LOGELL_LOW, LOGELL_HIGH = -4.0, 2.0
-VCUT = -0.15  # phi_cut, igual que en el paper
-G = 0.0  # interaccion nula -> isoterma de Langmuir, igual que en Fig. 2b del paper
+# phi_cut y parametro de interaccion g (isoterma de Frumkin). g=0 -> Langmuir,
+# igual que en Fig. 2b del paper; g<0 = interacciones atractivas (transicion mas
+# abrupta / separacion de fases); g>0 = repulsivas.
+VCUT = float(os.environ.get("VCUT", "-0.15"))
+G = float(os.environ.get("G", "0.0"))
 
 OUT_PNG = os.environ.get("OUT_PNG", "./data/restoration/phase_diagram_sim.png")
 OUT_REF_PNG = os.environ.get(

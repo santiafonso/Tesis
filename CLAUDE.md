@@ -58,7 +58,13 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   `SMOOTH_SIGMA`, `EDGE_GAMMA`, `MIX_FRAC`. Fast, no GPU, runs local.
 - **`dip/phase_diagram.py`** — generates the continuum-model phase diagram `SoC_max(log Ξ, log ℓ)` with
   `galpynostatic` (the dense "original" image the DIP sweep consumes). Env: `NUM_XI`, `NUM_ELL`,
-  `GRID_SIZE`, `TIME_STEPS`, `OUT_PNG`, `OUT_REF_PNG`, `OUT_NPY`. Fast, no GPU, runs local.
+  `GRID_SIZE`, `TIME_STEPS`, `VCUT` (φ_cut, def `-0.15`), `G` (Frumkin interaction param, def `0.0`;
+  `g<0` attractive → sharper transition, `g>0` repulsive), `OUT_PNG`, `OUT_REF_PNG`, `OUT_NPY`.
+  Fast-ish, no GPU, runs local (~2 min per 256 pts single-core, so 128² wants the cluster).
+- **`slurm/phase_diagram_g.slurm`** — job array over `G` `{-4.0 … 0.0}` (one map per `g`, emphasis on
+  negatives per the "los más conflictivos son los negativos" note); writes
+  `results/phase_diagram_g/g<val>/{sim_<RES>.png,reference.png,soc.npy}`. Idempotent (skips if
+  `soc.npy` exists). `RES=64` for a faster/coarser sweep.
 - **`dip/sample_points.py`** — picks a sparse subset of `(ξ, ℓ)` grid points for real KMC runs. Env:
   `SEED`, `SAMPLE_FRAC`, `PHASE_DIR`.
 
