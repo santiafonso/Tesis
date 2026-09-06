@@ -2,7 +2,7 @@
 #SBATCH --job-name=phase_diagram_g
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=10
 #SBATCH --mem=8G
 #SBATCH --time=00:58:00
 #SBATCH --partition=short
