@@ -2,10 +2,10 @@
 #SBATCH --job-name=phase_diagram_g
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=8G
-#SBATCH --time=02:00:00
-#SBATCH --partition=multi
+#SBATCH --time=00:58:00
+#SBATCH --partition=short
 #SBATCH --array=0-10%11
 #SBATCH --output=logs/phase_diagram_g_%A_%a.out
 #SBATCH --error=logs/phase_diagram_g_%A_%a.err
@@ -23,10 +23,16 @@
 #
 # Idempotente: si soc.npy ya existe, la tarea se saltea.
 #
-# Submit:  sbatch slurm/phase_diagram_g.slurm
-#          RES=64 sbatch --export=ALL slurm/phase_diagram_g.slurm   # mas rapido
+# galpynostatic necesita Python moderno; el venv del repo en el cluster es 3.6.
+# En Mendieta hay un env aparte:
+#   PYBIN=~/micromamba/envs/galpy/bin/python sbatch --export=ALL slurm/phase_diagram_g.slurm
+# En local PYBIN queda en ./venv/bin/python (que si tiene galpynostatic).
+#
+# Submit:  PYBIN=~/micromamba/envs/galpy/bin/python sbatch --export=ALL slurm/phase_diagram_g.slurm
+#          RES=64 ... sbatch ...   # mas rapido / mas grueso
 cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}" || exit 1
 
+PYBIN="${PYBIN:-./venv/bin/python}"
 RES="${RES:-128}"
 GS=(-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 2.0 4.0)
 g=${GS[${SLURM_ARRAY_TASK_ID:-0}]}
@@ -47,6 +53,6 @@ if [ -f "$OUT_NPY" ]; then
     exit 0
 fi
 
-echo "=== g=$g  RES=$RES  ($(date)) ==="
-./venv/bin/python -m dip.phase_diagram
+echo "=== g=$g  RES=$RES  PYBIN=$PYBIN  ($(date)) ==="
+"$PYBIN" -m dip.phase_diagram
 echo "=== done g=$g ($(date)) ==="
