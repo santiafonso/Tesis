@@ -4,12 +4,15 @@
 probar cuanto pesa tener (o no tener) puntos observados sobre la frontera de fase
 del mapa SoC_max(log Xi, log l).
 
-Para cada fraccion observada de OBS_FRACS produce 4 mascaras con el mismo N:
+Para cada fraccion observada de OBS_FRACS produce 5 mascaras con el mismo N:
   - frontier     : casi todos los puntos caen sobre la frontera (alto |grad SoC|).
   - frontier_mix : la mayoria sobre la frontera, pero una fraccion MIX_FRAC
                    repartida de forma uniforme fuera de ella.
   - spread       : los puntos evitan la frontera (se reparten por las mesetas).
   - uniform      : baseline Bernoulli uniforme (para comparar).
+  - grid         : grilla 2D regular con paso fijo (sin azar), la version
+                   "absurdamente uniforme": paso = round(sqrt(H*W/N)) en ambos
+                   ejes, no anidada con las demas (se recalcula por fraccion).
 
 Las mascaras de una misma familia son *anidadas*: los N puntos de una fraccion
 chica son un subconjunto de los de la fraccion mas grande (se sortea una vez el N
@@ -111,7 +114,22 @@ WEIGHTS = {
     "spread": w_spread,
     "uniform": w_unif,
 }
-ORDER = ["frontier", "frontier_mix", "spread", "uniform"]
+RANDOM_ORDER = ["frontier", "frontier_mix", "spread", "uniform"]
+ORDER = RANDOM_ORDER + ["grid"]
+
+
+def grid_mask(H, W, N):
+    """Grilla 2D regular (sin azar): paso fijo en ambos ejes tal que la
+    densidad de puntos sea ~N/(H*W). No se ancla a un N exacto (el paso es
+    entero), pero se acerca lo mas posible desde arriba."""
+    if N <= 0:
+        return np.zeros((H, W), dtype=bool)
+    step = max(1, int(round(np.sqrt(H * W / N))))
+    off = step // 2
+    m = np.zeros((H, W), dtype=bool)
+    m[off::step, off::step] = True
+    return m
+
 
 obs_sorted = sorted(OBS_FRACS, reverse=True)
 n_max = int(round(obs_sorted[0] * H * W))
@@ -121,8 +139,10 @@ print(
 )
 
 # un orden de sorteo por familia (N maximo); las fracciones chicas son prefijos
+# ("grid" queda afuera: es determinística y se recalcula por fraccion, no se
+# anida por prefijo de un sorteo).
 full_order = {}
-for k, name in enumerate(ORDER):
+for k, name in enumerate(RANDOM_ORDER):
     rng = np.random.default_rng([SEED, k])
     full_order[name] = rng.choice(H * W, size=n_max, replace=False, p=WEIGHTS[name])
 
@@ -139,9 +159,12 @@ for obs in obs_sorted:
     masks = {}
     print("mf%.3f  (obs %.2f%%, N=%d)" % (mf, 100 * obs, N))
     for name in ORDER:
-        flat = np.zeros(H * W, dtype=bool)
-        flat[full_order[name][:N]] = True
-        m = flat.reshape(H, W)
+        if name == "grid":
+            m = grid_mask(H, W, N)
+        else:
+            flat = np.zeros(H * W, dtype=bool)
+            flat[full_order[name][:N]] = True
+            m = flat.reshape(H, W)
         masks[name] = m
         np.save(os.path.join(sub, "mask_%s.npy" % name), m)
         Image.fromarray((m * 255).astype(np.uint8), mode="L").save(
@@ -150,7 +173,9 @@ for obs in obs_sorted:
         on_edge = float((m & (edge > 0.30)).sum()) / max(m.sum(), 1)
         print("    %-12s %4d pts  %.0f%% sobre frontera" % (name, int(m.sum()), 100 * on_edge))
 
-    fig, axs = plt.subplots(2, 2, figsize=(11, 10.5))
+    fig, axs = plt.subplots(2, 3, figsize=(16, 10.5))
+    for ax in axs.flat[len(ORDER):]:
+        ax.axis("off")
     for ax, name in zip(axs.flat, ORDER):
         ax.imshow(soc, cmap="viridis", vmin=0, vmax=1, origin="upper",
                   extent=[-4, 2, -4, 2], aspect="auto")
