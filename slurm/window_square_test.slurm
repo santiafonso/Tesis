@@ -26,13 +26,13 @@ export PYTHONUNBUFFERED=1
 export IMAGE_PATH="${RUN_DIR}/window_sq64/image_window.png"
 export MASK_PATH="${RUN_DIR}/window_sq64/mask_window.npy"
 export NUM_ITER="${NUM_ITER:-16000}"
-export REG_NOISE_STD="${REG_NOISE_STD:-0.01}"
+export REG_NOISE_STD="${REG_NOISE_STD:-0.08}"  # 0.01 (afinada p/ imagen completa) sobreajusta a manchas en ventanas chicas
 export PSNR_DROP_TOL="${PSNR_DROP_TOL:--8}"
 export MAX_FALLBACKS="${MAX_FALLBACKS:-3}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
 export SNAPSHOT_EVERY="${SNAPSHOT_EVERY:-1000}"
 export SEED="${SEED:-42}"
-export OUTPUT_DIR="${RUN_DIR}/window_sq64_dip"
+export OUTPUT_DIR="${RUN_DIR}/window_sq64_dip_reg${REG_NOISE_STD}"
 
 mkdir -p logs "$OUTPUT_DIR"
 

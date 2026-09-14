@@ -91,7 +91,8 @@ def prepare(run_dir, size):
 
 
 def splice(run_dir, window_dir):
-    prep_dir = os.path.join(run_dir, os.path.basename(window_dir).replace("_dip", ""))
+    base = os.path.basename(window_dir)
+    prep_dir = os.path.join(run_dir, base[:base.index("_dip")])  # window_sq64_dip[_reg0.08] -> window_sq64
     meta = json.load(open(os.path.join(prep_dir, "meta.json")))
     size, r0, c0 = meta["size"], meta["r0"], meta["c0"]
 
@@ -112,8 +113,11 @@ def splice(run_dir, window_dir):
     print("Con ventana sq:   PSNR %.2f  SSIM %.4f" % (p1, s1))
     print("Delta: PSNR %+.2f  SSIM %+.4f" % (p1 - p0, s1 - s0))
 
+    tag = base[base.index("_dip") + 5:] or "sq%d" % size  # sufijo distintivo (p.ej. reg0.08)
+    tag = "sq%d_%s" % (size, tag) if tag != "sq%d" % size else tag
+
     Image.fromarray((spliced * 255).astype(np.uint8), mode="L").save(
-        os.path.join(run_dir, "spliced_sq%d.png" % size)
+        os.path.join(run_dir, "spliced_%s.png" % tag)
     )
 
     fig, axs = plt.subplots(1, 3, figsize=(10.5, 4))
@@ -128,9 +132,9 @@ def splice(run_dir, window_dir):
         ax.set_xticks([]); ax.set_yticks([])
     fig.suptitle(run_dir)
     fig.tight_layout(rect=[0, 0, 1, 0.92])
-    fig.savefig(os.path.join(run_dir, "window_comparison_sq%d.png" % size), dpi=130)
+    fig.savefig(os.path.join(run_dir, "window_comparison_%s.png" % tag), dpi=130)
     plt.close(fig)
-    print("Escrito spliced_sq%d.png y window_comparison_sq%d.png" % (size, size))
+    print("Escrito spliced_%s.png y window_comparison_%s.png" % (tag, tag))
 
 
 if __name__ == "__main__":
