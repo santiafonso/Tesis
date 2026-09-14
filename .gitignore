@@ -31,8 +31,13 @@ kmc_launched_points.txt
 # --- Reference papers (kept locally, not in the repo) ---
 *.pdf
 
-# --- Generated images, but keep input assets under data/ ---
+# --- Generated images, but keep input assets under data/ and the figures
+# that ship inside each presentaciones/presentacionN_DD_MM/ ---
 *.png
 *.jpg
 *.jpeg
 !data/**
+!presentaciones/**
+
+# --- LibreOffice lock files (left behind when a .pptx is open) ---
+.~lock.*

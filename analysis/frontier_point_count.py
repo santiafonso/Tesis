@@ -35,7 +35,7 @@ from PIL import Image
 
 GS = [-4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0]
 MFS = ["0.900", "0.950", "0.980", "0.990", "0.995"]
-FAMILIES = ["uniform", "frontier_mix"]  # las que realmente corrieron en dip_gsweep_frontier
+FAMILIES = ["uniform", "frontier_mix", "grid", "frontier", "spread"]  # las 5 del punto 3 (9/9)
 RES = 128
 OBS_FRACS = "0.10 0.05 0.02 0.01 0.005"  # espeja frontier_mask_g.slurm -> mf 0.90..0.995
 SEED = "42"
@@ -163,7 +163,7 @@ def main():
     gs_vals = sorted(set(r["g"] for r in records))
     cmap = plt.cm.viridis
     norm = plt.Normalize(min(gs_vals), max(gs_vals))
-    markers = {"uniform": "o", "frontier_mix": "^"}
+    markers = {"uniform": "o", "frontier_mix": "^", "grid": "s", "frontier": "D", "spread": "v"}
 
     for ax_row, ycol, ylabel in [(0, "psnr_final", "PSNR final (dB)"),
                                   (1, "ssim_final", "SSIM final")]:

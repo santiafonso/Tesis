@@ -30,12 +30,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from scipy.ndimage import uniform_filter1d
+from scipy.ndimage import uniform_filter1d, gaussian_filter1d
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from dip import metrics as dip_metrics  # noqa: E402
 
 SMOOTH_WINDOW = int(os.environ.get("SMOOTH_WINDOW", "9"))
+WIDTH = float(os.environ.get("WIDTH", "6"))  # ancho (px) de la linea limpia redibujada
 
 
 def crop_pad(img):
@@ -104,6 +105,51 @@ def shift_rows(img, shift):
     return out
 
 
+def rebuild_clean_line(img, xs_smooth, high, low, width):
+    """Redibuja la imagen como una linea LIMPIA: mesetas planas (high/low) a
+    cada lado de xs_smooth[y], con una transicion angosta de `width` pixeles
+    -- no reusa el contenido ruidoso/ondulado original, lo reemplaza."""
+    H, W = img.shape
+    xq = np.arange(W)
+    out = np.empty_like(img)
+    for y in range(H):
+        c = xs_smooth[y]
+        if np.isnan(c):
+            out[y] = img[y]
+            continue
+        t = np.clip((xq - (c - width / 2.0)) / max(width, 1e-6), 0, 1)
+        out[y] = high + (low - high) * t
+    return out
+
+
+def canonical_profile(img, xs_detected, ref):
+    """Alinea cada fila valida por su cruce detectado (a la columna `ref`) y
+    promedia -- el ruido/escalon de cada fila se cancela en el promedio, en
+    vez de solo reubicarse como pasa con un shift fila por fila."""
+    H, W = img.shape
+    xq = np.arange(W)
+    rows = []
+    for y in range(H):
+        if np.isnan(xs_detected[y]):
+            continue
+        rows.append(np.interp(xq + (xs_detected[y] - ref), xq, img[y]))
+    return np.mean(rows, axis=0) if rows else img.mean(axis=0)
+
+
+def rebuild_from_profile(img, profile, xs_smooth, ref):
+    """Reconstruye la imagen colocando `profile` (centrado en `ref`) en la
+    posicion xs_smooth[y] de cada fila. Filas sin posicion valida (NaN) se
+    dejan como estaban."""
+    H, W = img.shape
+    xq = np.arange(W)
+    out = img.copy()
+    for y in range(H):
+        if np.isnan(xs_smooth[y]):
+            continue
+        out[y] = np.interp(xq - (xs_smooth[y] - ref), xq, profile)
+    return out
+
+
 def main():
     run_dir = sys.argv[1] if len(sys.argv) > 1 else \
         "results/dip_gsweep_frontier/g-4.0/mf0.980/uniform"
@@ -113,10 +159,11 @@ def main():
     xs_rec = row_crossings(restored)
     xs_true = row_crossings(original)
     xs_smooth = smooth_fill(xs_rec, SMOOTH_WINDOW)
-    shift = xs_smooth - xs_rec
-    shift[np.isnan(xs_rec) | np.isnan(xs_smooth)] = 0.0
 
-    corrected = shift_rows(restored, shift)
+    high = np.quantile(restored, 0.95)
+    low = np.quantile(restored, 0.05)
+    width = WIDTH  # ancho fijo de la linea limpia (no el de la imagen ruidosa)
+    corrected = rebuild_clean_line(restored, xs_smooth, high, low, width)
     corrected = np.clip(corrected, 0, 1)
 
     psnr_before = dip_metrics.psnr(original[None], restored[None])
