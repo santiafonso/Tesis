@@ -47,6 +47,7 @@ export PYTHONUNBUFFERED=1
 export IMAGE_PATH="./data/restoration/phase_diagram_sim_${RES}.png"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
+export SNAPSHOT_EVERY="${SNAPSHOT_EVERY:-1000}"
 export SEED="${SEED:-42}"
 export MASK_PATH="data/restoration/masks/mf${mf}/mask_${name}.npy"
 export OUTPUT_DIR="results/dip_frontier/mf${mf}/${name}"

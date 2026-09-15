@@ -28,5 +28,6 @@ export OUTPUT_DIR="${OUTPUT_DIR:-results/dip_restoration}"
 export MASK_FRAC="${MASK_FRAC:-0.90}"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
+export SNAPSHOT_EVERY="${SNAPSHOT_EVERY:-1000}"
 
 ./venv/bin/python -m dip.restoration

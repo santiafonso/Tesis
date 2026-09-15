@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Contexto de trabajo (mantener a mano)
+
+- **Estado:** _(completar — qué capítulos/experimentos están listos y qué falta)_
+- **Deadline:** _(completar)_
+- **Estilo de citas / formato:** _(completar — APA, IEEE, etc.)_
+- **Idioma de escritura:** español
+- **NO hacer:** no reescribir secciones enteras sin pedirlo; proponer cambios primero.
+- El libro (`~/ideas/libro-notas.md`) reusa material de acá — no mezclar los dos: la tesis es
+  la forma académica, el libro es la versión narrativa.
+
 ## Repository overview
 
 This repo holds two unrelated bodies of work for the user's thesis (`Tesis`):
@@ -40,12 +50,19 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   Method: Bernoulli mask → `skip` encoder-decoder → MSE on observed pixels only → PSNR-drop backtracking;
   crop to a multiple of 64, `ReflectionPad2d(1)`, `matplotlib.use("Agg")`. Grayscale or RGB via
   `N_CHANNELS` (`0` = infer from image). Env vars (all optional): `IMAGE_PATH`, `OUTPUT_DIR`,
-  `N_CHANNELS`, `MASK_FRAC` (fraction *hidden*), `NUM_ITER`, `LR`, `REG_NOISE_STD`, `SHOW_EVERY`,
-  `MAX_SIDE` (0 = no resize), `SEED` (unset = historical non-seeded behaviour of `restorationGRIS.py`),
+  `N_CHANNELS`, `MASK_FRAC` (fraction *hidden*), `NUM_ITER`, `LR`, `REG_NOISE_STD` (↓ to ~`0.01` helps
+  sharp phase fronts / negative `g`), `SHOW_EVERY` (metrics/CSV cadence), `SNAPSHOT_EVERY` (PNG-dump
+  cadence, default = `SHOW_EVERY`), `PSNR_DROP_TOL` (dB drop in masked PSNR *vs its moving average*
+  that triggers backtracking, default `-5.0`; **more negative = less aggressive** — use `-8`/`-10` on
+  abrupt fronts), `MAX_FALLBACKS` (consecutive rollbacks before the state is accepted and the run
+  continues, default `3`; stops a bad checkpoint from freezing the run), `MAX_SIDE` (0 = no resize),
+  `SEED` (unset = historical non-seeded behaviour of `restorationGRIS.py`),
   `MASK_PATH` (optional `.npy` bool `H×W` fixed observed-pixel mask — overrides `MASK_FRAC`/Bernoulli;
   gets the same `ReflectionPad2d(1)` as the image).
-  Outputs to `OUTPUT_DIR` (default `results/dip`): `mask.png`, `iter_XXXXX.png`, `final_comparison.png`,
-  `comparison_annotated.png`, `psnr_curve.png`, `metrics.csv`, `restored.png`/`.npy`, `original.npy`.
+  Outputs to `OUTPUT_DIR` (default `results/dip`): `mask.png`, `final_comparison.png`,
+  `comparison_annotated.png`, `psnr_curve.png`, `snapshots_contact.png` (trajectory grid),
+  `metrics.csv` (last rows: `final`, `mae`, `fallbacks`), `restored.png`/`.npy`, `original.npy`, and
+  per-iteration `snapshots/iter_XXXXX.png` (in their own subdir, not the top level).
 - **`dip/metrics.py`** — PSNR / SSIM / MAE + `|error|` map, lifted out of the runner. Thin wrappers over
   `skimage.metrics` and numpy. PSNR is the only metric that controls the algorithm (backtracking);
   SSIM/MAE are reporting only.
@@ -55,7 +72,8 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   uniform), `spread` (∝ `(1−edge)³`), `uniform` (Bernoulli). Nested across `OBS_FRACS`. Writes
   `data/restoration/masks/mf<hidden>/mask_<name>.npy` (+ `.png`, `preview.png`) — consumed by
   `dip.restoration` via `MASK_PATH`. Env: `IMAGE_PATH`, `SOC_NPY`, `OUT_DIR`, `OBS_FRACS`, `SEED`,
-  `SMOOTH_SIGMA`, `EDGE_GAMMA`, `MIX_FRAC`. Fast, no GPU, runs local.
+  `SMOOTH_SIGMA`, `EDGE_GAMMA`, `MIX_FRAC`. Fast, no GPU, runs local. Per-`g` masks (own `IMAGE_PATH` +
+  `SOC_NPY` per map) are driven by `slurm/frontier_mask_g.slurm` → `data/restoration/masks_g/g<val>/`.
 - **`dip/phase_diagram.py`** — generates the continuum-model phase diagram `SoC_max(log Ξ, log ℓ)` with
   `galpynostatic` (the dense "original" image the DIP sweep consumes). Env: `NUM_XI`, `NUM_ELL`,
   `GRID_SIZE`, `TIME_STEPS`, `VCUT` (φ_cut, def `-0.15`), `G` (Frumkin interaction param, def `0.0`;
@@ -78,6 +96,19 @@ Run every module from the repo root so `import models` / `import utils` resolve:
   `{0.980 … 0.999}` × `MASKS` `{uniform, frontier, frontier_mix, spread}`, feeding
   `data/restoration/masks/mf<frac>/mask_<name>.npy` into `dip.restoration` via `MASK_PATH`; writes
   `results/dip_frontier/mf<frac>/<name>/`. Masks pre-generated with `dip.frontier_mask`.
+- `slurm/frontier_mask_g.slurm` — builds per-`g` frontier masks (job array over `G`), one set per map
+  from `results/phase_diagram_g/g<val>/{sim_<RES>.png,soc.npy}` → `data/restoration/masks_g/g<val>/mf<frac>/`.
+  `OBS_FRACS` mirrors the `dip_gsweep_frontier` mask fractions. Needs the modern Python (`PYBIN`).
+- `slurm/dip_gsweep_frontier.slurm` — the fix for the **negative-`g` reconstruction problem** (abrupt
+  phase front → DIP blurs it, backtracking oscillates). Job array `9 g (negatives + 0.0) ×
+  {frontier_mix, uniform} × 5 MASK_FRAC`, with `NUM_ITER=16000`, `REG_NOISE_STD=0.01`,
+  `PSNR_DROP_TOL=-8` + `MAX_FALLBACKS=3` (robust backtracking); reads the per-`g` masks from
+  `frontier_mask_g.slurm` (built with `MIX_FRAC=0.40` so plateaus keep anchors), writes
+  `results/dip_gsweep_frontier/g<val>/mf<frac>/<name>/`. `uniform` is re-run at the same
+  `N`/hyperparameters as an apples-to-apples baseline (do **not** compare against `results/dip_gsweep/`).
+  Chain: `phase_diagram_g` → `frontier_mask_g` → `dip_gsweep_frontier` (via `--dependency=afterok:`).
+  The first tanda (`MIX_FRAC=0.15`, `PSNR_DROP_TOL=-3`) is kept as `results/dip_gsweep_frontier_v1/`:
+  `frontier_mix` only helped at `mf0.90 + g≤-2`, and thrashed (1000s of rollbacks) elsewhere.
 - `slurm/phase_diagram.slurm` — runs `dip.phase_diagram` on the cluster (also fine locally without it).
 - All `cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}"` — no hardcoded home path to edit anymore.
 - `slurm/kmc/` — the KMC job scripts (Part 2), moved unchanged; still submitted from the repo root.

@@ -26,8 +26,15 @@ Variables de entorno (todas opcionales):
     MASK_FRAC       fraccion NO observada     (def: 0.50)
     NUM_ITER        iteraciones               (def: 11000)
     LR             learning rate              (def: 0.001)
-    REG_NOISE_STD   ruido de regularizacion   (def: 0.03)
-    SHOW_EVERY      cada cuantas iter se guarda snapshot + metricas (def: 100)
+    REG_NOISE_STD   ruido de regularizacion   (def: 0.03; bajar a ~0.01 ayuda con
+                   frentes de fase abruptos -- g negativos)
+    SHOW_EVERY      cada cuantas iter se loguea metrica en el CSV/curva (def: 100)
+    SNAPSHOT_EVERY  cada cuantas iter se guarda un PNG en snapshots/ (def: =SHOW_EVERY)
+    PSNR_DROP_TOL   caida de PSNR_masked [dB] respecto de su media movil que dispara
+                   el backtracking al ultimo checkpoint (def: -5.0; MAS negativo =
+                   backtracking MENOS agresivo -- usar -8/-10 en frentes abruptos)
+    MAX_FALLBACKS   rollbacks seguidos permitidos antes de aceptar el estado y
+                   seguir; evita que un checkpoint malo congele la corrida (def: 3)
     MAX_SIDE        si >0, redimensiona el lado mayor a este valor (def: 0)
     SEED           si se define, fija la semilla (mascara + init reproducibles)
     MASK_PATH      .npy (bool H x W) con una mascara fija de pixeles observados;
@@ -46,6 +53,7 @@ Reproduccion de los casos historicos de restoration.py:
 from __future__ import print_function
 
 import csv
+import glob
 import os
 import random
 
@@ -84,11 +92,15 @@ NUM_ITER = int(os.environ.get("NUM_ITER", "11000"))
 LR = float(os.environ.get("LR", "0.001"))
 REG_NOISE_STD = float(os.environ.get("REG_NOISE_STD", "0.03"))
 SHOW_EVERY = int(os.environ.get("SHOW_EVERY", "100"))
+SNAPSHOT_EVERY = int(os.environ.get("SNAPSHOT_EVERY", str(SHOW_EVERY)))
+PSNR_DROP_TOL = float(os.environ.get("PSNR_DROP_TOL", "-5.0"))  # dB; <0 (mas neg = menos agresivo)
+MAX_FALLBACKS = int(os.environ.get("MAX_FALLBACKS", "3"))  # rollbacks seguidos antes de aceptar y seguir
+PSNR_EMA_ALPHA = 0.3  # peso del valor nuevo en la media movil de PSNR_masked
 MAX_SIDE = int(os.environ.get("MAX_SIDE", "0"))  # 0 = sin redimensionar
 SEED = os.environ.get("SEED")  # None => sin fijar semilla (comportamiento historico)
 MASK_PATH = os.environ.get("MASK_PATH")  # si se define, mascara fija en vez de Bernoulli
 
-DIM_DIV_BY = 64  # la red 'skip' baja/sube 5 escalas -> el lado debe ser multiplo
+DIM_DIV_BY = 32  # la red 'skip' baja/sube 5 escalas con stride 2 (2**5=32) -> el lado debe ser multiplo
 PAD = "reflection"
 INPUT = "noise"
 INPUT_DEPTH = 32
@@ -97,6 +109,10 @@ OPT_OVER = "net"
 PLOT = True
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+# Los snapshots por iteracion (decenas por corrida, todos "del mismo estilo") van
+# a su propia subcarpeta; en OUTPUT_DIR quedan solo los entregables.
+SNAPSHOT_DIR = os.path.join(OUTPUT_DIR, "snapshots")
+os.makedirs(SNAPSHOT_DIR, exist_ok=True)
 
 if SEED is not None:
     seed = int(SEED)
@@ -224,7 +240,8 @@ metrics_log = []  # (iter, psnr_full, psnr_masked, ssim_full)
 
 
 def closure():
-    global i, psrn_masked_last, last_net, net_input
+    global i, psrn_masked_last, last_net, net_input, n_fallbacks
+    global psnr_ema, consec_fallbacks
 
     if REG_NOISE_STD > 0:
         net_input = net_input_saved + (noise.normal_() * REG_NOISE_STD)
@@ -252,17 +269,37 @@ def closure():
     )
 
     if PLOT and i % SHOW_EVERY == 0:
-        if psrn_masked - psrn_masked_last < -5 and last_net is not None:
-            print("\nFalling back to previous checkpoint.")
+        ref = psrn_masked_last if psnr_ema is None else psnr_ema
+        if (
+            psrn_masked - ref < PSNR_DROP_TOL
+            and last_net is not None
+            and consec_fallbacks < MAX_FALLBACKS
+        ):
+            n_fallbacks += 1
+            consec_fallbacks += 1
+            print(
+                "\nFalling back to previous checkpoint (#%d, %d/%d seguidos)."
+                % (n_fallbacks, consec_fallbacks, MAX_FALLBACKS)
+            )
             for new_param, net_param in zip(last_net, net.parameters()):
                 net_param.data.copy_(new_param.to(device))
             return total_loss * 0
-        else:
-            last_net = [x.detach().cpu() for x in net.parameters()]
-            psrn_masked_last = psrn_masked
+
+        # aceptar el estado actual: nuevo checkpoint + actualizar la media movil.
+        # Al toparse con MAX_FALLBACKS se cae aca aunque el PSNR haya bajado, asi
+        # un unico checkpoint malo no deja la corrida en un bucle de rollback.
+        consec_fallbacks = 0
+        last_net = [x.detach().cpu() for x in net.parameters()]
+        psrn_masked_last = psrn_masked
+        psnr_ema = (
+            psrn_masked
+            if psnr_ema is None
+            else PSNR_EMA_ALPHA * psrn_masked + (1 - PSNR_EMA_ALPHA) * psnr_ema
+        )
 
         out_clip = np.clip(out_np, 0, 1)
-        np_to_pil(out_clip).save(os.path.join(OUTPUT_DIR, "iter_%05d.png" % i))
+        if i % SNAPSHOT_EVERY == 0:
+            np_to_pil(out_clip).save(os.path.join(SNAPSHOT_DIR, "iter_%05d.png" % i))
         ssim_full = metrics.ssim(img_np, out_clip, n_channels)
         metrics_log.append((i, float(psrn), float(psrn_masked), float(ssim_full)))
 
@@ -272,6 +309,9 @@ def closure():
 
 last_net = None
 psrn_masked_last = 0
+psnr_ema = None
+n_fallbacks = 0
+consec_fallbacks = 0
 i = 0
 
 net_input_saved = net_input.detach().clone()
@@ -353,6 +393,28 @@ if metrics_log:
     fig.savefig(os.path.join(OUTPUT_DIR, "psnr_curve.png"), dpi=120)
     plt.close(fig)
 
+# Hoja de contacto de la trayectoria: una sola imagen con todos los snapshots en
+# grilla, en vez de abrir de a uno decenas de iter_*.png "iguales".
+snaps = sorted(glob.glob(os.path.join(SNAPSHOT_DIR, "iter_*.png")))
+if snaps:
+    ncol = min(6, len(snaps))
+    nrow = int(np.ceil(len(snaps) / ncol))
+    fig, axs = plt.subplots(
+        nrow, ncol, figsize=(2.1 * ncol, 2.2 * nrow), squeeze=False
+    )
+    for ax in axs.flat:
+        ax.axis("off")
+    for ax, sp in zip(axs.flat, snaps):
+        ax.imshow(Image.open(sp), cmap=_cmap, vmin=0, vmax=255)
+        ax.set_title("iter %d" % int(os.path.basename(sp)[5:-4]), fontsize=7)
+    fig.suptitle(
+        "MASK_FRAC=%.3f  -  trayectoria DIP (%d snapshots, backtracks=%d)"
+        % (mask_frac_eff, len(snaps), n_fallbacks)
+    )
+    fig.tight_layout()
+    fig.savefig(os.path.join(OUTPUT_DIR, "snapshots_contact.png"), dpi=110)
+    plt.close(fig)
+
 with open(os.path.join(OUTPUT_DIR, "metrics.csv"), "w", newline="") as fh:
     w = csv.writer(fh)
     w.writerow(["iter", "psnr_full", "psnr_masked", "ssim_full"])
@@ -360,8 +422,10 @@ with open(os.path.join(OUTPUT_DIR, "metrics.csv"), "w", newline="") as fh:
     w.writerow([])
     w.writerow(["final", final_psnr, "", final_ssim])
     w.writerow(["mae", final_mae, "", ""])
+    w.writerow(["fallbacks", n_fallbacks, "", ""])
 
 print("PSNR final (imagen completa):", final_psnr)
 print("SSIM final (imagen completa):", final_ssim)
 print("MAE final:", final_mae)
-print("Listo. Salidas en:", OUTPUT_DIR)
+print("Backtracks (PSNR_DROP_TOL=%.1f dB):" % PSNR_DROP_TOL, n_fallbacks)
+print("Listo. Salidas en:", OUTPUT_DIR, "(snapshots en", SNAPSHOT_DIR + ")")

@@ -41,6 +41,7 @@ export PYTHONUNBUFFERED=1
 export IMAGE_PATH="./data/restoration/phase_diagram_sim_${RES}.png"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
+export SNAPSHOT_EVERY="${SNAPSHOT_EVERY:-1000}"
 export SEED="${SEED:-42}"
 
 MFS="${MFS:-0.980 0.990 0.995 0.997 0.998 0.999}"

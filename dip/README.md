@@ -36,18 +36,23 @@ Todas opcionales, con defaults sanos en el script:
 | `MASK_FRAC` | `0.50` | Fracción **NO** observada (enmascarada). |
 | `NUM_ITER` | `11000` | Iteraciones de optimización. |
 | `LR` | `0.001` | Learning rate (Adam). |
-| `REG_NOISE_STD` | `0.03` | Ruido de regularización sobre el input. |
-| `SHOW_EVERY` | `100` | Cada cuántas iter se guarda snapshot + métricas. |
+| `REG_NOISE_STD` | `0.03` | Ruido de regularización sobre el input. Bajar a `~0.01` ayuda a fijar frentes de fase abruptos (mapas con `g` negativo). |
+| `SHOW_EVERY` | `100` | Cada cuántas iter se loguea métrica (CSV + curva PSNR). |
+| `SNAPSHOT_EVERY` | `=SHOW_EVERY` | Cada cuántas iter se vuelca un PNG a `snapshots/`. Subilo (p. ej. `1000`) para no llenar la carpeta de frames casi iguales. |
+| `PSNR_DROP_TOL` | `-5.0` | Caída de PSNR_masked [dB] respecto de su media móvil que dispara el backtracking. **Más negativo = menos agresivo**; usar `-8`/`-10` en mapas con frente abrupto. |
+| `MAX_FALLBACKS` | `3` | Rollbacks seguidos permitidos antes de aceptar el estado y seguir. Evita que un checkpoint malo deje la corrida en un bucle de rollback. |
 | `MAX_SIDE` | `0` | Si `>0`, redimensiona el lado mayor a ese valor antes de recortar. |
 | `SEED` | — | Si se define, fija la semilla (máscara + init reproducibles). Sin definir = comportamiento histórico de `restorationGRIS.py`. |
 | `MASK_PATH` | — | `.npy` (bool `H×W`) con máscara fija de pixeles observados. Si se define, ignora `MASK_FRAC` y no usa Bernoulli; se le aplica el mismo `ReflectionPad2d(1)` que a la imagen. Ver `dip.frontier_mask`. |
 
 ### Salidas en `OUTPUT_DIR`
 
-`mask.png` · `iter_XXXXX.png` (cada `SHOW_EVERY`) · `final_comparison.png`
-(pixel-exacto) · `comparison_annotated.png` (con colorbar + PSNR/SSIM) ·
-`psnr_curve.png` · `metrics.csv` · `restored.png` / `restored.npy` ·
-`original.npy`.
+`mask.png` · `final_comparison.png` (pixel-exacto) ·
+`comparison_annotated.png` (con colorbar + PSNR/SSIM) · `psnr_curve.png` ·
+`snapshots_contact.png` (grilla con toda la trayectoria en una sola imagen) ·
+`metrics.csv` (últimas filas: `final`, `mae`, `fallbacks`) ·
+`restored.png` / `restored.npy` · `original.npy` ·
+`snapshots/iter_XXXXX.png` (cada `SNAPSHOT_EVERY`, en su propia subcarpeta).
 
 ## Barrido de máscaras (cluster)
 

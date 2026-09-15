@@ -43,6 +43,7 @@ export IMAGE_PATH
 export MASK_FRAC="$mf"
 export NUM_ITER="${NUM_ITER:-11000}"
 export SHOW_EVERY="${SHOW_EVERY:-100}"
+export SNAPSHOT_EVERY="${SNAPSHOT_EVERY:-1000}"
 export SEED="${SEED:-42}"
 export OUTPUT_DIR="results/dip_gsweep/g${g}/mf${mf}"
 
