@@ -102,8 +102,13 @@ MASK_PATH = os.environ.get("MASK_PATH")  # si se define, mascara fija en vez de 
 
 DIM_DIV_BY = 32  # la red 'skip' baja/sube 5 escalas con stride 2 (2**5=32) -> el lado debe ser multiplo
 PAD = "reflection"
-INPUT = "noise"
-INPUT_DEPTH = 32
+# Arquitectura (defaults = los historicos; expuestos para la busqueda de autoexp/)
+INPUT = os.environ.get("INPUT_TYPE", "noise")  # "noise" | "meshgrid" (meshgrid fuerza 2 canales)
+INPUT_DEPTH = 2 if INPUT == "meshgrid" else int(os.environ.get("INPUT_DEPTH", "32"))
+NET_WIDTH = int(os.environ.get("NET_WIDTH", "128"))  # canales de skip_n33d/skip_n33u
+SKIP_N11 = int(os.environ.get("SKIP_N11", "4"))
+NUM_SCALES = int(os.environ.get("NUM_SCALES", "5"))
+UPSAMPLE_MODE = os.environ.get("UPSAMPLE_MODE", "bilinear")
 OPTIMIZER = "adam"
 OPT_OVER = "net"
 PLOT = True
@@ -215,16 +220,16 @@ net = get_net(
     "skip",
     PAD,
     n_channels=n_channels,
-    skip_n33d=128,
-    skip_n33u=128,
-    skip_n11=4,
-    num_scales=5,
-    upsample_mode="bilinear",
+    skip_n33d=NET_WIDTH,
+    skip_n33u=NET_WIDTH,
+    skip_n11=SKIP_N11,
+    num_scales=NUM_SCALES,
+    upsample_mode=UPSAMPLE_MODE,
 ).to(device)
 
 mse = torch.nn.MSELoss().to(device)
 img_var = np_to_torch(img_np).to(device)
-net_input = get_noise(INPUT_DEPTH, INPUT, img_np.shape[1:]).to(device).detach()
+net_input = get_noise(INPUT_DEPTH, INPUT, img_np.shape[1:]).float().to(device).detach()  # meshgrid sale en float64
 
 print(
     "Resolucion net_input / img_var / mask_var:",

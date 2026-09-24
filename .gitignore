@@ -41,3 +41,6 @@ kmc_launched_points.txt
 
 # --- LibreOffice lock files (left behind when a .pptx is open) ---
 .~lock.*
+
+# --- autoexp: corridas del loop de experimentacion (score.json/panel.png se miran ahi) ---
+autoexp/runs/

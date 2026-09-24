@@ -1,0 +1,14 @@
+fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,objetivo,nota,run_dir
+2026-09-23 21:19,base_grid8x8_nearest,-4.0 -2.0 -0.5,64,19.11,17.73,0.7826,11.42,no,"baseline scipy nearest, grilla 8x8",autoexp/runs/base_grid8x8_nearest
+2026-09-23 21:20,base_grid8x8_linear,-4.0 -2.0 -0.5,64,21.85,19.64,0.8645,15.21,no,"baseline scipy linear, grilla 8x8",autoexp/runs/base_grid8x8_linear
+2026-09-23 21:20,base_grid8x8_cubic,-4.0 -2.0 -0.5,64,22.92,20.34,0.8656,15.79,no,"baseline scipy cubic, grilla 8x8",autoexp/runs/base_grid8x8_cubic
+2026-09-23 21:20,base_grid8x8_rbf_tps,-4.0 -2.0 -0.5,64,24.42,21.19,0.8758,17.53,no,"baseline scipy rbf_tps, grilla 8x8",autoexp/runs/base_grid8x8_rbf_tps
+2026-09-23 21:20,base_grid8x8_rbf_linear,-4.0 -2.0 -0.5,64,23.69,20.95,0.8731,17.31,no,"baseline scipy rbf_linear, grilla 8x8",autoexp/runs/base_grid8x8_rbf_linear
+2026-09-23 21:20,base_grid8x8_rbf_cubic,-4.0 -2.0 -0.5,64,24.37,21.00,0.8323,17.53,no,"baseline scipy rbf_cubic, grilla 8x8",autoexp/runs/base_grid8x8_rbf_cubic
+2026-09-23 21:20,adapt_n116_p1_tps,-4.0 -2.0 -0.5,64,25.11,18.56,0.7695,22.85,no,adaptativo n1=16 power=1 + tps,autoexp/runs/adapt_n116_p1_tps
+2026-09-23 21:20,adapt_n116_p2_tps,-4.0 -2.0 -0.5,64,22.73,18.79,0.7692,20.22,no,adaptativo n1=16 power=2 + tps,autoexp/runs/adapt_n116_p2_tps
+2026-09-23 21:20,adapt_n132_p1_tps,-4.0 -2.0 -0.5,64,26.83,21.94,0.8317,22.05,no,adaptativo n1=32 power=1 + tps,autoexp/runs/adapt_n132_p1_tps
+2026-09-23 21:20,adapt_n132_p2_tps,-4.0 -2.0 -0.5,64,25.22,21.45,0.8276,19.92,no,adaptativo n1=32 power=2 + tps,autoexp/runs/adapt_n132_p2_tps
+2026-09-23 21:20,adapt_n148_p1_tps,-4.0 -2.0 -0.5,64,27.82,23.28,0.8517,21.61,no,adaptativo n1=48 power=1 + tps,autoexp/runs/adapt_n148_p1_tps
+2026-09-23 21:20,adapt_n148_p2_tps,-4.0 -2.0 -0.5,64,26.54,23.10,0.8498,20.57,no,adaptativo n1=48 power=2 + tps,autoexp/runs/adapt_n148_p2_tps
+2026-09-23 21:21,halton_tps,-4.0 -2.0 -0.5,64,23.06,19.87,0.8551,18.15,no,halton + tps,autoexp/runs/halton_tps
