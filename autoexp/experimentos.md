@@ -10,6 +10,27 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (14) — DIP con ruido, robustez v2, sondas de rampa (otra vez no)
+
+**DIP con ruido** (cluster, híbrido con parámetros robustos; 4 g). Fusión con guarda
+0.02 + 2σ (el residuo en los puntos reales incluye el propio ruido):
+
+| σ | TPS robusta sola | DIP solo | **fusión + guarda** | SSIM TPS → fusión |
+|---|---|---|---|---|
+| 0.01 | 38.31 (35.02) | 35.77 (33.76) | **39.02 (35.48)** | 0.983 → 0.990 |
+| 0.03 | 34.23 (32.44) | 32.96 (31.28) | **34.89 (33.64)** | 0.963 → 0.982 |
+
+→ Con ruido, DIP solo pierde contra la TPS robusta, pero **la fusión suma ~0.7 dB de media, más
+en el peor g (+1.2 con σ=0.03), y sobre todo en SSIM**: DIP filtra el ruido que la TPS copia.
+
+**Robustez a la grilla (receta actual sin DIP, 9 g):** offset 0.35: 38.41 (35.84); 0.50:
+40.62 (36.20); 0.65: 37.68 (35.63). **Número honesto: ~38.9 ± 1.3 dB de media; peor g entre
+35.6 y 36.2**, que casi no depende de la grilla (antes ~37.5).
+
+**Sondas de rampa condicionadas** (solo si el frente es suave, d=5/12, 6 o 4/10 en 2-3
+columnas): 39.2 / 39.5 / 38.4 contra 40.2 sin sondas. Segunda vez que no sirven: los puntos
+valen más en el relleno LOO. Revertido.
+
 ## 2026-09-24 (13) — TPS suavizada + fusión: 41.1 dB en 9 g, 8 de 9 ≥ 38 ★
 
 - El suavizado 1e-4 de la TPS mejora incluso sin ruido (se vio al comparar sigma_0 = 39.5

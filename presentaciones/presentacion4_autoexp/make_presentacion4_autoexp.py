@@ -501,15 +501,13 @@ def main():
                     os.path.join(REPO, "results", "comparacion_nuevo_vs_dip_v2", "comparacion_err.png"),
                     width=6.2)
 
-    rob = [(o, score(r)) for o, r in [("0.20", "ROBUST9_off0.2"), ("0.35", "VAL9_loo_n30_off0.35"),
-                                      ("0.50", "VAL9_loo_n30_off0.5"), ("0.65", "VAL9_loo_n30_off0.65"),
-                                      ("0.80", "ROBUST9_off0.8")]]
-    add_table_slide(prs, "Robustez: ¿depende de dónde cae la grilla?",
+    rob = [(o, score(r)) for o, r in [("0.35", "ROB9v2_off0.35"), ("0.50", BEST_TPS9), ("0.65", "ROB9v2_off0.65")]]
+    add_table_slide(prs, "Robustez: ¿depende de dónde cae la grilla? (sin DIP, 9 g)",
                     ["offset de la grilla", "media 9 g [dB]", "peor g [dB]"],
-                    [[o, "%.1f" % s["mean_psnr"], "%.1f" % s["min_psnr"]] for o, s in rob if s],
+                    [[o, "%.1f" % sc["mean_psnr"], "%.1f" % sc["min_psnr"]] for o, sc in rob if sc],
                     note="Todo se afinó con offset 0.5, así que ese valor está algo favorecido. Lo honesto "
-                         "es reportar la banda (~37.5 ± 1 dB con esta versión del muestreo), no el mejor "
-                         "caso.\n(Filas 0.20 y 0.80: versión anterior del relleno.)",
+                         "es reportar ~%.1f ± %.1f dB de media. El peor g casi no depende de la grilla."
+                    % (np.mean([sc["mean_psnr"] for _, sc in rob if sc]), np.std([sc["mean_psnr"] for _, sc in rob if sc])),
                     col_w=[3.9, 3.9, 3.9])
 
     add_table_slide(prs, "DIP con 64 puntos: hiperparámetros del paper vs. los de la tesis",
@@ -543,6 +541,15 @@ def main():
                     "Cada punto con ruido gaussiano de desvío σ (fijo por punto). Umbral de 'vale 0' = 3σ, salto "
                     "mínimo ~5σ y recta del acantilado por RANSAC. σ hay que estimarlo en KMC con corridas repetidas.",
                     width=9.5)
+
+    add_table_slide(prs, "Con ruido, DIP sí suma (fusión)",
+                    ["ruido σ (4 g)", "TPS robusta sola", "DIP solo", "fusión TPS + DIP", "SSIM TPS → fusión"],
+                    [["0.01", "38.3 (35.0)", "35.8 (33.8)", "39.0 (35.5)", "0.983 → 0.990"],
+                     ["0.03", "34.2 (32.4)", "33.0 (31.3)", "34.9 (33.6)", "0.963 → 0.982"]],
+                    note="Media (peor g). Con ruido, DIP solo pierde contra la TPS, pero fusionado suma ~0.7 dB, "
+                         "más en el peor g, y sobre todo en SSIM: DIP filtra el ruido que la TPS copia punto a punto.\n"
+                         "Guarda con ruido: 0.02 + 2σ.",
+                    col_w=[2.0, 2.4, 2.2, 2.4, 2.7])
 
     add_image_slide(prs, "Punto 5 de la reunión: Rosenbrock de vuelta a 3D",
                     os.path.join(REPO, "results", "rosenbrock_3d", "rosenbrock_3d.png"),
@@ -579,8 +586,8 @@ def main():
         "Reconstrucción: fusión TPS (cerca del acantilado) + DIP (zona suave) + monotonía, con guarda.",
         "Pendiente, y lo más importante:",
         "- ¿Existe el acantilado a 0 en KMC, o el borde es difuso / ruidoso?",
-        "- Ruido: con σ = 0.01 la receta robusta pierde ~2 dB y con σ = 0.03 ~6 dB (sin DIP). "
-        "Falta DIP con ruido (en Mendieta). Hay que estimar σ de KMC con corridas repetidas.",
+        "- Ruido: con σ = 0.01 se pierden ~1.5 dB y con σ = 0.03 ~5 dB (fusión con DIP). Con ruido "
+        "DIP suma más (sobre todo SSIM). Hay que estimar σ de KMC con corridas repetidas.",
         "- Guarda de DIP: si DIP no ajusta los puntos reales, se usa solo la TPS (o se relanza DIP con otra semilla).",
     ], body_size=16)
 

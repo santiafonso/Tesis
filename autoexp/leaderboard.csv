@@ -194,3 +194,12 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 13:43,VAL9_ransac_s1e-4,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.62,36.20,0.9842,34.22,no,VALIDACION 9 g: receta RANSAC + TPS suavizado 1e-4 (sin ruido),autoexp/runs/VAL9_ransac_s1e-4
 2026-09-24 13:44,VAL9_fuseG2_tesis_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.07,37.25,0.9885,34.50,no,"VALIDACION 9 g: fusion con guarda, TPS suavizada 1e-4, B=20",autoexp/runs/VAL9_fuseG2_tesis_B20
 2026-09-24 13:44,VAL9_fuseG2_tesis_B30,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.20,37.08,0.9884,34.52,no,"VALIDACION 9 g: fusion con guarda, TPS suavizada 1e-4, B=30",autoexp/runs/VAL9_fuseG2_tesis_B30
+2026-09-24 13:46,ramp_5-12_2,-4.0 -2.0 -1.5 -0.5,64,39.20,35.23,0.9834,32.54,no,"sondas de rampa d=[5,12] en 2 columnas solo si frente suave",autoexp/runs/ramp_5-12_2
+2026-09-24 13:47,ROB9v2_off0.35,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,38.41,35.84,0.9799,31.10,no,ROBUSTEZ 9 g: receta actual (RANSAC+suavizado) offset=0.35,autoexp/runs/ROB9v2_off0.35
+2026-09-24 13:47,ramp_6_3,-4.0 -2.0 -1.5 -0.5,64,39.54,35.31,0.9834,32.89,no,sondas de rampa d=[6] en 3 columnas solo si frente suave,autoexp/runs/ramp_6_3
+2026-09-24 13:48,ramp_4-10_3,-4.0 -2.0 -1.5 -0.5,64,38.37,35.52,0.9831,31.72,no,"sondas de rampa d=[4,10] en 3 columnas solo si frente suave",autoexp/runs/ramp_4-10_3
+2026-09-24 13:48,ROB9v2_off0.65,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,37.68,35.63,0.9859,30.56,no,ROBUSTEZ 9 g: receta actual (RANSAC+suavizado) offset=0.65,autoexp/runs/ROB9v2_off0.65
+2026-09-24 13:48,NZ_fuse_s0.01,-4.0 -2.0 -1.5 -0.5,64,39.02,35.48,0.9900,31.87,no,"RUIDO sigma=0.01: fusion TPS robusta + DIP, guarda 0.04",autoexp/runs/NZ_fuse_s0.01
+2026-09-24 13:49,NZ_tps_s0.01,-4.0 -2.0 -1.5 -0.5,64,38.31,35.02,0.9833,32.22,no,RUIDO sigma=0.01: solo TPS robusta (mismos puntos que DIP),autoexp/runs/NZ_tps_s0.01
+2026-09-24 13:49,NZ_fuse_s0.03,-4.0 -2.0 -1.5 -0.5,64,34.89,33.64,0.9816,28.49,no,"RUIDO sigma=0.03: fusion TPS robusta + DIP, guarda 0.08",autoexp/runs/NZ_fuse_s0.03
+2026-09-24 13:49,NZ_tps_s0.03,-4.0 -2.0 -1.5 -0.5,64,34.23,32.44,0.9627,28.26,no,RUIDO sigma=0.03: solo TPS robusta (mismos puntos que DIP),autoexp/runs/NZ_tps_s0.03
