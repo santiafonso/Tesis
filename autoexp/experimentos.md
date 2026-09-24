@@ -10,6 +10,30 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (9) — franja adaptativa + fusión con la TPS nueva
+
+**Franja de la rampa adaptativa:** v_edge = mediana de los valores consultados a ≤2.5 px
+arriba del acantilado (g=-4: 0.81, g=-2: 0.38, g=-1.5 y -0.5: ~0.10). Frente abrupto → along
+0.5, band 15; suave → along 0.3, band 25 (interpolado lineal, v_sharp 0.7). Con franja fija
+había un compromiso: más ancha ayudaba a los g suaves (-1.5: 33.7 → 35.6) y rompía g=-4
+(45.7 → 42.1).
+
+| corrida | 4 g (-4,-2,-1.5,-0.5): media (peor) | 9 g: media (peor) |
+|---|---|---|
+| franja fija 15 / 0.5 | 38.7 (33.7) | 39.3 (33.7) |
+| **adaptativa** | **39.1 (35.3)** | **40.2 (34.9)**: 7 de 9 g ≥ 38 (-4 45.7, -3.5 43.5, -3 42.2, -2.5 40.0, -1 38.8, -0.5 40.4, 0 39.8; -2 36.3, -1.5 34.9) |
+
+**Fusión (TPS adaptativa + DIP del híbrido), dev:**
+
+| DIP | B=6 | B=10 | B=20 |
+|---|---|---|---|
+| receta tesis | 41.1 (38.7) | 41.5 (39.5) | **41.8 (39.5)** |
+| intermedia (LR .003, reg .05, skip 0, nearest, 6000 it) | 41.4 (39.7) | **41.7 (39.8)** | 41.7 (39.6) |
+| "vase" | 40.9 (37.5) | 41.0 (37.6) | 41.0 (37.7) |
+
+→ Los 3 g de desarrollo quedan ≥ 39.5 dB con 64 puntos. En validación de 9 g: DIP tesis
+(1178757) e intermedia (val9_hib_mid) → `autoexp.fuse`.
+
 ## 2026-09-24 (8) — monotonía + híbrido DIP/TPS ★
 
 **Monotonía:** el mapa real es exactamente no creciente hacia abajo y hacia la derecha en
