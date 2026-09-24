@@ -56,3 +56,24 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:34,cliff3_b25_cm0.02,-4.0 -2.0 -0.5,64,28.29,27.38,0.9241,23.41,no,"cliff robusto cliff_min=0.02, grilla 25",autoexp/runs/cliff3_b25_cm0.02
 2026-09-23 21:35,cliff3_b36_cm0.02,-4.0 -2.0 -0.5,64,33.59,32.66,0.9681,26.46,no,"cliff robusto cliff_min=0.02, grilla 36",autoexp/runs/cliff3_b36_cm0.02
 2026-09-23 21:35,cliff3_b42_cm0.02,-4.0 -2.0 -0.5,64,32.90,31.32,0.9722,24.58,no,"cliff robusto cliff_min=0.02, grilla 42",autoexp/runs/cliff3_b42_cm0.02
+2026-09-23 21:35,cliff_nx6_n36_tol1,-4.0 -2.0 -0.5,64,33.59,32.66,0.9681,26.46,no,"cliff, grilla nx=6 n1=36, tol=1",autoexp/runs/cliff_nx6_n36_tol1
+2026-09-23 21:35,cliff_nx8_n32_tol1,-4.0 -2.0 -0.5,64,29.63,28.10,0.9513,23.31,no,"cliff, grilla nx=8 n1=32, tol=1",autoexp/runs/cliff_nx8_n32_tol1
+2026-09-23 21:35,cliff_nx8_n40_tol1,-4.0 -2.0 -0.5,64,30.41,27.72,0.9707,22.59,no,"cliff, grilla nx=8 n1=40, tol=1",autoexp/runs/cliff_nx8_n40_tol1
+2026-09-23 21:35,cliff_nx7_n35_tol1,-4.0 -2.0 -0.5,64,31.91,30.27,0.9714,23.74,no,"cliff, grilla nx=7 n1=35, tol=1",autoexp/runs/cliff_nx7_n35_tol1
+2026-09-23 21:35,cliff_nx8_n48_tol1,-4.0 -2.0 -0.5,64,28.76,24.09,0.9298,20.98,no,"cliff, grilla nx=8 n1=48, tol=1",autoexp/runs/cliff_nx8_n48_tol1
+2026-09-23 21:35,cliff_nx6_n30_tol1,-4.0 -2.0 -0.5,64,33.81,32.36,0.9708,28.91,no,"cliff, grilla nx=6 n1=30, tol=1",autoexp/runs/cliff_nx6_n30_tol1
+2026-09-23 21:35,cliff_nx6_n36_tol2,-4.0 -2.0 -0.5,64,32.74,30.30,0.9653,26.48,no,"cliff, grilla nx=6 n1=36, tol=2",autoexp/runs/cliff_nx6_n36_tol2
+2026-09-23 21:36,cliff_nx8_n40_tol2,-4.0 -2.0 -0.5,64,30.41,27.72,0.9707,22.59,no,"cliff, grilla nx=8 n1=40, tol=2",autoexp/runs/cliff_nx8_n40_tol2
+2026-09-23 21:36,cliff_nx10_n40_tol1,-4.0 -2.0 -0.5,64,33.11,31.23,0.9692,26.30,no,"cliff, grilla nx=10 n1=40, tol=1",autoexp/runs/cliff_nx10_n40_tol1
+2026-09-23 21:36,cliff_nx10_n50_tol2,-4.0 -2.0 -0.5,64,28.26,24.37,0.8499,21.35,no,"cliff, grilla nx=10 n1=50, tol=2",autoexp/runs/cliff_nx10_n50_tol2
+2026-09-23 21:36,VAL9_cliff_nx6_n36,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,33.20,28.46,0.9621,26.32,no,VALIDACION 9 g: cliff nx=6 n1=36,autoexp/runs/VAL9_cliff_nx6_n36
+2026-09-23 21:36,VAL9_cliff_nx6_n30,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,32.61,28.19,0.9597,27.44,no,VALIDACION 9 g: cliff nx=6 n1=30,autoexp/runs/VAL9_cliff_nx6_n30
+2026-09-23 21:36,VAL9_cliff_nx10_n40,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,32.17,29.31,0.9683,24.91,no,VALIDACION 9 g: cliff nx=10 n1=40,autoexp/runs/VAL9_cliff_nx10_n40
+2026-09-23 21:37,VAL9_cliffsteep_nx6_n36,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,33.38,29.89,0.9668,26.39,no,"VALIDACION 9 g: cliff con criterio de pendiente local (steep_min .1, r 5)",autoexp/runs/VAL9_cliffsteep_nx6_n36
+2026-09-23 21:38,cliffA_al0.5_b8,-4.0 -2.0 -0.5,64,34.32,33.34,0.9712,27.96,no,cliff + rampa alineada al borde along=0.5 band=8,autoexp/runs/cliffA_al0.5_b8
+2026-09-23 21:38,cliffA_al0.5_b15,-4.0 -2.0 -0.5,64,34.54,33.44,0.9722,28.30,no,cliff + rampa alineada al borde along=0.5 band=15,autoexp/runs/cliffA_al0.5_b15
+2026-09-23 21:38,cliffA_al0.5_b25,-4.0 -2.0 -0.5,64,34.44,33.31,0.9716,28.15,no,cliff + rampa alineada al borde along=0.5 band=25,autoexp/runs/cliffA_al0.5_b25
+2026-09-23 21:38,cliffA_al0.25_b8,-4.0 -2.0 -0.5,64,34.57,33.68,0.9716,28.59,no,cliff + rampa alineada al borde along=0.25 band=8,autoexp/runs/cliffA_al0.25_b8
+2026-09-23 21:38,cliffA_al0.25_b15,-4.0 -2.0 -0.5,64,34.37,33.75,0.9694,28.59,no,cliff + rampa alineada al borde along=0.25 band=15,autoexp/runs/cliffA_al0.25_b15
+2026-09-23 21:38,cliffA_al0.25_b25,-4.0 -2.0 -0.5,64,32.99,32.35,0.9599,27.37,no,cliff + rampa alineada al borde along=0.25 band=25,autoexp/runs/cliffA_al0.25_b25
+2026-09-23 21:39,VAL9_cliffA,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,34.38,33.00,0.9714,28.22,no,VALIDACION 9 g: cliff + rampa alineada (along .5 band 15),autoexp/runs/VAL9_cliffA

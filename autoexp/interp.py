@@ -157,8 +157,8 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
     return np.clip(out, 0, 1), (coef, x0, x1)
 
 
-def cliff(ij, v, shape, eps=0.004, cliff_min=0.03, max_len=4.0, deg=1, base="rbf_tps", smoothing=0.0,
-          outlier_px=3.0):
+def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
+          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -167,7 +167,10 @@ def cliff(ij, v, shape, eps=0.004, cliff_min=0.03, max_len=4.0, deg=1, base="rbf
     fila = f(columna) (polinomio de grado `deg`) y:
       - pixeles con fila > f(col): 0
       - resto: `base` interpolando SOLO los puntos de arriba del acantilado.
-    Solo cuentan como borde los pares cuyo lado no nulo es >= cliff_min, y el ajuste se
+    Solo cuentan como borde los pares donde, a <= steep_r px del lado no nulo, algun punto
+    consultado vale >= steep_min (el ultimo pixel antes del 0 puede valer 0.02 en un
+    acantilado real; lo que lo distingue de la cola suave de la zona que se desvanece es
+    que un poco mas arriba ya es alto). El ajuste se
     repite una vez sin los puntos a mas de outlier_px de la primera recta.
     """
     from scipy.spatial import Delaunay
@@ -180,9 +183,14 @@ def cliff(ij, v, shape, eps=0.004, cliff_min=0.03, max_len=4.0, deg=1, base="rbf
     for s_ in tri.simplices:
         for a, b in ((0, 1), (1, 2), (0, 2)):
             edges.add(tuple(sorted((s_[a], s_[b]))))
+    def steep(a, b):  # a o b nulo; cerca del no nulo el mapa ya es alto -> acantilado
+        nz = b if v[a] < eps else a
+        near = np.linalg.norm(ij - ij[nz], axis=1) <= steep_r
+        return v[near].max() >= steep_min
+
     mids = [(ij[a] + ij[b]) / 2 for a, b in edges
-            if (v[a] < eps) != (v[b] < eps) and max(v[a], v[b]) >= cliff_min
-            and np.linalg.norm(ij[a] - ij[b]) <= max_len]
+            if (v[a] < eps) != (v[b] < eps) and np.linalg.norm(ij[a] - ij[b]) <= max_len
+            and steep(a, b)]
     if len(mids) < deg + 2:
         return reconstruct(ij, v, shape, base, smoothing), None
     mids = np.array(mids)
@@ -194,5 +202,26 @@ def cliff(ij, v, shape, eps=0.004, cliff_min=0.03, max_len=4.0, deg=1, base="rbf
     below = yy > np.polyval(coef, xx)
     up = ~(ij[:, 0] > np.polyval(coef, ij[:, 1]))
     rec = reconstruct(ij[up], v[up], shape, base, smoothing)
+    if along < 1.0 and deg == 1:
+        # la rampa previa al acantilado se traslada paralela al borde: cerca de el,
+        # interpolar en (u*along, d) con u a lo largo del borde y d la distancia a el;
+        # lejos (> band), la interpolacion isotropa (ahi hay estructura no alineada, como
+        # la transicion vertical de la zona que se desvanece).
+        m, c = coef
+        nrm = np.hypot(1.0, m)
+        t_ = np.array([m, 1.0]) / nrm
+        n_ = np.array([1.0, -m]) / nrm
+
+        def fwd(P):
+            P = np.asarray(P, float) - np.array([c, 0.0])
+            return np.column_stack([P @ t_ * along, P @ n_])
+
+        pix = np.column_stack([yy.ravel(), xx.ravel()])
+        q = fwd(pix)
+        s_ = max(H, W)
+        ani = RBFInterpolator(fwd(ij[up]) / s_, v[up], kernel="thin_plate_spline",
+                              smoothing=smoothing)(q / s_).reshape(H, W)
+        w = np.exp(-(np.abs(q[:, 1]).reshape(H, W) / band) ** 2)
+        rec = w * ani + (1 - w) * rec
     rec[below] = 0.0
     return np.clip(rec, 0, 1), (coef, mids)
