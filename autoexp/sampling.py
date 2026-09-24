@@ -128,6 +128,8 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
                 b[1], b[2] = ym, vm
             else:
                 b[3], b[4] = ym, vm
+    if target == "zero":
+        kw = dict(kw, eps=eps)  # el relleno usa el mismo umbral de cero (con ruido: ~3 sigma)
     if oracle.remaining > 0 and fill == "adaptive":
         adaptive(oracle, n, n1=0, **kw)
     elif oracle.remaining > 0 and fill == "cliff":

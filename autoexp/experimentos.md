@@ -10,6 +10,28 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (11) — ruido tipo KMC + RANSAC
+
+Oráculo con ruido opcional (`noise`: gaussiano fijo por pixel, recortado a [0,1]); el puntaje
+sigue siendo contra el mapa limpio. 4 g (-4, -2, -1.5, -0.5):
+
+| config | σ=0 | σ=0.01 | σ=0.03 | σ=0.05 |
+|---|---|---|---|---|
+| grilla 8×8 + TPS | — | 24.3 (21.1) | 23.8 (20.7) | — |
+| receta sin adaptar | 39.5 (35.1) | 30.2 (24.5) | 26.4 (23.3) | — |
+| umbral de cero = 3σ + TPS suavizado 1e-4 | — | 36.7 (35.0) | 25.9 (23.9) | — |
+| **+ recta por RANSAC** | **40.2 (36.2)** | 36.7 | 27.6 (23.9) | — |
+| **+ salto mínimo ~5σ + RANSAC sin bordes duplicados** | — | **38.3 (35.0)** | **34.2 (32.4)** | **31.4 (30.7)** |
+
+- RANSAC también mejora sin ruido (g=-2: 36.5 → 38.3).
+- Con ruido, un solo punto ruidoso en la cola de la zona que se desvanece (0.12 donde el real
+  es ~0.02) disparaba una bisección falsa que gastaba 11 consultas. Por eso los umbrales de
+  "salto real" tienen que escalar con σ, y σ hay que estimarlo en KMC (NRUNS).
+- **Pendiente:** DIP con ruido (se esperaría que degrade menos que la TPS) y la fusión.
+
+**DIP híbrido en 9 g** (receta de la tesis, sin fusionar): 37.0 (31.3). Falta fusionarlo con la
+TPS (`autoexp.fuse`, B=20). La config intermedia (VAL9_hib_mid) todavía estaba corriendo.
+
 ## 2026-09-24 (10) — cotas por monotonía, criterio de relleno, re-barrido de grilla
 
 - **Cotas exactas por monotonía** (`interp.monotone_bounds`): un punto consultado abajo a la

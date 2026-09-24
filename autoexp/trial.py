@@ -42,7 +42,7 @@ DIP_DEFAULTS = {
 def prepare_g(g, gdir, p):
     """Muestrea y deja listo lo que necesita la reconstruccion. Devuelve el env de DIP o None."""
     os.makedirs(gdir, exist_ok=True)
-    orc = Oracle(g, budget=p.get("n", 64))
+    orc = Oracle(g, budget=p.get("n", 64), noise=p.get("noise", 0.0), noise_seed=p.get("noise_seed", 0))
     ij, v = sampling.sample(orc, p.get("sampler", "grid"), p.get("n", 64), **p.get("sampler_kw", {}))
     orc.save(os.path.join(gdir, "queries.json"))
     H, W = orc.shape

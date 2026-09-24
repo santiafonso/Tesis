@@ -164,3 +164,20 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:57,grid2_n36_nx6,-4.0 -2.0 -1.5 -0.5,64,39.45,36.57,0.9792,33.79,no,re-barrido grilla n1=36 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n36_nx6
 2026-09-23 22:57,grid2_n40_nx8,-4.0 -2.0 -1.5 -0.5,64,32.59,28.83,0.9804,25.33,no,re-barrido grilla n1=40 nx=8 con reconstruccion nueva (4 g),autoexp/runs/grid2_n40_nx8
 2026-09-23 22:57,grid2_n42_nx6,-4.0 -2.0 -1.5 -0.5,64,35.55,33.98,0.9812,28.06,no,re-barrido grilla n1=42 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n42_nx6
+2026-09-23 23:08,noise0.01_receta,-4.0 -2.0 -1.5 -0.5,64,30.15,24.52,0.8949,24.00,no,RUIDO sigma=0.01: receta actual sin adaptar,autoexp/runs/noise0.01_receta
+2026-09-23 23:08,noise0.01_grid_tps,-4.0 -2.0 -1.5 -0.5,64,24.34,21.05,0.8274,17.27,no,RUIDO sigma=0.01: grilla 8x8 + TPS,autoexp/runs/noise0.01_grid_tps
+2026-09-23 23:08,noise0.03_receta,-4.0 -2.0 -1.5 -0.5,64,26.43,23.30,0.8721,18.67,no,RUIDO sigma=0.03: receta actual sin adaptar,autoexp/runs/noise0.03_receta
+2026-09-23 23:08,noise0.03_grid_tps,-4.0 -2.0 -1.5 -0.5,64,23.75,20.65,0.7374,17.20,no,RUIDO sigma=0.03: grilla 8x8 + TPS,autoexp/runs/noise0.03_grid_tps
+2026-09-23 23:09,noise0.01_eps_s0,-4.0 -2.0 -1.5 -0.5,64,36.44,34.99,0.9809,29.88,no,"RUIDO sigma=0.01: eps=3sigma, smoothing=0",autoexp/runs/noise0.01_eps_s0
+2026-09-23 23:10,noise0.01_eps_s1e-4,-4.0 -2.0 -1.5 -0.5,64,36.65,35.02,0.9814,29.73,no,"RUIDO sigma=0.01: eps=3sigma, smoothing=1e-4",autoexp/runs/noise0.01_eps_s1e-4
+2026-09-23 23:10,noise0.01_eps_s1e-3,-4.0 -2.0 -1.5 -0.5,64,35.61,34.39,0.9800,27.75,no,"RUIDO sigma=0.01: eps=3sigma, smoothing=1e-3",autoexp/runs/noise0.01_eps_s1e-3
+2026-09-23 23:10,noise0.03_eps_s0,-4.0 -2.0 -1.5 -0.5,64,25.87,23.81,0.9108,17.10,no,"RUIDO sigma=0.03: eps=3sigma, smoothing=0",autoexp/runs/noise0.03_eps_s0
+2026-09-23 23:10,noise0.03_eps_s1e-4,-4.0 -2.0 -1.5 -0.5,64,25.93,23.90,0.9125,17.16,no,"RUIDO sigma=0.03: eps=3sigma, smoothing=1e-4",autoexp/runs/noise0.03_eps_s1e-4
+2026-09-23 23:10,noise0.03_eps_s1e-3,-4.0 -2.0 -1.5 -0.5,64,25.86,24.03,0.9135,17.05,no,"RUIDO sigma=0.03: eps=3sigma, smoothing=1e-3",autoexp/runs/noise0.03_eps_s1e-3
+2026-09-23 23:12,ransac_noise0,-4.0 -2.0 -1.5 -0.5,64,40.21,36.20,0.9834,33.61,no,"RANSAC recta, sigma=0 eps=0.004 smoothing=1e-4",autoexp/runs/ransac_noise0
+2026-09-23 23:12,ransac_noise0.01,-4.0 -2.0 -1.5 -0.5,64,36.65,35.02,0.9814,29.73,no,"RANSAC recta, sigma=0.01 eps=0.03 smoothing=1e-4",autoexp/runs/ransac_noise0.01
+2026-09-23 23:12,ransac_noise0.03,-4.0 -2.0 -1.5 -0.5,64,27.55,23.90,0.9200,19.30,no,"RANSAC recta, sigma=0.03 eps=0.09 smoothing=1e-4",autoexp/runs/ransac_noise0.03
+2026-09-23 23:13,robust_n0.01_cm0.1,-4.0 -2.0 -1.5 -0.5,64,38.31,35.02,0.9833,32.22,no,"RUIDO sigma=0.01: eps=0.03, salto minimo=0.1, RANSAC dedup",autoexp/runs/robust_n0.01_cm0.1
+2026-09-23 23:14,robust_n0.03_cm0.15,-4.0 -2.0 -1.5 -0.5,64,33.95,31.82,0.9617,28.01,no,"RUIDO sigma=0.03: eps=0.09, salto minimo=0.15, RANSAC dedup",autoexp/runs/robust_n0.03_cm0.15
+2026-09-23 23:14,robust_n0.03_cm0.2,-4.0 -2.0 -1.5 -0.5,64,34.21,32.44,0.9623,28.22,no,"RUIDO sigma=0.03: eps=0.09, salto minimo=0.2, RANSAC dedup",autoexp/runs/robust_n0.03_cm0.2
+2026-09-23 23:15,robust_n0.05_cm0.25,-4.0 -2.0 -1.5 -0.5,64,31.41,30.74,0.9387,26.76,no,"RUIDO sigma=0.05: eps=0.15, salto minimo=0.25, RANSAC dedup",autoexp/runs/robust_n0.05_cm0.25

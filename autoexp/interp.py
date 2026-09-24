@@ -157,6 +157,39 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
     return np.clip(out, 0, 1), (coef, x0, x1)
 
 
+def _robust_line(mids, deg, outlier_px):
+    """fila = f(col). Con deg=1: RANSAC exhaustivo (todas las rectas por pares de puntos de
+    borde; gana la de mas inliers a <= outlier_px, desempate por residuo) y reajuste por
+    minimos cuadrados con los inliers. Con ruido, la cola suave de la zona que se desvanece
+    genera pares 0/no-0 falsos que un solo reajuste no alcanzaba a sacar."""
+    # bordes a < 2 px entre si cuentan una sola vez (un grupo de bordes falsos no suma votos)
+    keep = []
+    for k in range(len(mids)):
+        if all(np.hypot(*(mids[k] - mids[q])) >= 2.0 for q in keep):
+            keep.append(k)
+    mids = mids[keep]
+    x, y = mids[:, 1], mids[:, 0]
+    if deg != 1 or len(mids) < 4:
+        coef = np.polyfit(x, y, deg)
+        res = np.abs(y - np.polyval(coef, x))
+        if (res <= outlier_px).sum() >= deg + 2:
+            coef = np.polyfit(x[res <= outlier_px], y[res <= outlier_px], deg)
+        return coef
+    best, best_key = None, None
+    for a in range(len(mids)):
+        for b in range(a + 1, len(mids)):
+            if abs(x[b] - x[a]) < 1e-9:
+                continue
+            m = (y[b] - y[a]) / (x[b] - x[a])
+            c = y[a] - m * x[a]
+            res = np.abs(y - (m * x + c))
+            inl = res <= outlier_px
+            key = (inl.sum(), -res[inl].sum())
+            if best_key is None or key > best_key:
+                best, best_key = inl, key
+    return np.polyfit(x[best], y[best], 1)
+
+
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
           smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
           adapt=True, bounds=True):
@@ -195,10 +228,7 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
     if len(mids) < deg + 2:
         return reconstruct(ij, v, shape, base, smoothing), None
     mids = np.array(mids)
-    coef = np.polyfit(mids[:, 1], mids[:, 0], deg)
-    res = np.abs(mids[:, 0] - np.polyval(coef, mids[:, 1]))
-    if (res <= outlier_px).sum() >= deg + 2:  # ajuste robusto: un reajuste sin outliers
-        coef = np.polyfit(mids[res <= outlier_px, 1], mids[res <= outlier_px, 0], deg)
+    coef = _robust_line(mids, deg, outlier_px)
     yy, xx = np.mgrid[0:H, 0:W]
     below = yy > np.polyval(coef, xx)
     up = ~(ij[:, 0] > np.polyval(coef, ij[:, 1]))

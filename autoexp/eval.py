@@ -76,7 +76,9 @@ def evaluate_g(gdir):
         raise ValueError("%s: %d consultas > presupuesto %d" % (gdir, n, qlog["budget"]))
     if len({tuple(p) for p in pts}) != n:
         raise ValueError("%s: consultas duplicadas en el registro" % gdir)
-    if n and not np.allclose(truth[pts[:, 0], pts[:, 1]], vals, atol=1e-9):
+    sigma = float(qlog.get("noise", 0.0))
+    tol = 1e-9 if sigma == 0 else 6 * sigma + 1e-9  # con ruido: consistente con el sigma declarado
+    if n and not np.all(np.abs(truth[pts[:, 0], pts[:, 1]] - vals) <= tol):
         raise ValueError("%s: el registro de consultas no coincide con la imagen real" % gdir)
 
     rec = _load_restored(os.path.join(gdir, "restored.npy"), truth.shape)
@@ -89,6 +91,7 @@ def evaluate_g(gdir):
         "ssim": float(structural_similarity(truth, rec, data_range=1.0)),
         "psnr_front": float(10 * np.log10(1.0 / max(np.mean(err[band] ** 2), 1e-12))),
         "mae": float(np.abs(err).mean()),
+        "noise": sigma,
     }
     return res, truth, rec, pts
 
