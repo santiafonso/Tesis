@@ -158,7 +158,7 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
 
 
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
-          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6):
+          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -233,4 +233,41 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
         w = np.exp(-(np.abs(q[:, 1]).reshape(H, W) / band) ** 2)
         rec = w * ani + (1 - w) * rec
     rec[below] = 0.0
+    if mono:
+        rec = monotone_2d(np.clip(rec, 0, 1))
+        rec[below] = 0.0
     return np.clip(rec, 0, 1), (coef, mids)
+
+
+def _pava_dec(y):
+    """Regresion isotonica no creciente de una secuencia (pool adjacent violators)."""
+    vals, wts, lens = [], [], []
+    for x in y:
+        vals.append(float(x)); wts.append(1.0); lens.append(1)
+        while len(vals) > 1 and vals[-2] < vals[-1]:
+            w = wts[-2] + wts[-1]
+            v = (vals[-2] * wts[-2] + vals[-1] * wts[-1]) / w
+            n = lens[-2] + lens[-1]
+            vals[-2:] = [v]; wts[-2:] = [w]; lens[-2:] = [n]
+    return np.repeat(vals, lens)
+
+
+def monotone_2d(img, iters=100):
+    """Proyeccion (Dykstra) sobre mapas no crecientes hacia abajo (filas) y hacia la
+    derecha (columnas). El diagrama real cumple esto exacto en todos los g (SoC_max baja
+    al crecer l y Xi): cualquier ondulacion de la interpolacion lo viola."""
+    x = img.astype(float).copy()
+    p = np.zeros_like(x)
+    q = np.zeros_like(x)
+    for _ in range(iters):
+        y = x + p
+        yc = np.column_stack([_pava_dec(y[:, j]) for j in range(y.shape[1])])
+        p = y - yc
+        z = yc + q
+        zr = np.vstack([_pava_dec(z[i, :]) for i in range(z.shape[0])])
+        q = z - zr
+        if np.abs(zr - x).max() < 1e-6:
+            x = zr
+            break
+        x = zr
+    return x

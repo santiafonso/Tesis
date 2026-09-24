@@ -124,3 +124,9 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:18,cliffGP_gp_nu2.5_al0.5,-4.0 -2.0 -0.5,64,31.72,22.45,0.9078,31.83,no,muestreo LOO n30 + cliff base=gp nu=2.5 along=0.5,autoexp/runs/cliffGP_gp_nu2.5_al0.5
 2026-09-23 22:18,cliffGP_gp_nu1.5_al0.5,-4.0 -2.0 -0.5,64,35.75,30.63,0.9636,32.59,no,muestreo LOO n30 + cliff base=gp nu=1.5 along=0.5,autoexp/runs/cliffGP_gp_nu1.5_al0.5
 2026-09-23 22:19,cliffGP_gp_nu2.5_al1.0,-4.0 -2.0 -0.5,64,30.49,21.34,0.8911,27.93,no,muestreo LOO n30 + cliff base=gp nu=2.5 along=1.0,autoexp/runs/cliffGP_gp_nu2.5_al1.0
+2026-09-23 22:26,cliffM_false,-4.0 -2.0 -0.5,64,39.63,36.07,0.9833,33.84,no,"LOO n30 + cliff, mono=false",autoexp/runs/cliffM_false
+2026-09-23 22:26,cliffM_true,-4.0 -2.0 -0.5,64,40.36,36.80,0.9855,34.00,no,"LOO n30 + cliff, mono=true",autoexp/runs/cliffM_true
+2026-09-23 22:27,cliffM_it100,-4.0 -2.0 -0.5,64,40.36,36.80,0.9855,34.00,no,"LOO n30 + cliff mono, dykstra iters=100",autoexp/runs/cliffM_it100
+2026-09-23 22:27,cliffM_it300,-4.0 -2.0 -0.5,64,40.36,36.80,0.9855,34.00,no,"LOO n30 + cliff mono, dykstra iters=300",autoexp/runs/cliffM_it300
+2026-09-23 22:38,hib_tesis_mono,-4.0 -2.0 -0.5,64,39.33,38.00,0.9879,31.58,SI,hib_tesis + proyeccion monotona (post-hoc local),autoexp/runs/hib_tesis_mono
+2026-09-23 22:39,hib_vase_mono,-4.0 -2.0 -0.5,64,35.49,30.83,0.9767,27.17,no,hib_vase + proyeccion monotona (post-hoc local),autoexp/runs/hib_vase_mono

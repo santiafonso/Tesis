@@ -143,6 +143,12 @@ def run(name, p, gs, note="", log=True, runs_dir=None):
             r = r[1:-1, 1:-1] if r.shape[0] == np.load(pc).shape[0] + 2 else r
             np.save(os.path.join(gdir, "dip_only.npy"), r)
             np.save(os.path.join(gdir, "restored.npy"), w * r + (1 - w) * np.load(pc))
+        if json.load(open(os.path.join(os.path.dirname(gdir), "params.json"))).get("post_mono"):
+            # proyeccion monotona (no creciente hacia abajo y a la derecha), como en interp.cliff
+            r = np.load(os.path.join(gdir, "restored.npy"))
+            r = r[0] if r.ndim == 3 else r
+            r = r[1:-1, 1:-1] if r.shape[0] == 130 else r
+            np.save(os.path.join(gdir, "restored.npy"), interp.monotone_2d(np.clip(r, 0, 1)))
 
     cmd = [sys.executable, "-m", "autoexp.eval", run_dir, "--note", note]
     if not log:
