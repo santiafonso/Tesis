@@ -10,6 +10,25 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-23 (5) — robustez: ¿la receta depende de dónde cae la grilla?
+
+Receta actual (grilla 6×6 + bisección del acantilado + relleno `cliff` gap 4 + `cliff` con
+rampa alineada y vert 0.6), validada en los 9 g corriendo la grilla entera:
+
+| offset de la grilla | 9 g: media (peor) |
+|---|---|
+| 0.20 | 32.6 (30.3) |
+| 0.35 | 34.2 (29.9) |
+| **0.50** (con el que se afinó todo) | **36.2 (31.9)** |
+| 0.65 | 35.8 (31.2) |
+| 0.80 | 34.9 (29.6) |
+
+**Lectura honesta:** el método da **~34.7 ± 1.3 dB de media en los 9 g con 64 puntos**
+(promedio sobre offsets). El 36.2 está algo favorecido porque todo se afinó con offset 0.5. Lo
+robusto es la mejora contra los baselines, que se mantiene con cualquier offset: TPS en grilla
+24.4, DIP con 48 a 82 puntos 14 a 35 según el g. Para la tesis conviene reportar la banda, no
+el mejor caso.
+
 ## 2026-09-23 (4) — ajuste fino del modelo de acantilado + pedidos de la reunión
 
 | corrida | qué | dev: media (peor) | 9 g: media (peor) |
