@@ -181,3 +181,10 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 23:14,robust_n0.03_cm0.15,-4.0 -2.0 -1.5 -0.5,64,33.95,31.82,0.9617,28.01,no,"RUIDO sigma=0.03: eps=0.09, salto minimo=0.15, RANSAC dedup",autoexp/runs/robust_n0.03_cm0.15
 2026-09-23 23:14,robust_n0.03_cm0.2,-4.0 -2.0 -1.5 -0.5,64,34.21,32.44,0.9623,28.22,no,"RUIDO sigma=0.03: eps=0.09, salto minimo=0.2, RANSAC dedup",autoexp/runs/robust_n0.03_cm0.2
 2026-09-23 23:15,robust_n0.05_cm0.25,-4.0 -2.0 -1.5 -0.5,64,31.41,30.74,0.9387,26.76,no,"RUIDO sigma=0.05: eps=0.15, salto minimo=0.25, RANSAC dedup",autoexp/runs/robust_n0.05_cm0.25
+2026-09-24 13:31,VAL9_fuse_hib_tesis_mono_B10,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,39.93,31.73,0.9830,34.27,no,"VALIDACION 9 g: fusion TPS (RANSAC) + DIP VAL9_hib_tesis_mono, B=10",autoexp/runs/VAL9_fuse_hib_tesis_mono_B10
+2026-09-24 13:32,VAL9_ransac,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.31,35.09,0.9838,34.20,no,VALIDACION 9 g: receta + RANSAC (sin ruido),autoexp/runs/VAL9_ransac
+2026-09-24 13:32,VAL9_fuse_hib_tesis_mono_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.34,32.46,0.9851,34.28,no,"VALIDACION 9 g: fusion TPS (RANSAC) + DIP VAL9_hib_tesis_mono, B=20",autoexp/runs/VAL9_fuse_hib_tesis_mono_B20
+2026-09-24 13:32,VAL9_fuse_hib_mid_B10,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,37.13,25.91,0.9792,31.33,no,"VALIDACION 9 g: fusion TPS (RANSAC) + DIP VAL9_hib_mid, B=10",autoexp/runs/VAL9_fuse_hib_mid_B10
+2026-09-24 13:33,VAL9_fuse_hib_mid_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,37.71,26.59,0.9821,31.91,no,"VALIDACION 9 g: fusion TPS (RANSAC) + DIP VAL9_hib_mid, B=20",autoexp/runs/VAL9_fuse_hib_mid_B20
+2026-09-24 13:34,VAL9_fuseG_hib_tesis_mono_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.79,36.01,0.9881,34.45,no,"VALIDACION 9 g: fusion con guarda 0.02, VAL9_hib_tesis_mono, B=20",autoexp/runs/VAL9_fuseG_hib_tesis_mono_B20
+2026-09-24 13:35,VAL9_fuseG_hib_mid_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.40,35.60,0.9858,33.96,no,"VALIDACION 9 g: fusion con guarda 0.02, VAL9_hib_mid, B=20",autoexp/runs/VAL9_fuseG_hib_mid_B20
