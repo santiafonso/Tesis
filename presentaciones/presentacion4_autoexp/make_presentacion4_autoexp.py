@@ -494,6 +494,11 @@ def main():
                     "Le ganan a DIP con ~164 puntos en los g duros; DIP con 164 sigue arriba en los suaves."
                     % (s9f["mean_psnr"], s9f["min_psnr"], n38f, m9, s9t["min_psnr"], n38))
 
+    add_image_slide(prs, "Las mejores reconstrucciones hasta ahora (64 puntos, 9 g)",
+                    os.path.join(FIG, "mejores_9g.png"),
+                    "Arriba: original. Medio: reconstrucción con los 64 puntos consultados (en blanco). Abajo: |error|. "
+                    "El error que queda está en la rampa de los g suaves (-2.5, -2, -1.5).")
+
     add_image_slide(prs, "Comparación visual con el mejor DIP previo",
                     os.path.join(REPO, "results", "comparacion_nuevo_vs_dip_v2", "comparacion_rec.png"),
                     width=6.2)
