@@ -46,9 +46,15 @@ def read_final(metrics_csv):
     return float(final[1]), float(final[3])
 
 
-def true_frontier_contour(g, shape):
-    """Curva de frontera real, del soc.npy denso (o el PNG como proxy si
-    falta) -- mismo metodo que dip.frontier_mask.py."""
+def true_frontier_curve(g, shape):
+    """Curva de frontera real (una sola linea), del soc.npy denso (o el PNG
+    como proxy si falta). |grad SoC| da una CRESTA (maxima en el borde, cae
+    a los dos lados) -- contornear esa cresta a un nivel por debajo del pico
+    (p.ej. el percentil 90 usado antes) cruza DOS VECES por fila, una a cada
+    lado, y dibuja una falsa doble linea/forma de Z en vez de la frontera.
+    Ahora se traza el PICO de la cresta fila por fila (argmax, con
+    refinamiento sub-pixel por interpolacion parabolica) -- una sola curva,
+    sin el artefacto."""
     soc_path = os.path.join(PHASE_G_DIR, "g%s" % g, "soc.npy")
     if os.path.exists(soc_path):
         soc = np.load(soc_path).astype(np.float32)
@@ -58,25 +64,38 @@ def true_frontier_contour(g, shape):
         if not os.path.exists(png_path):
             return None, None
         soc = np.asarray(Image.open(png_path).convert("L"), dtype=np.float32) / 255.0
-    if soc.shape != shape:
-        soc = np.asarray(
-            Image.fromarray((np.clip(soc, 0, 1) * 255).astype(np.uint8)).resize(
-                (shape[1], shape[0]), Image.BILINEAR
-            ),
-            dtype=np.float32,
-        ) / 255.0
     gy, gx = np.gradient(ndi.gaussian_filter(soc, SMOOTH_SIGMA))
     gmag = np.hypot(gx, gy)
     gmag = ndi.gaussian_filter(gmag, SMOOTH_SIGMA)
     edge = gmag / max(gmag.max(), 1e-12)
-    return edge, float(np.quantile(edge, EDGE_QUANTILE))
+
+    H, W = edge.shape
+    xs = np.full(H, np.nan)
+    for y in range(H):
+        row = edge[y]
+        k = int(np.argmax(row))
+        if row[k] < 0.05:  # sin borde real en esta fila (meseta plana)
+            continue
+        if 0 < k < W - 1:
+            v0, v1, v2 = row[k - 1], row[k], row[k + 1]
+            denom = v0 - 2 * v1 + v2
+            delta = 0.5 * (v0 - v2) / denom if denom != 0 else 0.0
+            delta = float(np.clip(delta, -1, 1))
+        else:
+            delta = 0.0
+        xs[y] = k + delta
+    ys = np.arange(H, dtype=np.float32)
+    if (H, W) != shape:
+        ys = ys * (shape[0] / H)
+        xs = xs * (shape[1] / W)
+    return xs, ys
 
 
 fig, axs = plt.subplots(1, len(FAMILIES) + 1, figsize=(3.2 * (len(FAMILIES) + 1), 3.6))
 
 base_dir = os.path.join(RESULTS_DIR, "g%s" % G, "mf%s" % MF)
 orig_shown = False
-edge, edge_lvl = None, None
+curve_xs, curve_ys, curve_shape = None, None, None
 panels = []  # (ax, is_original)
 
 for i, fam in enumerate(FAMILIES):
@@ -99,7 +118,8 @@ for i, fam in enumerate(FAMILIES):
             axs[0].set_title("Original")
             axs[0].axis("off")
             panels.append((axs[0], orig_crop.size[::-1]))
-        edge, edge_lvl = true_frontier_contour(G, img.size[::-1])
+        curve_shape = img.size[::-1]
+        curve_xs, curve_ys = true_frontier_curve(G, curve_shape)
         orig_shown = True
     psnr, ssim = read_final(metrics_path)
     ax.imshow(img, cmap="gray")
@@ -107,20 +127,17 @@ for i, fam in enumerate(FAMILIES):
     ax.axis("off")
     panels.append((ax, img.size[::-1]))
 
-if edge is not None:
+if curve_xs is not None:
     for ax, shape in panels:
-        e = edge
-        if e.shape != shape:
-            e = np.asarray(
-                Image.fromarray((np.clip(edge, 0, 1) * 255).astype(np.uint8)).resize(
-                    (shape[1], shape[0]), Image.BILINEAR
-                ),
-                dtype=np.float32,
-            ) / 255.0
-        ax.contour(e, levels=[edge_lvl], colors="lime", linewidths=1.0, alpha=0.85)
+        xs, ys = curve_xs, curve_ys
+        if shape != curve_shape:
+            xs = xs * (shape[1] / curve_shape[1])
+            ys = ys * (shape[0] / curve_shape[0])
+        ax.plot(xs, ys, color="lime", linewidth=1.2, alpha=0.85)
 
 fig.suptitle(
-    "g=%s  mf=%s  (%.1f%% observado)  --  linea verde = frontera real (soc.npy, p90 |grad|)"
+    "g=%s  mf=%s  (%.1f%% observado)  --  linea verde = frontera real "
+    "(soc.npy, cresta de |grad|)"
     % (G, MF, 100 * (1 - float(MF))),
     fontsize=12,
 )

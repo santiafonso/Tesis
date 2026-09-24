@@ -148,7 +148,26 @@ for k, name in enumerate(RANDOM_ORDER):
 
 xs_lin = np.linspace(-4, 2, W)
 ys_lin = np.linspace(2, -4, H)
-edge_lvl = np.quantile(edge, 0.90)
+
+# cresta de |grad| fila por fila (subpixel por interpolacion parabolica), NO
+# un contorno al p90 -- |grad| es una cresta (maxima en el borde, cae a los
+# dos lados), asi que contornear por debajo del pico cruza dos veces por
+# fila y dibuja una falsa doble linea en vez de la frontera real.
+_ridge_col = np.full(H, np.nan)
+for _y in range(H):
+    _row = edge[_y]
+    _k = int(np.argmax(_row))
+    if _row[_k] < 0.05:
+        continue
+    if 0 < _k < W - 1:
+        _v0, _v1, _v2 = _row[_k - 1], _row[_k], _row[_k + 1]
+        _denom = _v0 - 2 * _v1 + _v2
+        _delta = float(np.clip(0.5 * (_v0 - _v2) / _denom, -1, 1)) if _denom != 0 else 0.0
+    else:
+        _delta = 0.0
+    _ridge_col[_y] = _k + _delta
+ridge_x_phys = xs_lin[0] + (_ridge_col / max(W - 1, 1)) * (xs_lin[-1] - xs_lin[0])
+ridge_y_phys = ys_lin
 
 for obs in obs_sorted:
     mf = 1.0 - obs
@@ -179,8 +198,7 @@ for obs in obs_sorted:
     for ax, name in zip(axs.flat, ORDER):
         ax.imshow(soc, cmap="viridis", vmin=0, vmax=1, origin="upper",
                   extent=[-4, 2, -4, 2], aspect="auto")
-        ax.contour(xs_lin, ys_lin, edge, levels=[edge_lvl],
-                   colors="white", linewidths=0.8, alpha=0.7)
+        ax.plot(ridge_x_phys, ridge_y_phys, color="white", linewidth=1.0, alpha=0.8)
         ys, xs = np.nonzero(masks[name])
         ax.scatter(-4 + (xs + 0.5) / W * 6, 2 - (ys + 0.5) / H * 6,
                    s=16, c="red", edgecolors="k", linewidths=0.3)
@@ -188,7 +206,7 @@ for obs in obs_sorted:
         ax.set_xlabel(r"$\log(\ell)$")
         ax.set_ylabel(r"$\log(\Xi)$")
     fig.suptitle(
-        "mf%.3f  -  N=%d obs (%.2f%%)  -  linea blanca = frontera (p90 |grad|)"
+        "mf%.3f  -  N=%d obs (%.2f%%)  -  linea blanca = frontera (cresta |grad|)"
         % (mf, N, 100 * obs)
     )
     fig.tight_layout()

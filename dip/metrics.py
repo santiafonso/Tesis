@@ -12,9 +12,18 @@ utils.common_utils.pil_to_np / torch_to_np.
 """
 from __future__ import print_function
 
+import inspect
+
 import numpy as np
 from skimage.metrics import peak_signal_noise_ratio as _compare_psnr
 from skimage.metrics import structural_similarity as _compare_ssim
+
+# skimage viejo (<=0.17, como el del cluster) acepta cualquier kwarg via
+# **kwargs sin quejarse -- pasarle `channel_axis` (API nueva) no tira
+# TypeError, lo traga en silencio y sigue tratando la imagen como si NO
+# fuera multicanal, lo que rompe con "win_size exceeds image extent" en
+# imagenes a color. Detectar la API real por firma, no por try/except.
+_SSIM_HAS_CHANNEL_AXIS = "channel_axis" in inspect.signature(_compare_ssim).parameters
 
 
 def psnr(reference, estimate):
@@ -45,10 +54,9 @@ def ssim(reference, estimate, n_channels=1):
         return _compare_ssim(reference[0], estimate[0], data_range=1.0)
     ref_hwc = np.moveaxis(reference, 0, -1)
     est_hwc = np.moveaxis(estimate, 0, -1)
-    try:
+    if _SSIM_HAS_CHANNEL_AXIS:
         return _compare_ssim(ref_hwc, est_hwc, data_range=1.0, channel_axis=-1)
-    except TypeError:  # skimage viejo
-        return _compare_ssim(ref_hwc, est_hwc, data_range=1.0, multichannel=True)
+    return _compare_ssim(ref_hwc, est_hwc, data_range=1.0, multichannel=True)
 
 
 def abs_error_map(reference, estimate):

@@ -79,7 +79,12 @@ def main():
             xs_full[row] = c0 + up[0] * local_row + up[1]
         elif lo is not None:
             xs_full[row] = c0 + lo[0] * local_row + lo[1]
-    xs_full = np.clip(xs_full, 0, W - 1)
+    # OJO: no recortar xs_full a [0, W) aca -- si la curva extrapolada ya
+    # salio del cuadro (x negativo o > W), eso es la señal correcta de "esta
+    # fila ya es meseta pura"; rebuild_clean_line la satura sola via su
+    # propio clip interno. Recortar el CENTRO antes deja la mitad de la
+    # banda de transicion "flotando" justo en el borde (gris en vez de
+    # negro/blanco puro).
 
     high = np.quantile(win_rec, 0.95)
     low = np.quantile(win_rec, 0.05)

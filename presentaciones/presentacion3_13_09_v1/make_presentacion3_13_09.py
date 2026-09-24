@@ -227,6 +227,33 @@ def main():
         width=12.6,
     )
 
+    # 3b -- punto 1: reconstrucciones reales hechas con grid, distintos g
+    s3b = prs.slides.add_slide(prs.slide_layouts[6])
+    _title(s3b, "1 · Reconstrucciones con la familia grid (2% observado)")
+    grid_examples = [
+        ("-4.0", "frente abrupto (el caso mas dificil)"),
+        ("-2.0", "frente intermedio"),
+        ("-1.0", "frente suave"),
+        ("0.0", "sin interaccion (g=0)"),
+    ]
+    ex_w, ex_h_max = 6.0, 1.75
+    cols_left = [0.55, 6.85]
+    rows_top = [1.75, 3.95]
+    for i, (g, desc) in enumerate(grid_examples):
+        img = os.path.join(R_DIPGF, "g%s" % g, "mf0.980", "grid", "comparison_annotated.png")
+        if not os.path.isfile(img):
+            continue
+        left = cols_left[i % 2]
+        top = rows_top[i // 2]
+        lb = s3b.shapes.add_textbox(Inches(left), Inches(top - 0.32), Inches(ex_w), Inches(0.3))
+        lp = lb.text_frame.paragraphs[0]
+        lp.text = "g = %s -- %s" % (g, desc)
+        lp.font.size = Pt(12)
+        lp.font.bold = True
+        lp.font.color.rgb = BLUE
+        iw, ih = _fit(img, ex_w, ex_h_max)
+        s3b.shapes.add_picture(img, Inches(left), Inches(top), width=Inches(iw), height=Inches(ih))
+
     # 4 -- punto 2: puntos en frontera vs fidelidad
     add_full_image_slide(
         prs,
@@ -238,15 +265,37 @@ def main():
         width=12.6, top=1.4,
     )
 
-    # 5 -- punto 3: la grilla 3x3
-    add_full_image_slide(
-        prs,
-        "3 · Las 5 distribuciones en el regimen de g negativo (225 corridas)",
-        os.path.join(R_GSWEEP5, "psnr_vs_pct_by_g.png"),
-        caption="PSNR final vs. % observado, una diapositiva por g, 5 lineas (uniform, "
-                "grid, spread, frontier, frontier_mix).",
-        width=11.5, top=1.3,
-    )
+    # 5 -- punto 3: la grilla 3x3 + dos imagenes reales de ejemplo
+    R_DIPGF_G = lambda g, mf, fam: os.path.join(  # noqa: E731
+        R_DIPGF, "g%s" % g, "mf%s" % mf, fam, "comparison_annotated.png")
+    s5 = prs.slides.add_slide(prs.slide_layouts[6])
+    _title(s5, "3 · Las 5 distribuciones en el regimen de g negativo (225 corridas)")
+    plot_path = os.path.join(R_GSWEEP5, "psnr_vs_pct_by_g.png")
+    pw, ph = _fit(plot_path, 7.6, 5.55)
+    s5.shapes.add_picture(plot_path, Inches(0.35), Inches(1.35), width=Inches(pw), height=Inches(ph))
+    cap5 = s5.shapes.add_textbox(Inches(0.35), Inches(1.35 + ph + 0.05), Inches(7.6), Inches(0.5))
+    cp5 = cap5.text_frame.paragraphs[0]
+    cp5.text = "PSNR final vs. % observado, una por g, 5 lineas (uniform, grid, spread, frontier, frontier_mix)."
+    cp5.font.size = Pt(11)
+    cp5.font.italic = True
+    cp5.font.color.rgb = GREY
+    # dos imagenes reales al lado (mismo caso duro g=-4.0, mf=0.980 -- 2% obs
+    # -- donde el grafico muestra a frontier_mix cruzando por encima de grid)
+    ex_left = 8.15
+    ex_w = 4.85
+    for i, (fam, label) in enumerate([("grid", "grid"), ("frontier_mix", "frontier_mix")]):
+        img = R_DIPGF_G("-4.0", "0.980", fam)
+        if not os.path.isfile(img):
+            continue
+        iw, ih = _fit(img, ex_w, 2.55)
+        top = 1.75 + i * 2.85
+        s5.shapes.add_picture(img, Inches(ex_left), Inches(top), width=Inches(iw), height=Inches(ih))
+        lb = s5.shapes.add_textbox(Inches(ex_left), Inches(top - 0.32), Inches(ex_w), Inches(0.3))
+        lp = lb.text_frame.paragraphs[0]
+        lp.text = "g=-4.0, 2%% obs. -- %s" % label
+        lp.font.size = Pt(11)
+        lp.font.bold = True
+        lp.font.color.rgb = BLUE
 
     # 6 -- punto 3: tabla resumen
     rows = []
@@ -363,6 +412,141 @@ def main():
             "Pasar de los mapas del continuo a puntos KMC reales sigue pendiente.",
         ],
         body_size=17,
+    )
+
+    # 14 -- extra (fuera de los 5 puntos): ventanas concentradas
+    R_EXP = os.path.join(REPO, "results", "experimentos_menos_puntos")
+    add_bullets_slide(
+        prs,
+        "Extra (fuera de los 5 puntos): ¿ventana chica y densa en vez de "
+        "puntos por toda la imagen?",
+        [
+            "Idea explorada en la misma sesion (no pedida por el director): en vez "
+            "de repartir pocos puntos por toda la imagen, concentrarlos en una "
+            "ventana chica alrededor del codo de la frontera -- reconstruir solo "
+            "ahi con DIP y empalmar el resto de la imagen sin tocar.",
+            "",
+            "Se probaron 4 variantes en g=-4.0 (el caso mas duro): una franja de "
+            "64px siguiendo toda la curva, un cuadrado 64x64 con los puntos que "
+            "le tocaban de la mascara grid global, el mismo cuadrado con puntos "
+            "generados a proposito para esa ventana, y un cuadrado 32x32 real "
+            "con extrapolacion de la recta fuera de la ventana (turno anterior "
+            "de hoy: la extrapolacion asume una recta, pero la frontera real se "
+            "curva en meseta vertical/horizontal fuera de la zona angosta).",
+        ],
+        body_size=16,
+    )
+
+    add_table_slide(
+        prs,
+        "Extra: PSNR/SSIM de cada variante (imagen completa, g=-4.0)",
+        ["Variante", "N pts", "PSNR", "SSIM"],
+        [
+            ["Global (referencia, grid, 90 pts)", "90", "25.0", "0.963"],
+            ["Franja 64px sobre toda la curva", "90", "24.8", "0.935"],
+            ["Cuadrado 64x64, pts heredados", "90", "24.2", "0.863"],
+            ["  + REG_NOISE_STD=0.08", "90", "24.2", "0.957"],
+            ["Cuadrado 64x64, pts A PROPOSITO", "121", "22.9", "0.846"],
+            ["Cuadrado 32x32 + extrapolacion recta", "36", "18.6", "0.811"],
+        ],
+        note="Ninguna variante le gana claramente al global -- y ninguna le gana "
+             "al hallazgo mas simple de la sesion (subir REG_NOISE_STD a 0.08 en "
+             "la imagen COMPLETA, sin ventana, ya lleva a grid/120pts a 27.2 dB).\n"
+             "Achicar la ventana (32x32) o extrapolar mas alla de ella empeora: "
+             "la frontera real no es una recta fuera de la zona angosta.",
+        col_w=[4.6, 1.3, 1.3, 1.3], font=13,
+    )
+
+    s14c = prs.slides.add_slide(prs.slide_layouts[6])
+    _title(s14c, "Extra: como se ve -- ventana concentrada vs. extrapolacion")
+    img_a = os.path.join(R_EXP, "ventana_cuadrado_64", "window_comparison_sq64_reg0.08.png")
+    img_b = os.path.join(R_EXP, "extrapolacion", "quadrant_extrapolate_comparison_ultimo_32x32.png")
+    wa, ha = _fit(img_a, 12.4, 2.9)
+    s14c.shapes.add_picture(img_a, Inches((SLIDE_W - wa) / 2), Inches(1.35), width=Inches(wa), height=Inches(ha))
+    cap_a = s14c.shapes.add_textbox(Inches(0.6), Inches(1.35 + ha + 0.05), Inches(12.1), Inches(0.35))
+    cap_a.text_frame.paragraphs[0].text = (
+        "Cuadrado 64x64 con los puntos heredados de la mascara grid + REG_NOISE_STD=0.08: PSNR 24.2, SSIM 0.957 -- practicamente empata al global.")
+    cap_a.text_frame.paragraphs[0].font.size = Pt(11)
+    cap_a.text_frame.paragraphs[0].font.italic = True
+    cap_a.text_frame.paragraphs[0].font.color.rgb = GREY
+    top_b = 1.35 + ha + 0.45
+    wb, hb = _fit(img_b, 12.4, 7.15 - top_b - 0.35)
+    s14c.shapes.add_picture(img_b, Inches((SLIDE_W - wb) / 2), Inches(top_b), width=Inches(wb), height=Inches(hb))
+    cap_b = s14c.shapes.add_textbox(Inches(0.6), Inches(top_b + hb + 0.05), Inches(12.1), Inches(0.35))
+    cap_b.text_frame.paragraphs[0].text = (
+        "Cuadrado 32x32 (36 pts) + recta extrapolada fuera de la ventana: PSNR 18.6, SSIM 0.811 -- la recta no sigue la curvatura real de la meseta.")
+    cap_b.text_frame.paragraphs[0].font.size = Pt(11)
+    cap_b.text_frame.paragraphs[0].font.italic = True
+    cap_b.text_frame.paragraphs[0].font.color.rgb = GREY
+
+    # 17 -- extra: REG_NOISE_STD x familia x g (corrido en cluster, 15/9)
+    R_REGFAM = os.path.join(REPO, "results", "experimentos_menos_puntos", "barrido_reg_noise_familias")
+    add_bullets_slide(
+        prs,
+        "Extra: REG_NOISE_STD en las 3 mejores familias, en 3 g (cluster)",
+        [
+            "El hallazgo de REG_NOISE_STD=0.08 (arregla las 'manchas' de "
+            "sobreajuste con pocos puntos) se probo hasta ahora solo en grid. "
+            "Se extendio a las 3 familias mas relevantes (grid, uniform, "
+            "frontier_mix) en 3 g representativos (-4.0 duro, -2.0 medio, -0.5 "
+            "suave), 2% observado -- 27 corridas en el cluster.",
+            "",
+            "Resultado inesperado: frontier_mix (la familia que peor y mas "
+            "erraticamente rendia) es la que MAS se beneficia -- pasa de ser la "
+            "peor de las 3 a la mejor por lejos con reg=0.08, en los 3 g "
+            "(+15 a +24 dB de salto). grid y uniform mejoran mucho menos, y "
+            "grid incluso empeora un poco en el g mas duro (-4.0).",
+        ],
+        body_size=17,
+    )
+
+    add_full_image_slide(
+        prs,
+        "Extra: PSNR por familia, g y REG_NOISE_STD",
+        os.path.join(R_REGFAM, "psnr_by_family_g_reg.png"),
+        caption="mf=0.980 (~328 pts). frontier_mix (antes la peor) se vuelve la mejor familia con reg=0.08 en los 3 g.",
+        width=12.6, top=1.4,
+    )
+
+    s17c = prs.slides.add_slide(prs.slide_layouts[6])
+    _title(s17c, "Extra: frontier_mix en g=-0.5 -- antes y despues de reg=0.08")
+    img_c = os.path.join(R_REGFAM, "g-0.5", "mf0.980", "frontier_mix", "reg0.01", "comparison_annotated.png")
+    img_d = os.path.join(R_REGFAM, "g-0.5", "mf0.980", "frontier_mix", "reg0.08", "comparison_annotated.png")
+    wc, hc = _fit(img_c, 12.4, 2.7)
+    s17c.shapes.add_picture(img_c, Inches((SLIDE_W - wc) / 2), Inches(1.35), width=Inches(wc), height=Inches(hc))
+    cap_c = s17c.shapes.add_textbox(Inches(0.6), Inches(1.35 + hc + 0.05), Inches(12.1), Inches(0.3))
+    cap_c.text_frame.paragraphs[0].text = "reg=0.01 (default anterior): PSNR 26.7, SSIM 0.711 -- manchas de sobreajuste en la meseta negra."
+    cap_c.text_frame.paragraphs[0].font.size = Pt(11)
+    cap_c.text_frame.paragraphs[0].font.italic = True
+    cap_c.text_frame.paragraphs[0].font.color.rgb = GREY
+    top_d = 1.35 + hc + 0.45
+    wd, hd = _fit(img_d, 12.4, 7.15 - top_d - 0.3)
+    s17c.shapes.add_picture(img_d, Inches((SLIDE_W - wd) / 2), Inches(top_d), width=Inches(wd), height=Inches(hd))
+    cap_d = s17c.shapes.add_textbox(Inches(0.6), Inches(top_d + hd + 0.05), Inches(12.1), Inches(0.3))
+    cap_d.text_frame.paragraphs[0].text = "reg=0.08: PSNR 51.1, SSIM 0.997 -- +24 dB, meseta limpia, error solo pegado al borde."
+    cap_d.text_frame.paragraphs[0].font.size = Pt(11)
+    cap_d.text_frame.paragraphs[0].font.italic = True
+    cap_d.text_frame.paragraphs[0].font.color.rgb = GREY
+
+    # 18 -- extra: barrido de LR (aparte de NUM_ITER/REG_NOISE_STD)
+    add_table_slide(
+        prs,
+        "Extra: tocar el learning rate (LR) en el regimen de MUY pocos puntos",
+        ["LR", "REG_NOISE_STD", "PSNR", "SSIM"],
+        [
+            ["0.001 (default)", "0.01 (default)", "19.3", "0.609"],
+            ["0.0005", "0.01", "18.3", "0.567"],
+            ["0.0005", "0.005", "17.6", "0.567"],
+            ["0.001", "0.005", "20.3", "0.685"],
+            ["0.002", "0.01", "20.1", "0.828"],
+            ["0.001", "0.03", "19.8", "0.868"],
+        ],
+        note="g=-4.0, grid, mf=0.995 (~82 pts, el caso mas disperso corrido hasta ahora).\n"
+             "El 'combo clasico' del paper de DIP (LR bajo + ruido bajo) fue lo PEOR de "
+             "todo lo probado. Lo que si ayuda: subir el ruido de regularizacion (misma "
+             "direccion que el hallazgo de reg=0.08) o subir un poco el LR -- ambos "
+             "mejoran PSNR y SSIM sin agregar puntos.",
+        col_w=[2.3, 2.3, 1.5, 1.5], font=13,
     )
 
     out = os.path.join(OUT_DIR, PRES_NAME + ".pptx")

@@ -22,6 +22,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 
 GS = [-4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0]
 MFS = ["0.900", "0.950", "0.980", "0.990", "0.995"]
@@ -93,6 +94,7 @@ def main():
     print("Escrito", csv_path, "(%d filas)" % len(records))
 
     # --- grilla 3x3 (una por g), PSNR vs. % observado, 5 lineas -----------
+    pct_ticks = sorted(set(100.0 * (1.0 - float(mf)) for mf in MFS))
     fig, axs = plt.subplots(3, 3, figsize=(16, 13), sharex=True, sharey=False)
     for ax, g in zip(axs.flat, GS):
         for fam in FAMILIES:
@@ -104,9 +106,14 @@ def main():
                      linewidth=1.8, markersize=5)
         ax.set_title("g = %s" % g, fontsize=11)
         ax.set_xscale("log")
+        ax.set_xticks(pct_ticks)
+        ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: "%g%%" % v))
+        ax.xaxis.set_minor_locator(mticker.NullLocator())
+        # sharex oculta los numeros de las filas de arriba por defecto -- los
+        # profes necesitan ver la escala en cada fila, no solo en la de abajo.
+        ax.tick_params(axis="x", labelbottom=True, labelsize=9)
+        ax.set_xlabel("% de pixeles observado (escala log)", fontsize=9)
         ax.grid(alpha=0.3)
-    for ax in axs[-1, :]:
-        ax.set_xlabel("% observado")
     for ax in axs[:, 0]:
         ax.set_ylabel("PSNR final (dB)")
     axs[0, 0].legend(loc="best", fontsize=9)
