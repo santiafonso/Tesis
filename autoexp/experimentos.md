@@ -10,6 +10,19 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (13) — TPS suavizada + fusión: 41.1 dB en 9 g, 8 de 9 ≥ 38 ★
+
+- El suavizado 1e-4 de la TPS mejora incluso sin ruido (se vio al comparar sigma_0 = 39.5
+  contra ransac_noise0 = 40.2 en 4 g). En 9 g, TPS sola: **40.62 (36.20), 8 de 9 g ≥ 38**
+  (antes 40.31 (35.09)). Queda como default de `interp.cliff`.
+- Fusión con guarda + TPS suavizada, 9 g: **B=20: 41.07 (37.25), 8 de 9 g ≥ 38**; B=30:
+  41.20 (37.08). Por g (B=20): -4 44.8, -3.5 44.4, -3 43.7, -2.5 38.6, -2 38.3 (solo TPS,
+  guarda), **-1.5 37.2**, -1 39.9, -0.5 41.1, 0 41.6. Solo g=-1.5 queda debajo de 38.
+- **Parámetro único `sigma`** (ruido de KMC estimado) en `bisect` y `cliff` que fija los
+  umbrales: eps = max(1/255, 3σ), salto mínimo del muestreo = max(0.1, 6σ), steep = max(0.1, 5σ).
+  Con σ=0 no cambia nada. En el muestreo, un salto mínimo de 0.1 rinde más que 0.05 aun con
+  σ=0.01 (38.3 contra 36.7).
+
 ## 2026-09-24 (12) — fusión validada en 9 g + guarda de falla de DIP + Optuna profes
 
 **TPS + RANSAC en 9 g** (sin ruido): 40.31 (35.09); antes 40.17 (34.86).

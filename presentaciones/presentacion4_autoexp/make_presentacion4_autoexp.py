@@ -86,8 +86,8 @@ STEPS = [
     ("Recta del borde\npor RANSAC", "ransac_noise0"),
     ("Fusión TPS + DIP\n(con guarda)", "fuse2_hib_tesis_B20"),
 ]
-BEST_TPS9 = "VAL9_ransac"                      # mejor sin DIP, 9 g
-BEST_FUSE9 = "VAL9_fuseG_hib_tesis_mono_B20"   # mejor validado, 9 g
+BEST_TPS9 = "VAL9_ransac_s1e-4"                # mejor sin DIP, 9 g
+BEST_FUSE9 = "VAL9_fuseG2_tesis_B20"           # mejor validado, 9 g
 
 
 # --------------------------------------------------------------- figuras -------
@@ -472,8 +472,8 @@ def main():
     ], f_samp, img_w=7.0, body_size=13)
 
     add_bullets_slide(prs, "Reconstrucción: interpolar respetando la forma del mapa", [
-        "Acantilado: recta ajustada a los pares vecinos 0 / no-0 (robusta a outliers). Debajo: 0.",
-        "Arriba: TPS solo con los puntos de arriba (no interpola a través del salto).",
+        "Acantilado: recta ajustada por RANSAC a los pares vecinos 0 / no-0. Debajo: 0.",
+        "Arriba: TPS (suavizado 1e-4) solo con los puntos de arriba: no interpola a través del salto.",
         "- Rampa: cerca del borde, TPS en coordenadas alineadas al borde (el perfil se traslada "
         "paralelo al frente). Ancho de la franja adaptativo según lo abrupto del frente, medido "
         "con el valor justo arriba del acantilado (g=-4: 0.81; g suaves: ~0.10).",
@@ -530,7 +530,7 @@ def main():
                     ["reconstrucción (mismos 64 puntos, 9 g)", "media [dB]", "peor [dB]", "g ≥ 38 dB"],
                     [["TPS sola (acantilado + monotonía + RANSAC)", "%.1f" % m9, "%.1f" % s9t["min_psnr"], "%d / 9" % n38],
                      ["DIP (receta tesis) + ceros + franja TPS, sin fusionar", "37.0", "31.3", ""],
-                     ["Fusión TPS + DIP (B = 20 px), sin guarda", "40.3", "32.5", ""],
+                     ["Fusión TPS + DIP (B = 20 px), sin guarda (TPS sin suavizar)", "40.3", "32.5", ""],
                      ["Fusión TPS + DIP + guarda de falla de DIP", "%.1f" % s9f["mean_psnr"], "%.1f" % s9f["min_psnr"],
                       "%d / 9" % n38f]],
                     note="Fusión: final = monotonía( w·TPS + (1−w)·DIP ), w = exp(−(d/B)²), d = distancia al "

@@ -89,6 +89,9 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
     """
     from scipy.spatial import Delaunay
 
+    if sigma:
+        np_ = noise_params(sigma)
+        eps, steep_min, smoothing = np_["eps"], np_["steep_min"], np_["smoothing"]
     H, W = shape
     ij = np.asarray(ij, float)
     v = np.asarray(v, float)
@@ -190,9 +193,17 @@ def _robust_line(mids, deg, outlier_px):
     return np.polyfit(x[best], y[best], 1)
 
 
+def noise_params(sigma):
+    """Umbrales robustos a ruido a partir de un unico sigma (ruido por punto, en KMC se estima
+    con corridas repetidas). sigma=0 -> los valores validados sin ruido."""
+    if not sigma:
+        return {}
+    return {"eps": max(0.004, 3 * sigma), "steep_min": max(0.1, 5 * sigma), "smoothing": 1e-4}
+
+
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
-          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
-          adapt=True, bounds=True):
+          smoothing=1e-4, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
+          adapt=True, bounds=True, sigma=0.0):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -209,6 +220,9 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
     """
     from scipy.spatial import Delaunay
 
+    if sigma:
+        np_ = noise_params(sigma)
+        eps, steep_min, smoothing = np_["eps"], np_["steep_min"], np_["smoothing"]
     H, W = shape
     ij = np.asarray(ij, float)
     v = np.asarray(v, float)

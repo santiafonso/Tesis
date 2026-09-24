@@ -188,3 +188,9 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 13:33,VAL9_fuse_hib_mid_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,37.71,26.59,0.9821,31.91,no,"VALIDACION 9 g: fusion TPS (RANSAC) + DIP VAL9_hib_mid, B=20",autoexp/runs/VAL9_fuse_hib_mid_B20
 2026-09-24 13:34,VAL9_fuseG_hib_tesis_mono_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.79,36.01,0.9881,34.45,no,"VALIDACION 9 g: fusion con guarda 0.02, VAL9_hib_tesis_mono, B=20",autoexp/runs/VAL9_fuseG_hib_tesis_mono_B20
 2026-09-24 13:35,VAL9_fuseG_hib_mid_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.40,35.60,0.9858,33.96,no,"VALIDACION 9 g: fusion con guarda 0.02, VAL9_hib_mid, B=20",autoexp/runs/VAL9_fuseG_hib_mid_B20
+2026-09-24 13:41,sigma_0,-4.0 -2.0 -1.5 -0.5,64,39.50,35.09,0.9824,33.25,no,parametro unico sigma=0 (ruido real 0),autoexp/runs/sigma_0
+2026-09-24 13:41,sigma_0.01,-4.0 -2.0 -1.5 -0.5,64,36.67,35.05,0.9812,30.00,no,parametro unico sigma=0.01 (ruido real 0.01),autoexp/runs/sigma_0.01
+2026-09-24 13:42,sigma_0.03,-4.0 -2.0 -1.5 -0.5,64,33.92,31.56,0.9615,27.88,no,parametro unico sigma=0.03 (ruido real 0.03),autoexp/runs/sigma_0.03
+2026-09-24 13:43,VAL9_ransac_s1e-4,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.62,36.20,0.9842,34.22,no,VALIDACION 9 g: receta RANSAC + TPS suavizado 1e-4 (sin ruido),autoexp/runs/VAL9_ransac_s1e-4
+2026-09-24 13:44,VAL9_fuseG2_tesis_B20,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.07,37.25,0.9885,34.50,no,"VALIDACION 9 g: fusion con guarda, TPS suavizada 1e-4, B=20",autoexp/runs/VAL9_fuseG2_tesis_B20
+2026-09-24 13:44,VAL9_fuseG2_tesis_B30,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.20,37.08,0.9884,34.52,no,"VALIDACION 9 g: fusion con guarda, TPS suavizada 1e-4, B=30",autoexp/runs/VAL9_fuseG2_tesis_B30
