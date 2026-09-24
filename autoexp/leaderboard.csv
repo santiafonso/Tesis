@@ -216,3 +216,9 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 15:23,OOD_receta,2.0 4.0 gauss himmelblau rosenbrock,64,32.80,22.99,0.9178,31.27,no,FUERA DE MUESTRA: receta actual (supuestos de forma),autoexp/runs/OOD_receta
 2026-09-24 15:24,OOD_auto,2.0 4.0 gauss himmelblau rosenbrock,64,32.96,22.99,0.9291,31.27,no,FUERA DE MUESTRA: reconstruccion auto (chequea supuestos),autoexp/runs/OOD_auto
 2026-09-24 15:26,OOD_auto2,2.0 4.0 gauss himmelblau rosenbrock,64,35.96,24.93,0.9566,30.92,no,FUERA DE MUESTRA: muestreo y reconstruccion que chequean supuestos,autoexp/runs/OOD_auto2
+2026-09-24 15:29,VAL9_auto,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,40.62,36.20,0.9842,34.22,no,VALIDACION 9 g: reconstruccion auto (chequea supuestos),autoexp/runs/VAL9_auto
+2026-09-24 15:32,autoX_verts,-2.5 -2.0 -1.5 -1.0,64,38.71,37.66,0.9811,31.43,no,auto: LOO elige vert entre 1/.8/.6/.4,autoexp/runs/autoX_verts
+2026-09-24 15:35,autoX_full,-2.5 -2.0 -1.5 -1.0,64,38.30,36.37,0.9822,31.08,no,auto: LOO elige entre vert + franja + suavizado,autoexp/runs/autoX_full
+2026-09-24 15:41,VAL9_F_seed42_auto,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.18,37.80,0.9886,34.78,no,"VALIDACION 9 g: fusion con guarda, seed42_auto",autoexp/runs/VAL9_F_seed42_auto
+2026-09-24 15:41,VAL9_F_bestof2_cliff,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.19,37.24,0.9888,34.71,no,"VALIDACION 9 g: fusion con guarda, bestof2_cliff",autoexp/runs/VAL9_F_bestof2_cliff
+2026-09-24 15:45,VAL9_F_bestof2_auto,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,41.26,37.67,0.9889,34.72,no,"VALIDACION 9 g: fusion con guarda, bestof2_auto",autoexp/runs/VAL9_F_bestof2_auto

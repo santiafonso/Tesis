@@ -49,7 +49,9 @@ def prepare_g(g, gdir, p):
     recon = p.get("recon", "rbf_tps")
 
     if recon == "auto":
-        rec, dec = interp.auto(ij, v, (H, W), sigma=p.get("recon_kw", {}).get("sigma", 0.0))
+        rk = p.get("recon_kw", {})
+        rec, dec = interp.auto(ij, v, (H, W), sigma=rk.get("sigma", 0.0),
+                               loo_verts=tuple(rk.get("loo_verts", (1.0, 0.8, 0.6, 0.4))), loo_extra=rk.get("loo_extra"))
         np.save(os.path.join(gdir, "restored.npy"), rec)
         json.dump(dec, open(os.path.join(gdir, "decisiones.json"), "w"))
         return None

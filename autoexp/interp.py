@@ -358,7 +358,7 @@ def monotone_violations(ij, v, tol):
     return int((le & (v[:, None] < v[None, :] - tol)).sum())
 
 
-def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.6), verbose=False):
+def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.8, 0.6, 0.4), loo_extra=None, verbose=False):
     """Reconstruccion SIN suponer la forma de antemano: cada supuesto del modelo de
     acantilado se chequea con los propios puntos y, si no se cumple, se apaga.
 
@@ -389,20 +389,22 @@ def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.6), verbose=False)
         if verbose:
             print("   auto:", info_d)
         return np.clip(rec, 0, 1), info_d
-    # compresion vertical por LOO (sin mono/cotas: solo para rankear, es mucho mas rapido)
-    best_v, best_e = 1.0, np.inf
-    for vt in loo_verts:
+    # configuracion por LOO (sin mono/cotas: solo para rankear, es mucho mas rapido)
+    cands = [{"vert": vt} for vt in loo_verts] + list(loo_extra or [])
+    best_c, best_e = cands[0], np.inf
+    for cfg in cands:
         errs = []
         for k in range(len(ij)):
             m = np.ones(len(ij), bool)
             m[k] = False
-            r_k, _ = cliff(ij[m], v[m], shape, sigma=sigma, mono=False, bounds=False, vert=vt)
+            r_k, _ = cliff(ij[m], v[m], shape, sigma=sigma, mono=False, bounds=False, **cfg)
             errs.append((r_k[int(ij[k, 0]), int(ij[k, 1])] - v[k]) ** 2)
         e = float(np.mean(errs))
         if e < best_e:
-            best_v, best_e = vt, e
-    info_d["vert"] = best_v
-    rec, _ = cliff(ij, v, shape, vert=best_v, **base_kw)
+            best_c, best_e = cfg, e
+    info_d["vert"] = best_c.get("vert", 0.6)
+    info_d["cfg"] = best_c
+    rec, _ = cliff(ij, v, shape, **dict(base_kw, **best_c))
     if verbose:
         print("   auto:", info_d)
     return rec, info_d

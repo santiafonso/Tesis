@@ -41,7 +41,7 @@ def fuse_one(dip, classic, coef, B):
     return interp.monotone_2d(np.clip(w * classic + (1 - w) * dip, 0, 1))
 
 
-def fuse_run(src, dst, B=20.0, guard=0.02, recon_kw=None, quiet=False):
+def fuse_run(src, dst, B=20.0, guard=0.02, recon_kw=None, quiet=False, classic_mode="cliff"):
     """Fusiona una corrida DIP ya hecha (src/g*) y escribe dst/g*; no evalua."""
     for gd in sorted(glob.glob(os.path.join(src, "g*"))):
         if not os.path.isfile(os.path.join(gd, "restored.npy")):
@@ -51,6 +51,10 @@ def fuse_run(src, dst, B=20.0, guard=0.02, recon_kw=None, quiet=False):
         shutil.copy(os.path.join(gd, "queries.json"), out)
         pts = np.array(json.load(open(os.path.join(gd, "queries.json")))["points"])
         classic, info = interp.cliff(pts[:, :2], pts[:, 2], (128, 128), **(recon_kw or {}))
+        if classic_mode == "auto":  # TPS que chequea supuestos y elige config por LOO
+            classic, dec = interp.auto(pts[:, :2], pts[:, 2], (128, 128), sigma=(recon_kw or {}).get("sigma", 0.0))
+            if not dec["cliff"]:
+                info = None
         d = np.load(os.path.join(gd, "restored.npy")).astype(float)
         d = d[0] if d.ndim == 3 else d
         d = np.clip(d[1:-1, 1:-1] if d.shape[0] == classic.shape[0] + 2 else d, 0, 1)
