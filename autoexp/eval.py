@@ -42,7 +42,7 @@ from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from autoexp.oracle import load_truth
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LEADERBOARD = os.path.join(HERE, "leaderboard.csv")
+LEADERBOARD = os.environ.get("AUTOEXP_LEADERBOARD", os.path.join(HERE, "leaderboard.csv"))
 TARGET_PTS, TARGET_DB = 64, 38.0
 
 

@@ -17,6 +17,7 @@ cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}" || exit 1
 mkdir -p logs
 export PYTHONUNBUFFERED=1
 export DIP_PY="${DIP_PY:-$PWD/venv/bin/python}"
+export AUTOEXP_LEADERBOARD="${AUTOEXP_LEADERBOARD:-$PWD/autoexp/runs/leaderboard_cluster.csv}"  # sin versionar
 line=$(sed -n "$(( ${SLURM_ARRAY_TASK_ID:-0} + 1 ))p" "$QUEUE")
 name=$(echo "$line" | cut -f1); params=$(echo "$line" | cut -f2); gs=$(echo "$line" | cut -f3)
 echo "=== $name ($(date)) ==="
