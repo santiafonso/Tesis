@@ -585,6 +585,17 @@ def main():
                     "Con 1 % DIP recupera la forma pero la cresta angosta queda ondulada; con 5 % "
                     "queda fiel. Con 64 puntos la TPS da una superficie reconocible pero con bultos.")
 
+    add_table_slide(prs, "¿Cuántos puntos hacen falta para 40 dB en todos los g?",
+                    ["presupuesto", "media (4 g más difíciles)", "peor g", "g ≥ 40 dB"],
+                    [["64 puntos (0.39 %)", "38.7", "37.7", "0 de 4"],
+                     ["72 puntos", "38.9", "37.6", "0 de 4"],
+                     ["80 puntos", "39.9", "39.0", "1 de 4"],
+                     ["96 puntos (0.59 %)", "41.8", "40.2", "4 de 4"]],
+                    note="Sin DIP, en los g -2.5, -2, -1.5 y -1 (los otros 5 ya pasan los 40 con 64). Con 96 puntos, "
+                         "los 9 g superan los 40 dB. Lo que limita a los g suaves es la rampa pegada al borde "
+                         "(0-12 px), donde ni la TPS ni DIP tienen datos: falta información, no un mejor reconstructor.",
+                    col_w=[3.2, 3.2, 2.2, 2.2])
+
     add_bullets_slide(prs, "Pedidos de la reunión: estado", [
         "1–3) Optuna + grid/uniform con hiperparámetros + la grilla como hiperparámetro: 181 trials en "
         "Mendieta. Mejor DIP con 64 puntos en grilla: 29.9 dB (config 'vase' del paper afinada); uniform "

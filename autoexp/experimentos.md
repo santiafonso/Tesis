@@ -10,6 +10,30 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (18) — ¿cuántos puntos para 40 dB en todos los g?
+
+- Optuna v2 (28 trials, objetivo = fusión): el mejor sigue siendo la receta de la tesis
+  (42.83 en 3 g dev). Los demás, entre 40.8 y 42.2 → la config de DIP ya está cerca del
+  óptimo. Cancelado.
+- Error TPS vs DIP por franja de distancia al borde (9 g, mejor de 2): pegado al borde (0-5 px)
+  la TPS es muy superior en los g abruptos (1.2 contra 9.1 en g=-4) y empatan en los suaves;
+  de 5 a 25 px DIP es algo mejor en los suaves. **El cuello de botella de los g que no llegan
+  a 40 es la franja de 0 a 12 px sobre el borde, donde los dos fallan igual (RMSE 3.5-3.9 %)**:
+  falta información, no un mejor reconstructor. Los píxeles mal clasificados en el borde
+  aportan ~0 % del error.
+- Relleno LOO sin la exclusión de 4 px (gap 2 o 1): peor (g=-4: 45.7 → 37.4). Queda en 4.
+- **Barrido de presupuesto** (TPS auto, sin DIP; g -2.5, -2, -1.5, -1):
+
+| puntos | media (peor) | ≥ 40 |
+|---|---|---|
+| 64 | 38.71 (37.66) | 0/4 |
+| 72 | 38.88 (37.59) | 0/4 |
+| 80 | 39.86 (39.00) | 1/4 |
+| **96** | **41.84 (40.18)** | **4/4** |
+
+  Los otros 5 g ya pasaban los 40 con 64, así que **con 96 puntos (0.59 % de la imagen) los 9 g
+  superan los 40 dB sin DIP**. Con la fusión con DIP probablemente alcancen ~80 (no corrido).
+
 ## 2026-09-24 (17) — misma estructura, otra geometría: diagramas deformados
 
 Aclaración del usuario: en KMC la estructura es parecida (acantilados, mesetas, fronteras) pero
