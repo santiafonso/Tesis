@@ -10,6 +10,35 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (16) — "no sabemos la forma de antemano en KMC": prueba fuera de muestra ★
+
+Todo se venía afinando con los 9 g negativos del modelo del continuo (acantilado a 0, borde
+recto, monotonía, zona que se desvanece vertical). Prueba en mapas NUNCA usados: diagramas g=+2
+y g=+4, e imágenes de forma distinta (Gauss, Himmelblau, Rosenbrock). El oráculo ahora acepta
+imágenes sintéticas por nombre.
+
+| mapa | grilla + TPS | receta vieja | **receta que chequea supuestos** |
+|---|---|---|---|
+| g=+2 | 32.35 | 35.09 | **36.62** |
+| g=+4 | 34.53 | **39.33** | 38.37 |
+| Gauss | **50.21** | 43.50 | 49.28 |
+| Himmelblau | 28.12 | 23.09 | **30.60** |
+| Rosenbrock | 23.71 | 22.99 | **24.93** |
+| media | 33.78 | 32.80 | **35.96** |
+
+La receta vieja **empeoraba** en formas distintas (Gauss −6.7 dB: la proyección monótona
+deformaba una campana; la bisección gastaba consultas en los bordes a 0 de la imagen).
+Cambios (`interp.auto`, `sampling.bisect(check_shape=True)`):
+- **Muestreo:** si los 30 puntos de la grilla ya violan la monotonía (tol 0.02 + 3σ), el
+  modelo de acantilado no aplica. No se hace bisección y todo el resto va al relleno LOO
+  **genérico** (TPS común en todo el mapa). En los 9 g negativos el muestreo sale idéntico
+  (verificado).
+- **Reconstrucción:** monotonía y cotas solo si ningún par de puntos la viola. Acantilado solo
+  si ≥ 3 puntos quedan debajo de la recta y ≥ 90 % valen ~0. Compresión vertical 0.6 o 1.0
+  elegida por LOO sobre los puntos. Si no hay acantilado: TPS común (+ monotonía si aplica).
+- En g=+2/+4 decidió "sin acantilado, con monotonía": los diagramas repulsivos no llegan a 0
+  exacto con salto.
+
 ## 2026-09-24 (15) — planificador de tandas para KMC, σ=0.05, perfil de rampa (no)
 
 - **`autoexp/kmc_planner.py`**: init / next / add / reconstruct / simulate. Oráculo de
