@@ -127,9 +127,13 @@ def main():
                                 load_if_exists=True,
                                 sampler=optuna.samplers.TPESampler(multivariate=True, group=True,
                                                                    n_startup_trials=12))
-    if len(study.trials) == 0:  # enqueue_trial con skip_if_exists: no se duplica entre workers
-        for s in (PROFES_SEEDS if a.study.startswith("profes") else SEEDS):
-            study.enqueue_trial(s, skip_if_exists=True)
+    # semillas: se encolan las que no tengan un trial vivo o completo (una semilla que fallo
+    # por un bug ya corregido se vuelve a encolar)
+    alive = [t.params for t in study.get_trials(deepcopy=False, states=(
+        optuna.trial.TrialState.COMPLETE, optuna.trial.TrialState.RUNNING, optuna.trial.TrialState.WAITING))]
+    for s in (PROFES_SEEDS if a.study.startswith("profes") else SEEDS):
+        if not any(all(p.get(k) == v for k, v in s.items()) for p in alive):
+            study.enqueue_trial(s)
 
     deadline = time.time() + a.hours * 3600
     while time.time() + a.trial_minutes * 60 < deadline:
@@ -137,10 +141,13 @@ def main():
             study.optimize(lambda t: objective(t, a.study), n_trials=1, catch=(RuntimeError,))
         except Exception:
             traceback.print_exc()
-        b = study.best_trial
-        print("[%s] trials=%d  mejor #%d: %.2f (mean %.2f, min %.2f)" % (
-            time.strftime("%H:%M"), len(study.trials), b.number, b.value,
-            b.user_attrs.get("mean_psnr", -1), b.user_attrs.get("min_psnr", -1)), flush=True)
+        try:
+            b = study.best_trial
+            print("[%s] trials=%d  mejor #%d: %.2f (mean %.2f, min %.2f)" % (
+                time.strftime("%H:%M"), len(study.trials), b.number, b.value,
+                b.user_attrs.get("mean_psnr", -1), b.user_attrs.get("min_psnr", -1)), flush=True)
+        except ValueError:
+            print("[%s] trials=%d, ninguno completo todavia" % (time.strftime("%H:%M"), len(study.trials)), flush=True)
 
 
 if __name__ == "__main__":

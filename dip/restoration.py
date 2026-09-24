@@ -244,6 +244,16 @@ print(
 metrics_log = []  # (iter, psnr_full, psnr_masked, ssim_full)
 
 
+def crop_out(out):
+    # Sin canales de skip (SKIP_N11=0, config "vase" del paper) la red no recorta sus
+    # ramas y con un lado que no es multiplo de 2**NUM_SCALES (130 tras el pad) la salida
+    # sale mas grande (160): se recorta al tamano de la imagen.
+    H, W = img_var.shape[-2:]
+    if out.shape[-2] >= H and out.shape[-1] >= W:
+        return out[..., :H, :W]
+    return out
+
+
 def closure():
     global i, psrn_masked_last, last_net, net_input, n_fallbacks
     global psnr_ema, consec_fallbacks
@@ -251,7 +261,7 @@ def closure():
     if REG_NOISE_STD > 0:
         net_input = net_input_saved + (noise.normal_() * REG_NOISE_STD)
 
-    out = net(net_input)
+    out = crop_out(net(net_input))
 
     if out.shape != img_var.shape:
         raise RuntimeError(
@@ -329,7 +339,7 @@ optimize(OPTIMIZER, p, closure, LR=LR, num_iter=NUM_ITER)
 # Salida final -- pixel-exacta + copias crudas en .npy para comparacion posterior
 # --------------------------------------------------------------------------------
 with torch.no_grad():
-    out_np = np.clip(torch_to_np(net(net_input)), 0, 1)
+    out_np = np.clip(torch_to_np(crop_out(net(net_input))), 0, 1)
 
 print("\nResolucion final reconstruida:", out_np.shape, "(C x H x W)")
 

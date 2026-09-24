@@ -86,7 +86,7 @@ def adaptive(oracle, n, n1=32, batch=8, first="grid", recon="rbf_tps", power=1.0
         oracle.query(new)
 
 
-def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", target="mid", eps=0.004,
+def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adaptive", target="mid", eps=0.004,
            cliff_min=0.05, **kw):
     """Grilla gruesa + busqueda binaria vertical del frente en cada columna con salto.
 
@@ -103,7 +103,7 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", target=
     derecha los valores bajan suave hasta ~0.02 y eso no es un acantilado). En todos los g el perfil vertical es meseta
     -> rampa suave -> salto a 0; el nivel medio caia dentro de la rampa.
     """
-    grid(oracle, min(n1, n), nx=nx)
+    grid(oracle, min(n1, n), nx=nx, offset=offset)
     ij, v = oracle.observed()
     val = {(int(i), int(j)): x for (i, j), x in zip(ij, v)}
     ys = sorted(set(ij[:, 0].tolist()))
