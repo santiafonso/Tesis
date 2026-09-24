@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.swp
 venv/
+venv
 .venv/
 
 # --- DIP / restoration outputs ---
