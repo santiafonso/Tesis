@@ -87,7 +87,7 @@ def adaptive(oracle, n, n1=32, batch=8, first="grid", recon="rbf_tps", power=1.0
 
 
 def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adaptive", target="mid", eps=0.004,
-           cliff_min=0.05, sigma=0.0, **kw):
+           cliff_min=0.05, sigma=0.0, check_shape=True, **kw):
     """Grilla gruesa + busqueda binaria vertical del frente en cada columna con salto.
 
     1. `n1` puntos en grilla (nx columnas).
@@ -110,6 +110,11 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
     grid(oracle, min(n1, n), nx=nx, offset=offset)
     ij, v = oracle.observed()
     val = {(int(i), int(j)): x for (i, j), x in zip(ij, v)}
+    if check_shape and target == "zero" and interp.monotone_violations(ij, v, 0.02 + 3 * sigma) > 0:
+        # la grilla ya viola la monotonia: el modelo de acantilado no aplica (no sabemos la
+        # forma de antemano). Sin biseccion; todo el resto al relleno LOO generico.
+        loo_fill(oracle, n, sigma=sigma, generic=True, **{k: x for k, x in kw.items() if k in ("batch", "power")})
+        return
     ys = sorted(set(ij[:, 0].tolist()))
     br = []
     for x in sorted(set(ij[:, 1].tolist())):
@@ -172,7 +177,7 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
         oracle.query(new)
 
 
-def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", **kw):
+def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, **kw):
     """Relleno por validacion cruzada: cada punto de arriba del acantilado se predice
     con interp.cliff sin el; |error LOO| se interpola (TPS) a toda la imagen y los puntos
     nuevos van donde ese error es alto y lejos de lo consultado. Fuera: debajo del borde y
@@ -184,9 +189,11 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", **kw):
     while oracle.n_used < n:
         ij, v = oracle.observed()
         kw = dict(kw, mono=False, bounds=False, smoothing=0.0)  # config validada del LOO (mono/cotas/suavizado adentro empeoraban; con sigma>0, cliff usa el suavizado de ruido igual)
-        _, info = interp.cliff(ij, v, oracle.shape, **kw)
+        info = None if generic else interp.cliff(ij, v, oracle.shape, **kw)[1]
         if info is None:
-            return adaptive(oracle, n, n1=0)
+            # LOO generico (sin supuestos de forma): TPS comun, todo el mapa
+            _generic_loo_batch(oracle, n, batch, power, kw.get("sigma", 0.0))
+            continue
         line = lambda r, c: np.polyval(info[0], c) - r  # > 0: arriba del borde
         up = np.where(line(ij[:, 0], ij[:, 1]) > gap)[0]
         field = np.ones((H, W))
@@ -216,6 +223,34 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", **kw):
             new.append((i, j))
             d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
         oracle.query(new)
+
+
+def _generic_loo_batch(oracle, n, batch, power, sigma=0.0):
+    from scipy.interpolate import RBFInterpolator
+
+    H, W = oracle.shape
+    yy, xx = np.mgrid[0:H, 0:W]
+    ij, v = oracle.observed()
+    sm = 1e-4 if sigma else 0.0
+    errs = []
+    for k in range(len(ij)):
+        m = np.ones(len(ij), bool)
+        m[k] = False
+        rec = interp.reconstruct(ij[m], v[m], oracle.shape, "rbf_tps", smoothing=sm)
+        errs.append(abs(rec[ij[k, 0], ij[k, 1]] - v[k]))
+    s_ = float(max(H, W))
+    field = np.clip(RBFInterpolator(ij / s_, np.array(errs), kernel="linear")(
+        np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W), 0, None)
+    d2 = np.full((H, W), np.inf)
+    for i, j in ij:
+        d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+    new = []
+    for _ in range(min(batch, n - oracle.n_used)):
+        k = int(np.argmax((field + 1e-4) ** power * np.sqrt(d2)))
+        i, j = divmod(k, W)
+        new.append((i, j))
+        d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+    oracle.query(new)
 
 
 STRATEGIES = {"grid": grid, "halton": halton, "uniform": uniform, "adaptive": adaptive, "bisect": bisect, "cliff_fill": cliff_fill}

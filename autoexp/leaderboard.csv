@@ -212,3 +212,7 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 14:58,bestof_k2_tesis_franja_fuse,-4.0 -2.0 -0.5,64,42.90,39.66,0.9905,35.99,SI,"mejor de k DIP por residuo (k2_tesis_franja (t1,t4)) + fusion",autoexp/runs/bestof_k2_tesis_franja_fuse
 2026-09-24 14:58,bestof_k2_tesis_ceros_fuse,-4.0 -2.0 -0.5,64,42.19,39.10,0.9894,35.07,SI,"mejor de k DIP por residuo (k2_tesis_ceros (t2,t5)) + fusion",autoexp/runs/bestof_k2_tesis_ceros_fuse
 2026-09-24 14:58,bestof_k_todas_fuse,-4.0 -2.0 -0.5,64,42.72,39.10,0.9907,35.72,SI,mejor de k DIP por residuo (k_todas) + fusion,autoexp/runs/bestof_k_todas_fuse
+2026-09-24 15:23,OOD_base_grid_tps,2.0 4.0 gauss himmelblau rosenbrock,64,33.78,23.71,0.9376,29.34,no,FUERA DE MUESTRA: grilla 8x8 + TPS,autoexp/runs/OOD_base_grid_tps
+2026-09-24 15:23,OOD_receta,2.0 4.0 gauss himmelblau rosenbrock,64,32.80,22.99,0.9178,31.27,no,FUERA DE MUESTRA: receta actual (supuestos de forma),autoexp/runs/OOD_receta
+2026-09-24 15:24,OOD_auto,2.0 4.0 gauss himmelblau rosenbrock,64,32.96,22.99,0.9291,31.27,no,FUERA DE MUESTRA: reconstruccion auto (chequea supuestos),autoexp/runs/OOD_auto
+2026-09-24 15:26,OOD_auto2,2.0 4.0 gauss himmelblau rosenbrock,64,35.96,24.93,0.9566,30.92,no,FUERA DE MUESTRA: muestreo y reconstruccion que chequean supuestos,autoexp/runs/OOD_auto2

@@ -103,7 +103,12 @@ def main():
     ap.add_argument("--no-log", action="store_true")
     a = ap.parse_args()
 
-    gdirs = sorted(glob.glob(os.path.join(a.run_dir, "g*")), key=lambda d: float(os.path.basename(d)[1:]))
+    def _key(d):
+        try:
+            return (0, float(os.path.basename(d)[1:]), "")
+        except ValueError:
+            return (1, 0.0, os.path.basename(d))
+    gdirs = sorted(glob.glob(os.path.join(a.run_dir, "g*")), key=_key)
     gdirs = [d for d in gdirs if os.path.isfile(os.path.join(d, "restored.npy"))]
     if not gdirs:
         raise SystemExit("no hay g*/restored.npy en %s" % a.run_dir)

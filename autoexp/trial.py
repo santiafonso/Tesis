@@ -48,6 +48,11 @@ def prepare_g(g, gdir, p):
     H, W = orc.shape
     recon = p.get("recon", "rbf_tps")
 
+    if recon == "auto":
+        rec, dec = interp.auto(ij, v, (H, W), sigma=p.get("recon_kw", {}).get("sigma", 0.0))
+        np.save(os.path.join(gdir, "restored.npy"), rec)
+        json.dump(dec, open(os.path.join(gdir, "decisiones.json"), "w"))
+        return None
     if recon in ("front_split", "cliff"):
         rec, _ = getattr(interp, recon)(ij, v, (H, W), **p.get("recon_kw", {}))
         np.save(os.path.join(gdir, "restored.npy"), rec)

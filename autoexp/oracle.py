@@ -33,8 +33,16 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
+SYNTH_DIR = os.path.join(REPO, "data", "restoration", "synthetic")
+
+
 def truth_path(g):
-    return os.path.join(PHASE_DIR, "g%s" % g, "sim_128.png")
+    """g numerico -> diagrama de fases; si no, una imagen sintetica por nombre (gauss,
+    rosenbrock, ...), para probar el metodo en formas que no vio."""
+    p = os.path.join(PHASE_DIR, "g%s" % g, "sim_128.png")
+    if not os.path.exists(p) and os.path.exists(os.path.join(SYNTH_DIR, "%s.png" % g)):
+        return os.path.join(SYNTH_DIR, "%s.png" % g)
+    return p
 
 
 def load_truth(g):

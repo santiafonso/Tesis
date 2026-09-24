@@ -346,3 +346,63 @@ def monotone_bounds(ij, v, shape):
     L = np.maximum.accumulate(np.maximum.accumulate(M[::-1, ::-1], axis=0), axis=1)[::-1, ::-1]
     U = np.minimum.accumulate(np.minimum.accumulate(N, axis=0), axis=1)
     return L, U
+
+
+def monotone_violations(ij, v, tol):
+    """Pares de puntos consultados que violan 'no creciente hacia abajo y a la derecha' por
+    mas de tol (p arriba-izquierda de q con v(p) < v(q) - tol)."""
+    ij = np.asarray(ij, int)
+    v = np.asarray(v, float)
+    le = (ij[:, None, 0] <= ij[None, :, 0]) & (ij[:, None, 1] <= ij[None, :, 1])
+    np.fill_diagonal(le, False)
+    return int((le & (v[:, None] < v[None, :] - tol)).sum())
+
+
+def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.6), verbose=False):
+    """Reconstruccion SIN suponer la forma de antemano: cada supuesto del modelo de
+    acantilado se chequea con los propios puntos y, si no se cumple, se apaga.
+
+    - monotonia (proyeccion + cotas): solo si ningun par de puntos la viola por mas de
+      tol + 3 sigma.
+    - acantilado a 0: solo si hay >= 3 puntos debajo de la recta y >= 90 % valen ~0.
+    - compresion vertical: la que de menor error de validacion cruzada (LOO) sobre los puntos.
+    Si no hay acantilado valido: TPS comun (suavizado 1e-4), + monotonia si corresponde.
+    Devuelve (reconstruccion, dict con las decisiones)."""
+    ij = np.asarray(ij, float)
+    v = np.asarray(v, float)
+    eps = max(0.004, 3 * sigma)
+    mono_ok = monotone_violations(ij, v, tol + 3 * sigma) == 0
+    info_d = {"mono": mono_ok}
+    base_kw = dict(sigma=sigma, mono=mono_ok, bounds=mono_ok)
+    rec, info = cliff(ij, v, shape, **base_kw)
+    cliff_ok = False
+    if info is not None:
+        below = (ij[:, 0] - np.polyval(info[0], ij[:, 1])) > 1.0
+        cliff_ok = below.sum() >= 3 and float(np.mean(v[below] < eps)) >= 0.9
+    info_d["cliff"] = cliff_ok
+    if not cliff_ok:
+        rec = reconstruct(ij, v, shape, "rbf_tps", smoothing=1e-4)
+        if mono_ok:
+            L, U = monotone_bounds(ij, v, shape)
+            rec = monotone_2d(np.clip(np.minimum(np.maximum(rec, L), U), 0, 1))
+        info_d["vert"] = None
+        if verbose:
+            print("   auto:", info_d)
+        return np.clip(rec, 0, 1), info_d
+    # compresion vertical por LOO (sin mono/cotas: solo para rankear, es mucho mas rapido)
+    best_v, best_e = 1.0, np.inf
+    for vt in loo_verts:
+        errs = []
+        for k in range(len(ij)):
+            m = np.ones(len(ij), bool)
+            m[k] = False
+            r_k, _ = cliff(ij[m], v[m], shape, sigma=sigma, mono=False, bounds=False, vert=vt)
+            errs.append((r_k[int(ij[k, 0]), int(ij[k, 1])] - v[k]) ** 2)
+        e = float(np.mean(errs))
+        if e < best_e:
+            best_v, best_e = vt, e
+    info_d["vert"] = best_v
+    rec, _ = cliff(ij, v, shape, vert=best_v, **base_kw)
+    if verbose:
+        print("   auto:", info_d)
+    return rec, info_d
