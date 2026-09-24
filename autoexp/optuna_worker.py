@@ -13,6 +13,7 @@ Varios workers comparten el estudio via JournalFileBackend (seguro en NFS):
 En el cluster lo lanza slurm/autoexp_optuna.slurm (array = workers).
 """
 import argparse
+import json
 import os
 import time
 import traceback
@@ -29,24 +30,28 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # (grilla 6x6 + biseccion del acantilado a 0 + relleno adaptativo; clasico solo = 34.4 dB en
 # los 9 g). La pregunta es si DIP mejora la parte suave con pseudo-puntos del modelo de
 # acantilado (ceros debajo del borde, opcionalmente mesetas de la reconstruccion clasica).
+# semilla extra: la mejor config de DIP del estudio de los profes (meshgrid, sin skips, LR ~5e-3)
 SEEDS = [
-    {"n1": 30, "aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 8000,
+    {"aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 3000, "lr": 0.0047,
+     "reg": 0.0148, "input_type": "meshgrid", "width": 128, "scales": 5, "skip": 0, "upsample": "bilinear"},
+    {"aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 8000,
      "lr": 1e-3, "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5,
      "skip": 4, "upsample": "bilinear"},
-    {"n1": 30, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
+    {"aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
      "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5, "skip": 4,
      "upsample": "bilinear"},
-    {"n1": 30, "aug": "zero+plateau", "n_zero": 4096, "n_pseudo": 256, "grad_q": 0.5,
+    {"aug": "zero+band", "band": 12, "n_zero": 4096,
      "post_zero": True, "iters": 8000, "lr": 1e-3, "reg": 0.08, "input_type": "noise",
      "input_depth": 32, "width": 128, "scales": 5, "skip": 4, "upsample": "bilinear"},
 ]
 
 
 def build_params(t):
+    # autoexp_v2: muestreo fijo en el validado (n1=30) -- cambiar las opciones de una
+    # categorica a mitad de un estudio rompe Optuna (paso en v1: 49k trials fallidos)
     p = {"n": 64, "recon": "dip", "sampler": "bisect",
-         "sampler_kw": {"n1": t.suggest_categorical("n1", [24, 30, 36]), "nx": 6, "target": "zero",
-                        "fill": "loo", "batch": 4}}
-    aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau", "zero+band"])
+         "sampler_kw": {"n1": 30, "nx": 6, "target": "zero", "fill": "loo", "batch": 4}}
+    aug = t.suggest_categorical("aug", ["zero", "zero+band"])
     if aug != "none":
         p["aug"] = {"where": aug, "n_zero": t.suggest_int("n_zero", 256, 8192, log=True)}
         if aug == "zero+band":
@@ -85,9 +90,6 @@ def dip_space(t):
 # hiperparametros, con la grilla como un hiperparametro mas. Solo DIP, sin pseudo-puntos.
 _PAPER = {"lr": 0.01, "reg": 0.03, "width": 128, "scales": 5, "upsample": "nearest"}
 PROFES_SEEDS = [
-    {"n1": 30, "aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 8000,
-     "lr": 1e-3, "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5,
-     "skip": 4, "upsample": "bilinear"},
     dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="meshgrid", iters=5000, skip=0),  # vase
     dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="noise", input_depth=32,
          iters=6000, skip=128),  # kate/peppers
@@ -116,6 +118,17 @@ def objective(t, study_name):
     name = "%s_t%04d" % (study_name, t.number)
     s = T.run(name, p, T.DEV_GS, note="optuna %s trial %d" % (study_name, t.number), log=False,
               runs_dir=os.path.join(HERE, "runs", study_name))
+    if not study_name.startswith("profes"):
+        # v2: el objetivo es la FUSION con guarda (TPS cerca del acantilado + DIP lejos), que
+        # es lo que se usaria; DIP solo queda como user_attr
+        import subprocess, sys
+        from autoexp.fuse import fuse_run
+        src = os.path.join(HERE, "runs", study_name, name)
+        t.set_user_attr("dip_only_mean", s["mean_psnr"])
+        fuse_run(src, src + "_fuse", B=20.0, guard=0.02, quiet=True)
+        subprocess.run([sys.executable, "-m", "autoexp.eval", src + "_fuse", "--no-log"], check=True,
+                       stdout=subprocess.DEVNULL)
+        s = json.load(open(os.path.join(src + "_fuse", "score.json")))
     t.set_user_attr("mean_psnr", s["mean_psnr"])
     t.set_user_attr("min_psnr", s["min_psnr"])
     t.set_user_attr("mean_ssim", s["mean_ssim"])
@@ -144,7 +157,9 @@ def main():
             study.enqueue_trial(s)
 
     deadline = time.time() + a.hours * 3600
+    fails = 0
     while time.time() + a.trial_minutes * 60 < deadline:
+        n_before = len([x for x in study.trials if x.state == optuna.trial.TrialState.FAIL])
         try:
             study.optimize(lambda t: objective(t, a.study), n_trials=1, catch=(RuntimeError,))
         except Exception:
@@ -156,6 +171,11 @@ def main():
                 b.user_attrs.get("mean_psnr", -1), b.user_attrs.get("min_psnr", -1)), flush=True)
         except ValueError:
             print("[%s] trials=%d, ninguno completo todavia" % (time.strftime("%H:%M"), len(study.trials)), flush=True)
+        n_after = len([x for x in study.trials if x.state == optuna.trial.TrialState.FAIL])
+        fails = fails + 1 if n_after > n_before else 0
+        if fails >= 10:  # no volver a quemar GPU en un bucle de fallos
+            print("10 trials fallidos seguidos: corto el worker", flush=True)
+            break
 
 
 if __name__ == "__main__":

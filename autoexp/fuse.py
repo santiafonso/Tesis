@@ -41,6 +41,31 @@ def fuse_one(dip, classic, coef, B):
     return interp.monotone_2d(np.clip(w * classic + (1 - w) * dip, 0, 1))
 
 
+def fuse_run(src, dst, B=20.0, guard=0.02, recon_kw=None, quiet=False):
+    """Fusiona una corrida DIP ya hecha (src/g*) y escribe dst/g*; no evalua."""
+    for gd in sorted(glob.glob(os.path.join(src, "g*"))):
+        if not os.path.isfile(os.path.join(gd, "restored.npy")):
+            continue
+        out = os.path.join(dst, os.path.basename(gd))
+        os.makedirs(out, exist_ok=True)
+        shutil.copy(os.path.join(gd, "queries.json"), out)
+        pts = np.array(json.load(open(os.path.join(gd, "queries.json")))["points"])
+        classic, info = interp.cliff(pts[:, :2], pts[:, 2], (128, 128), **(recon_kw or {}))
+        d = np.load(os.path.join(gd, "restored.npy")).astype(float)
+        d = d[0] if d.ndim == 3 else d
+        d = np.clip(d[1:-1, 1:-1] if d.shape[0] == classic.shape[0] + 2 else d, 0, 1)
+        use_dip = info is not None
+        if use_dip and guard > 0:
+            ij = pts[:, :2].astype(int)
+            up = (np.polyval(info[0], ij[:, 1]) - ij[:, 0]) > 0
+            res = float(np.sqrt(np.mean((d[ij[up, 0], ij[up, 1]] - pts[up, 2]) ** 2)))
+            use_dip = res <= guard
+            if not quiet:
+                print("   %s: residuo DIP en puntos reales %.4f -> %s" % (
+                    os.path.basename(gd), res, "fusion" if use_dip else "solo clasica"))
+        np.save(os.path.join(out, "restored.npy"), fuse_one(d, classic, info[0], B) if use_dip else classic)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("src")
@@ -51,27 +76,7 @@ def main():
     ap.add_argument("--note", default="")
     a = ap.parse_args()
     dst = os.path.join(HERE, "runs", a.name)
-    for gd in sorted(glob.glob(os.path.join(a.src, "g*"))):
-        if not os.path.isfile(os.path.join(gd, "restored.npy")):
-            continue
-        out = os.path.join(dst, os.path.basename(gd))
-        os.makedirs(out, exist_ok=True)
-        shutil.copy(os.path.join(gd, "queries.json"), out)
-        pts = np.array(json.load(open(os.path.join(gd, "queries.json")))["points"])
-        classic, info = interp.cliff(pts[:, :2], pts[:, 2], (128, 128), **json.loads(a.recon_kw))
-        d = np.load(os.path.join(gd, "restored.npy")).astype(float)
-        d = d[0] if d.ndim == 3 else d
-        d = np.clip(d[1:-1, 1:-1] if d.shape[0] == classic.shape[0] + 2 else d, 0, 1)
-        use_dip = info is not None
-        if use_dip and a.guard > 0:
-            ij = pts[:, :2].astype(int)
-            up = (np.polyval(info[0], ij[:, 1]) - ij[:, 0]) > 0
-            res = float(np.sqrt(np.mean((d[ij[up, 0], ij[up, 1]] - pts[up, 2]) ** 2)))
-            use_dip = res <= a.guard
-            print("   %s: residuo DIP en puntos reales %.4f -> %s" % (os.path.basename(gd), res,
-                                                                      "fusion" if use_dip else "solo clasica"))
-        rec = fuse_one(d, classic, info[0], a.B) if use_dip else classic
-        np.save(os.path.join(out, "restored.npy"), rec)
+    fuse_run(a.src, dst, a.B, a.guard, json.loads(a.recon_kw))
     subprocess.run([sys.executable, "-m", "autoexp.eval", dst, "--note",
                     a.note or "fusion B=%g de %s" % (a.B, a.src)], check=True)
 

@@ -30,7 +30,7 @@ WORKER_PY="${WORKER_PY:-$HOME/venv-autoexp/bin/python}"
 # Por defecto: tareas pares -> autoexp_v1 (biseccion del acantilado + DIP), impares ->
 # profes_grid_uniform (grid/uniform + DIP con hiperparametros, incl. los del paper).
 if [ -z "$STUDY" ]; then
-    if [ $(( ${SLURM_ARRAY_TASK_ID:-0} % 2 )) -eq 0 ]; then STUDY=autoexp_v1; else STUDY=profes_grid_uniform; fi
+    STUDY=autoexp_v2  # v1 quedo roto (categorica cambiada); profes ya convergio (181 trials)
 fi
 echo "=== worker ${SLURM_ARRAY_TASK_ID:-0} study=$STUDY ($(date)) ==="
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
