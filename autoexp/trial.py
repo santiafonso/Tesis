@@ -48,8 +48,12 @@ def prepare_g(g, gdir, p):
     H, W = orc.shape
     recon = p.get("recon", "rbf_tps")
 
+    if recon == "front_split":
+        rec, _ = interp.front_split(ij, v, (H, W), **p.get("recon_kw", {}))
+        np.save(os.path.join(gdir, "restored.npy"), rec)
+        return None
     if recon != "dip":
-        np.save(os.path.join(gdir, "restored.npy"), interp.reconstruct(ij, v, (H, W), recon))
+        np.save(os.path.join(gdir, "restored.npy"), interp.reconstruct(ij, v, (H, W), recon, **p.get("recon_kw", {})))
         return None
 
     # DIP: target = valores conocidos en los pixeles de la mascara (el resto no entra

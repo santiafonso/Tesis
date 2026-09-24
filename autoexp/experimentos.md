@@ -10,6 +10,25 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-23 (2) — frente explícito + bisección (local, sin DIP)
+
+| corrida | qué | media (peor) |
+|---|---|---|
+| split_adapt{32,40,48}_deg2 | adaptativo + `front_split` (frente = parábola por los puntos medios de los pares con salto; TPS por lado) | 27.1 / 26.2 / 27.2 — inestable, deja una costura vertical al final del tramo |
+| split1_adapt{32,40,48} | ídem, con una recta en todo el ancho | 26.4 / 28.1 / 27.5 (24.3) — la recta queda corrida 1-3 px |
+| bisect{25,36,42}_rbf_tps | grilla + **bisección vertical del frente** + resto adaptativo, TPS común | 24.9 / 26.5 / 26.5 |
+| **bisect36_front_split** | grilla 36 + bisección + `front_split` (max_len=4) | **30.25 (26.83)** — g=-4: **34.1**, g=-2: 26.8, g=-0.5: 29.9 |
+| bisect36_fs_al* | + coordenadas alineadas al frente (along 0.5/0.25/0.1, band 8) | 30.3 (26.8) con split; sin split, peor. **No ayuda**: queda apagado (along=1) |
+
+**Conclusiones:** con presupuesto fijo, gastar ~25 consultas en ubicar el frente a 1 px por
+bisección vale más que repartirlas. En g=-4 (el caso "imposible" para DIP con pocos puntos)
+esto da 34 dB con 64 puntos. Lo que limita ahora son los frentes suaves (g=-2, g=-0.5): partir
+por lados crea un escalón donde en realidad hay una rampa, y entre las columnas sondeadas la TPS
+arma "cuentas".
+
+**Siguiente:** usar `bisect36_front_split` como fuente de pseudo-puntos para DIP (que DIP
+suavice lo que la TPS deja con cuentas) y sumar sampler=bisect al espacio de Optuna.
+
 ## 2026-09-23 — arranque, sin DIP (local)
 
 | corrida | qué | media (peor) |

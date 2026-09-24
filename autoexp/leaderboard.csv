@@ -12,3 +12,21 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:20,adapt_n148_p1_tps,-4.0 -2.0 -0.5,64,27.82,23.28,0.8517,21.61,no,adaptativo n1=48 power=1 + tps,autoexp/runs/adapt_n148_p1_tps
 2026-09-23 21:20,adapt_n148_p2_tps,-4.0 -2.0 -0.5,64,26.54,23.10,0.8498,20.57,no,adaptativo n1=48 power=2 + tps,autoexp/runs/adapt_n148_p2_tps
 2026-09-23 21:21,halton_tps,-4.0 -2.0 -0.5,64,23.06,19.87,0.8551,18.15,no,halton + tps,autoexp/runs/halton_tps
+2026-09-23 21:25,split_adapt32_deg2,-4.0 -2.0 -0.5,64,27.11,23.82,0.8316,20.34,no,adaptativo n1=32 + front_split deg2 (TPS por lado),autoexp/runs/split_adapt32_deg2
+2026-09-23 21:25,split_adapt40_deg2,-4.0 -2.0 -0.5,64,26.24,18.25,0.8379,19.20,no,adaptativo n1=40 + front_split deg2 (TPS por lado),autoexp/runs/split_adapt40_deg2
+2026-09-23 21:25,split_adapt48_deg2,-4.0 -2.0 -0.5,64,27.23,23.59,0.8441,19.86,no,adaptativo n1=48 + front_split deg2 (TPS por lado),autoexp/runs/split_adapt48_deg2
+2026-09-23 21:25,split1_adapt32,-4.0 -2.0 -0.5,64,26.40,22.27,0.8037,21.63,no,"adaptativo n1=32 + front_split recta, ancho completo",autoexp/runs/split1_adapt32
+2026-09-23 21:25,split1_adapt40,-4.0 -2.0 -0.5,64,28.10,22.93,0.8173,21.72,no,"adaptativo n1=40 + front_split recta, ancho completo",autoexp/runs/split1_adapt40
+2026-09-23 21:26,split1_adapt48,-4.0 -2.0 -0.5,64,27.51,24.28,0.8334,21.13,no,"adaptativo n1=48 + front_split recta, ancho completo",autoexp/runs/split1_adapt48
+2026-09-23 21:26,bisect25_rbf_tps,-4.0 -2.0 -0.5,64,24.89,20.84,0.8169,20.35,no,grilla 25 + biseccion vertical del frente + resto adaptativo; rbf_tps,autoexp/runs/bisect25_rbf_tps
+2026-09-23 21:26,bisect25_front_split,-4.0 -2.0 -0.5,64,27.80,27.24,0.9237,22.86,no,grilla 25 + biseccion vertical del frente + resto adaptativo; front_split,autoexp/runs/bisect25_front_split
+2026-09-23 21:26,bisect36_rbf_tps,-4.0 -2.0 -0.5,64,26.54,22.93,0.8527,20.18,no,grilla 36 + biseccion vertical del frente + resto adaptativo; rbf_tps,autoexp/runs/bisect36_rbf_tps
+2026-09-23 21:27,bisect36_front_split,-4.0 -2.0 -0.5,64,30.25,26.83,0.9091,23.08,no,grilla 36 + biseccion vertical del frente + resto adaptativo; front_split,autoexp/runs/bisect36_front_split
+2026-09-23 21:27,bisect42_rbf_tps,-4.0 -2.0 -0.5,64,26.52,22.17,0.8785,19.28,no,grilla 42 + biseccion vertical del frente + resto adaptativo; rbf_tps,autoexp/runs/bisect42_rbf_tps
+2026-09-23 21:27,bisect42_front_split,-4.0 -2.0 -0.5,64,28.79,26.42,0.9451,20.80,no,grilla 42 + biseccion vertical del frente + resto adaptativo; front_split,autoexp/runs/bisect42_front_split
+2026-09-23 21:27,bisect36_fs_al0.5_splittrue,-4.0 -2.0 -0.5,64,30.30,26.83,0.9095,23.13,no,"bisect36 + front_split, coords alineadas al frente along=0.5 band=8 split=true",autoexp/runs/bisect36_fs_al0.5_splittrue
+2026-09-23 21:28,bisect36_fs_al0.5_splitfalse,-4.0 -2.0 -0.5,64,27.25,25.06,0.8576,20.63,no,"bisect36 + front_split, coords alineadas al frente along=0.5 band=8 split=false",autoexp/runs/bisect36_fs_al0.5_splitfalse
+2026-09-23 21:28,bisect36_fs_al0.25_splittrue,-4.0 -2.0 -0.5,64,30.29,26.83,0.9092,23.14,no,"bisect36 + front_split, coords alineadas al frente along=0.25 band=8 split=true",autoexp/runs/bisect36_fs_al0.25_splittrue
+2026-09-23 21:28,bisect36_fs_al0.25_splitfalse,-4.0 -2.0 -0.5,64,27.82,26.76,0.8602,21.09,no,"bisect36 + front_split, coords alineadas al frente along=0.25 band=8 split=false",autoexp/runs/bisect36_fs_al0.25_splitfalse
+2026-09-23 21:28,bisect36_fs_al0.1_splittrue,-4.0 -2.0 -0.5,64,30.18,26.83,0.9086,23.04,no,"bisect36 + front_split, coords alineadas al frente along=0.1 band=8 split=true",autoexp/runs/bisect36_fs_al0.1_splittrue
+2026-09-23 21:28,bisect36_fs_al0.1_splitfalse,-4.0 -2.0 -0.5,64,28.12,26.83,0.8595,21.48,no,"bisect36 + front_split, coords alineadas al frente along=0.1 band=8 split=false",autoexp/runs/bisect36_fs_al0.1_splitfalse
