@@ -40,7 +40,7 @@ DEV = ["-4.0", "-2.0", "-0.5"]
 GS9 = ["-4.0", "-3.5", "-3.0", "-2.5", "-2.0", "-1.5", "-1.0", "-0.5", "0.0"]
 
 # paleta categorica validada (dataviz, references/palette.md), en orden fijo
-C1, C2, C3 = "#2a78d6", "#eb6834", "#1baf7a"
+C1, C2, C3, C4 = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 SLIDE_W, SLIDE_H = 13.33, 7.5
 BLUE = RGBColor(0x1F, 0x3B, 0x73)
@@ -83,8 +83,11 @@ STEPS = [
     ("Relleno por\nvalidación cruzada", "cliffL_n30_b4"),
     ("Monotonía", "cliffM_it100"),
     ("Franja adaptativa\n+ cotas", "bounds_true"),
-    ("Fusión\nTPS + DIP", "fuse2_hib_mid_B10"),
+    ("Recta del borde\npor RANSAC", "ransac_noise0"),
+    ("Fusión TPS + DIP\n(con guarda)", "fuse2_hib_tesis_B20"),
 ]
+BEST_TPS9 = "VAL9_ransac"                      # mejor sin DIP, 9 g
+BEST_FUSE9 = "VAL9_fuseG_hib_tesis_mono_B20"   # mejor validado, 9 g
 
 
 # --------------------------------------------------------------- figuras -------
@@ -166,7 +169,7 @@ def fig_profiles():
     return _save(fig, "perfiles.png")
 
 
-def fig_sampling(run="VAL9_loo_mono_adapt", g="-2.0"):
+def fig_sampling(run="VAL9_ransac", g="-2.0"):
     from autoexp import sampling
     from autoexp.oracle import Oracle
     q = json.load(open(os.path.join(RUNS, run, "g%s" % g, "queries.json")))
@@ -199,29 +202,53 @@ def fig_sampling(run="VAL9_loo_mono_adapt", g="-2.0"):
 
 
 def fig_val9():
-    new = per_g("VAL9_loo_mono_adapt")
+    tps, fu = per_g(BEST_TPS9), per_g(BEST_FUSE9)
     import csv
     rows = {r["g"]: r for r in csv.DictReader(open(os.path.join(REPO, "results", "comparacion_nuevo_vs_dip_v2", "psnr.csv")))}
-    d164 = [float(rows[g]["dip_164"]) for g in GS9]
-    d328 = [float(rows[g]["dip_328"]) for g in GS9]
-    nw = [new[g] for g in GS9]
+    series = [
+        ("Nuevo, sin DIP: 64 pts (muestreo activo + TPS)", [tps[g] for g in GS9], C1),
+        ("Nuevo, fusión TPS + DIP con guarda: 64 pts", [fu[g] for g in GS9], C4),
+        ("DIP previo, ~164 pts (frontier_mix, usa el mapa denso)", [float(rows[g]["dip_164"]) for g in GS9], C2),
+        ("DIP previo, ~328 pts (frontier_mix)", [float(rows[g]["dip_328"]) for g in GS9], C3),
+    ]
     fig, ax = plt.subplots(figsize=(13, 4.8))
     x = np.arange(len(GS9))
-    w = 0.26
-    ax.bar(x - w - 0.02, nw, w, color=C1, label="Nuevo: 64 puntos, sin DIP (solo consulta puntos)")
-    ax.bar(x, d164, w, color=C2, label="DIP previo, ~164 puntos (frontier_mix, usa el mapa denso)")
-    ax.bar(x + w + 0.02, d328, w, color=C3, label="DIP previo, ~328 puntos (frontier_mix)")
+    w = 0.2
+    for k, (lab, vals, c) in enumerate(series):
+        ax.bar(x + (k - 1.5) * (w + 0.01), vals, w, color=c, label=lab)
     for i in range(len(x)):
-        ax.text(x[i] - w - 0.02, nw[i] + 0.4, "%.1f" % nw[i], ha="center", fontsize=8.5)
+        ax.text(x[i] - 0.5 * (w + 0.01), series[1][1][i] + 0.4, "%.1f" % series[1][1][i], ha="center", fontsize=8)
     ax.axhline(38, color=INK, ls=(0, (4, 3)), lw=1)
     ax.set_xticks(x)
     ax.set_xticklabels(["g = %s" % g for g in GS9])
-    ax.set_ylim(20, 58)
+    ax.set_ylim(20, 60)
     ax.set_ylabel("PSNR [dB]")
     ax.grid(axis="x", visible=False)
-    ax.legend(loc="upper left", fontsize=9, ncol=1)
+    ax.legend(loc="upper left", fontsize=8.5, ncol=2)
     ax.set_title("Validación en los 9 g negativos", loc="left", fontsize=12)
     return _save(fig, "val9_vs_dip.png")
+
+
+def fig_noise():
+    rows = [("0", "ransac_noise0"), ("0.01", "robust_n0.01_cm0.1"), ("0.03", "robust_n0.03_cm0.2"),
+            ("0.05", "robust_n0.05_cm0.25")]
+    naive = {"0.01": "noise0.01_receta", "0.03": "noise0.03_receta"}
+    grid = {"0.01": "noise0.01_grid_tps", "0.03": "noise0.03_grid_tps"}
+    fig, ax = plt.subplots(figsize=(9, 4.4))
+    xs = [float(r[0]) for r in rows]
+    def mean4(run):
+        sc = score(run)
+        return sc["mean_psnr"] if sc else np.nan
+    ax.plot(xs, [mean4(r) for _, r in rows], "-o", color=C1, lw=2, ms=8, label="receta robusta al ruido (umbrales ∝ σ, RANSAC)")
+    ax.plot([0.01, 0.03], [mean4(naive[k]) for k in ("0.01", "0.03")], "-s", color=C2, lw=2, ms=8, label="receta sin adaptar")
+    ax.plot([0.01, 0.03], [mean4(grid[k]) for k in ("0.01", "0.03")], "-D", color=C3, lw=2, ms=8, label="grilla 8×8 + TPS")
+    ax.axhline(38, color=INK, ls=(0, (4, 3)), lw=1)
+    ax.set_xlabel("ruido σ por punto (tipo KMC)")
+    ax.set_ylabel("PSNR medio, 4 g [dB]")
+    ax.set_ylim(20, 44)
+    ax.legend(loc="upper right", fontsize=9)
+    ax.set_title("Robustez al ruido (sin DIP; contra el mapa limpio)", loc="left", fontsize=12)
+    return _save(fig, "ruido.png")
 
 
 def fig_resumen():
@@ -229,7 +256,7 @@ def fig_resumen():
     fig = plt.figure(figsize=(16, 8.2))
     gsp = fig.add_gridspec(2, 4, height_ratios=[2.1, 1], hspace=0.3, wspace=0.08, top=0.92)
     fig_progress(fig.add_subplot(gsp[0, :]))
-    run = "VAL9_loo_mono_adapt"
+    run = BEST_FUSE9
     d = per_g(run)
     for k, g in enumerate(["-4.0", "-2.0", "-1.5", "-0.5"]):
         sub = gsp[1, k].subgridspec(1, 2, wspace=0.03)
@@ -243,8 +270,9 @@ def fig_resumen():
             a.set_yticks([])
             a.grid(False)
     m9 = np.mean([d[g] for g in GS9])
-    fig.suptitle("Diagrama de fases con 64 puntos consultados: %.1f dB de media en los 9 g (sin DIP); "
-                 "fusión TPS + DIP: %.1f dB en los g de desarrollo" % (m9, dev_stats("fuse2_hib_mid_B10")[0]),
+    s9 = score(run)
+    fig.suptitle("Diagrama de fases con 64 puntos consultados: %.1f dB de media en los 9 g "
+                 "(peor g %.1f) — muestreo activo + TPS + DIP con guarda" % (s9["mean_psnr"], s9["min_psnr"]),
                  fontsize=13, x=0.5, y=0.99)
     return _save(fig, "resumen.png")
 
@@ -381,10 +409,13 @@ def main():
     f_samp = fig_sampling()
     f_val9 = fig_val9()
     f_res = fig_resumen()
-    v9 = per_g("VAL9_loo_mono_adapt")
-    m9 = np.mean([v9[g] for g in GS9])
+    f_noise = fig_noise()
+    v9, s9t = per_g(BEST_TPS9), score(BEST_TPS9)
+    f9, s9f = per_g(BEST_FUSE9), score(BEST_FUSE9)
+    m9 = s9t["mean_psnr"]
     n38 = sum(v9[g] >= 38 for g in GS9)
-    fu = dev_stats("fuse2_hib_mid_B10")
+    n38f = sum(f9[g] >= 38 for g in GS9)
+    fu = dev_stats("fuse2_hib_tesis_B20")
 
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(SLIDE_W), Inches(SLIDE_H)
@@ -457,9 +488,11 @@ def main():
                     "Media y peor g en los 3 g de desarrollo. De 24.4 dB (grilla + TPS) a %.1f dB "
                     "(fusión con DIP)." % fu[0])
 
-    add_image_slide(prs, "Validación en los 9 g: %.1f dB de media con 64 puntos, sin DIP" % m9, f_val9,
-                    "%d de 9 g ≥ 38 dB. Le gana a DIP con ~164 puntos en los g duros (-4, -3.5, -3); "
-                    "DIP con 164 sigue siendo mejor en los g suaves." % n38)
+    add_image_slide(prs, "Validación en los 9 g: %.1f dB con 64 puntos (fusión con guarda); %.1f sin DIP"
+                    % (s9f["mean_psnr"], m9), f_val9,
+                    "Fusión: %.1f de media, %.1f en el peor g, %d de 9 g ≥ 38 dB. Solo TPS: %.1f / %.1f, %d de 9. "
+                    "Le ganan a DIP con ~164 puntos en los g duros; DIP con 164 sigue arriba en los suaves."
+                    % (s9f["mean_psnr"], s9f["min_psnr"], n38f, m9, s9t["min_psnr"], n38))
 
     add_image_slide(prs, "Comparación visual con el mejor DIP previo",
                     os.path.join(REPO, "results", "comparacion_nuevo_vs_dip_v2", "comparacion_rec.png"),
@@ -485,24 +518,31 @@ def main():
                      ["DIP, receta de la tesis (LR 1e-3, reg 0.08, skip 4, bilinear)", "25.0", "21.9"],
                      ["DIP, paper 'kate' (noise 32, LR 0.01, skip 128, nearest)", "18.1", "13.7"],
                      ["DIP, paper 'vase' (meshgrid, LR 0.01, reg 0.03, skip 0, nearest)", "28.5", "25.3"],
-                     ["DIP, 'vase' + muestreo uniforme", "22.2", "19.4"]],
-                    note="Con los hiperparámetros del paper para agujeros grandes, DIP le gana por +4 dB "
-                         "a la interpolación con los mismos puntos; la receta de la tesis (afinada para "
-                         "~328 puntos) no. Estudio 'profes_grid_uniform' de Optuna en Mendieta.",
+                     ["DIP, 'vase' + muestreo uniforme", "22.2", "19.4"],
+                     ["DIP, mejor de Optuna (181 trials): meshgrid, skip 0, LR ~5e-3, 3000 it", "29.9", "26.2"]],
+                    note="Con los hiperparámetros del paper para agujeros grandes, DIP le gana a la "
+                         "interpolación con los mismos puntos (+4 dB; +5.5 con Optuna); la receta de la tesis "
+                         "(afinada para ~328 puntos) no. Todos los mejores trials son la config 'vase' "
+                         "afinada; el muestreo uniforme nunca aparece arriba.",
                     col_w=[7.3, 2.2, 2.2])
 
-    add_table_slide(prs, "Híbrido: TPS pegada al borde + DIP en la zona suave",
-                    ["reconstrucción (mismos 64 puntos, 3 g)", "media [dB]", "peor [dB]", "-4 / -2 / -0.5"],
-                    [["TPS sola (con monotonía)", "40.4", "36.8", "45.7 / 36.8 / 38.5"],
-                     ["DIP (tesis) + ceros + franja TPS", "39.3", "38.0", "41.7 / 38.0 / 38.1"],
-                     ["DIP ('vase') + ceros + franja TPS", "35.4", "30.8", "30.8 / 36.5 / 38.9"],
-                     ["Fusión TPS + DIP tesis (B = 20 px)", "41.8", "39.5", ""],
-                     ["Fusión TPS + DIP intermedio (B = 10 px)",
-                      "%.1f" % fu[0], "%.1f" % fu[1], " / ".join("%.1f" % per_g("fuse2_hib_mid_B10")[g] for g in DEV)]],
-                    note="Fusión: final = monotonía( w·TPS + (1−w)·DIP ), w = exp(−(d/B)²), d = distancia "
-                         "al acantilado. DIP va mejor en la meseta y en la zona suave; la TPS, en el frente "
-                         "abrupto. Juntas, los 3 g quedan ≥ 39.5 dB. Validación en 9 g: en curso.",
-                    col_w=[5.0, 1.8, 1.8, 3.1])
+    add_table_slide(prs, "Híbrido: TPS pegada al borde + DIP en la zona suave (9 g)",
+                    ["reconstrucción (mismos 64 puntos, 9 g)", "media [dB]", "peor [dB]", "g ≥ 38 dB"],
+                    [["TPS sola (acantilado + monotonía + RANSAC)", "%.1f" % m9, "%.1f" % s9t["min_psnr"], "%d / 9" % n38],
+                     ["DIP (receta tesis) + ceros + franja TPS, sin fusionar", "37.0", "31.3", ""],
+                     ["Fusión TPS + DIP (B = 20 px), sin guarda", "40.3", "32.5", ""],
+                     ["Fusión TPS + DIP + guarda de falla de DIP", "%.1f" % s9f["mean_psnr"], "%.1f" % s9f["min_psnr"],
+                      "%d / 9" % n38f]],
+                    note="Fusión: final = monotonía( w·TPS + (1−w)·DIP ), w = exp(−(d/B)²), d = distancia al "
+                         "acantilado. La fusión gana en 6 de 9 g, pero cuando DIP falla arrastra todo.\n"
+                         "Guarda sin mirar el mapa: si DIP no reproduce los puntos reales consultados (RMS del "
+                         "residuo > 0.02; cuando anda es ≤ 0.008 y cuando falla ≥ 0.03), en ese g se usa solo la TPS.",
+                    col_w=[5.6, 1.9, 1.9, 2.3])
+
+    add_image_slide(prs, "Ruido tipo KMC: la receta se puede hacer robusta", f_noise,
+                    "Cada punto con ruido gaussiano de desvío σ (fijo por punto). Umbral de 'vale 0' = 3σ, salto "
+                    "mínimo ~5σ y recta del acantilado por RANSAC. σ hay que estimarlo en KMC con corridas repetidas.",
+                    width=9.5)
 
     add_image_slide(prs, "Punto 5 de la reunión: Rosenbrock de vuelta a 3D",
                     os.path.join(REPO, "results", "rosenbrock_3d", "rosenbrock_3d.png"),
@@ -510,9 +550,9 @@ def main():
                     "queda fiel. Con 64 puntos la TPS da una superficie reconocible pero con bultos.")
 
     add_bullets_slide(prs, "Pedidos de la reunión: estado", [
-        "1–3) Optuna + grid/uniform con hiperparámetros + la grilla como hiperparámetro: estudio "
-        "en Mendieta. La config 'vase' del paper es la mejor para DIP con 64 puntos. En el muestreo "
-        "nuevo, la grilla (6 columnas × 5 filas) resultó ser el parámetro más sensible.",
+        "1–3) Optuna + grid/uniform con hiperparámetros + la grilla como hiperparámetro: 181 trials en "
+        "Mendieta. Mejor DIP con 64 puntos en grilla: 29.9 dB (config 'vase' del paper afinada); uniform "
+        "siempre peor. En el muestreo nuevo, la grilla (6 columnas × 5 filas) es el parámetro más sensible.",
         "4) Ventana: la bisección ya concentra ~25 de los 64 puntos en una franja angosta "
         "alrededor del frente (ventana adaptativa).",
         "5) Rosenbrock en 3D: hecho (diapositiva anterior).",
@@ -529,18 +569,19 @@ def main():
         "Relleno por ancho de las cotas de monotonía: mejor peor g, pero −2.7 dB en g=-4.",
         "Grilla de 7-8 columnas: no falla el detector, se acaba el presupuesto en la bisección.",
         "DIP 'kate' del paper con 64 puntos (18 dB): pensado para imágenes casi completas.",
+        "Fusión sin guarda en 9 g: cuando DIP falla en un g (-4 dB), arrastra el promedio.",
     ], body_size=15)
 
     add_bullets_slide(prs, "Para KMC: recomendación y lo que falta validar", [
         "Muestreo por tandas: grilla (paralelo) → ~5 rondas de bisección (una corrida por columna, "
         "en paralelo) → ~4 rondas de relleno de a 4. Unas 10 rondas de KMC en total.",
         "Elegir las columnas según el presupuesto, dejando ~10 puntos para el relleno.",
-        "Reconstrucción: fusión TPS (cerca del acantilado) + DIP (zona suave) + monotonía.",
+        "Reconstrucción: fusión TPS (cerca del acantilado) + DIP (zona suave) + monotonía, con guarda.",
         "Pendiente, y lo más importante:",
         "- ¿Existe el acantilado a 0 en KMC, o el borde es difuso / ruidoso?",
-        "- Ruido: KMC es estocástico. La TPS pasa exacto por cada punto (copia el ruido); DIP es un "
-        "prior pensado para imágenes ruidosas. Hay que medirlo con ruido simulado del tamaño del de KMC.",
-        "- Validar la fusión en los 9 g (DIP corriendo en Mendieta).",
+        "- Ruido: con σ = 0.01 la receta robusta pierde ~2 dB y con σ = 0.03 ~6 dB (sin DIP). "
+        "Falta DIP con ruido (en Mendieta). Hay que estimar σ de KMC con corridas repetidas.",
+        "- Guarda de DIP: si DIP no ajusta los puntos reales, se usa solo la TPS (o se relanza DIP con otra semilla).",
     ], body_size=16)
 
     out = os.path.join(OUT_DIR, PRES_NAME + ".pptx")
