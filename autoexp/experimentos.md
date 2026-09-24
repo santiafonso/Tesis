@@ -22,6 +22,10 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 | 92 | | 41.60 (39.80), 3/4 | |
 | 96 | | 41.84 (40.18), 4/4 (9 g: 44.38 (40.18)) | |
 
+**Validado en 9 g: 88 puntos, grilla 36, sin DIP → 42.93 (41.22): los 9 g ≥ 41.2** (antes el
+mínimo sin DIP era 96). 84 con grilla 24/30/36: 40.99 (38.82) / 40.10 (39.17) / 40.67 (39.55),
+no alcanza. 80 con grilla 36: 39.91 (39.25).
+
 Con más presupuesto, la grilla óptima no es 30 (dónde caen las columnas influye; parte es suerte).
 
 **Con DIP, 80 puntos (9 g, mejor de 2 semillas + TPS auto + fusión con guarda):**

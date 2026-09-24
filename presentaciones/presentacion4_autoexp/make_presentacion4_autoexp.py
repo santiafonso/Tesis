@@ -589,10 +589,13 @@ def main():
                     ["presupuesto", "media (4 g más difíciles)", "peor g", "g ≥ 40 dB"],
                     [["64 puntos (0.39 %)", "38.7", "37.7", "0 de 4"],
                      ["72 puntos", "38.9", "37.6", "0 de 4"],
-                     ["80 puntos", "39.9", "39.0", "1 de 4"],
-                     ["96 puntos (0.59 %)", "41.8", "40.2", "4 de 4"]],
-                    note="Sin DIP, en los g -2.5, -2, -1.5 y -1 (los otros 5 ya pasan los 40 con 64). Validado con "
-                         "96 puntos en los 9 g: 44.4 dB de media, el peor 40.2: todos superan los 40 dB. Lo que limita a los g suaves es la rampa pegada al borde "
+                     ["80 puntos (grilla 24)", "40.6", "38.7", "3 de 4"],
+                     ["84 puntos (grilla 36)", "40.7", "39.5", "2 de 4"],
+                     ["88 puntos (0.54 %, grilla 36)", "41.6", "41.2", "4 de 4"],
+                     ["96 puntos (0.59 %)", "41.8", "40.2", "4 de 4"],
+                     ["80 puntos + DIP (fusión, 9 g)", "43.3", "39.8", "8 de 9"]],
+                    note="Sin DIP, en los g -2.5, -2, -1.5 y -1 (los otros 5 ya pasan los 40 con 64). Validado en los 9 g "
+                         "sin DIP: 88 puntos (grilla 36) → 42.9 de media, peor 41.2. Con DIP, 80 puntos quedan a 0.2 dB (8 de 9). Lo que limita a los g suaves es la rampa pegada al borde "
                          "(0-12 px), donde ni la TPS ni DIP tienen datos: falta información, no un mejor reconstructor.",
                     col_w=[3.2, 3.2, 2.2, 2.2])
 

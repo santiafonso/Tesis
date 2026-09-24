@@ -246,3 +246,4 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 18:39,VAL9_80pts_solo_tps,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,80,42.17,39.00,0.9870,35.78,no,"VALIDACION 9 g: 80 puntos, solo_tps",autoexp/runs/VAL9_80pts_solo_tps
 2026-09-24 18:44,bud_n84_g36,-2.5 -2.0 -1.5 -1.0,84,40.67,39.55,0.9828,33.69,no,"presupuesto 84, grilla 36 (TPS auto)",autoexp/runs/bud_n84_g36
 2026-09-24 18:49,bud_n80_g36,-2.5 -2.0 -1.5 -1.0,80,39.91,39.25,0.9797,33.28,no,"presupuesto 80, grilla 36 (TPS auto)",autoexp/runs/bud_n80_g36
+2026-09-24 18:59,VAL9_88pts_g36,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,88,42.93,41.22,0.9882,36.74,no,"VALIDACION 9 g: 88 puntos, grilla 36, TPS sin DIP",autoexp/runs/VAL9_88pts_g36
