@@ -62,7 +62,7 @@ def prepare_g(g, gdir, p):
     mask[ij[:, 0], ij[:, 1]] = True
     aug = dict(p.get("aug") or {})
     below = None
-    if aug.get("where") in ("zero", "zero+plateau"):
+    if aug.get("where") in ("zero", "zero+plateau", "zero+band"):
         # modelo de acantilado: debajo del borde el valor es 0 con certeza -> pseudo-puntos
         # de cero ahi (densidad n_zero); con "zero+plateau", ademas pseudo-puntos de la
         # reconstruccion clasica en las zonas planas de arriba.
@@ -74,6 +74,12 @@ def prepare_g(g, gdir, p):
             sub = np.zeros((H, W), bool)
             sub[step // 2::step, step // 2::step] = True
             mask |= below & sub
+        if aug["where"] == "zero+band" and info is not None:
+            # franja de `band` px arriba del acantilado: ahi la reconstruccion clasica (rampa
+            # alineada al borde) es precisa y DIP sin puntos deja un hueco; entra como
+            # pseudo-puntos con la misma densidad que los ceros
+            dist = np.polyval(info[0], xx) - yy
+            mask |= (dist > 0) & (dist <= aug.get("band", 6)) & sub
         if aug["where"] == "zero+plateau":
             pij, pv, _ = interp.pseudo_points(ij, v, (H, W), n_pseudo=aug.get("n_pseudo", 256),
                                               where="plateau", grad_q=aug.get("grad_q", 0.5))

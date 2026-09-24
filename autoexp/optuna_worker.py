@@ -30,6 +30,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # los 9 g). La pregunta es si DIP mejora la parte suave con pseudo-puntos del modelo de
 # acantilado (ceros debajo del borde, opcionalmente mesetas de la reconstruccion clasica).
 SEEDS = [
+    {"n1": 30, "aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 8000,
+     "lr": 1e-3, "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5,
+     "skip": 4, "upsample": "bilinear"},
     {"n1": 30, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
      "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5, "skip": 4,
      "upsample": "bilinear"},
@@ -43,9 +46,11 @@ def build_params(t):
     p = {"n": 64, "recon": "dip", "sampler": "bisect",
          "sampler_kw": {"n1": t.suggest_categorical("n1", [24, 30, 36]), "nx": 6, "target": "zero",
                         "fill": "loo", "batch": 4}}
-    aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau"])
+    aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau", "zero+band"])
     if aug != "none":
         p["aug"] = {"where": aug, "n_zero": t.suggest_int("n_zero", 256, 8192, log=True)}
+        if aug == "zero+band":
+            p["aug"]["band"] = t.suggest_int("band", 2, 16)
         if aug == "zero+plateau":
             p["aug"]["n_pseudo"] = t.suggest_int("n_pseudo", 32, 1024, log=True)
             p["aug"]["grad_q"] = t.suggest_float("grad_q", 0.2, 0.8)
@@ -80,6 +85,9 @@ def dip_space(t):
 # hiperparametros, con la grilla como un hiperparametro mas. Solo DIP, sin pseudo-puntos.
 _PAPER = {"lr": 0.01, "reg": 0.03, "width": 128, "scales": 5, "upsample": "nearest"}
 PROFES_SEEDS = [
+    {"n1": 30, "aug": "zero+band", "n_zero": 4096, "band": 6, "post_zero": True, "iters": 8000,
+     "lr": 1e-3, "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5,
+     "skip": 4, "upsample": "bilinear"},
     dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="meshgrid", iters=5000, skip=0),  # vase
     dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="noise", input_depth=32,
          iters=6000, skip=128),  # kate/peppers
