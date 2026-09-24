@@ -157,3 +157,10 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:53,fill2_loo,-4.0 -2.0 -1.5 -0.5,64,39.50,35.09,0.9824,33.25,no,"relleno crit=loo (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_loo
 2026-09-23 22:53,fill2_bounds,-4.0 -2.0 -1.5 -0.5,64,38.72,35.48,0.9828,33.57,no,"relleno crit=bounds (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_bounds
 2026-09-23 22:54,fill2_looxbounds,-4.0 -2.0 -1.5 -0.5,64,38.48,35.07,0.9818,33.50,no,"relleno crit=loo*bounds (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_looxbounds
+2026-09-23 22:55,grid2_n24_nx6,-4.0 -2.0 -1.5 -0.5,64,38.04,34.98,0.9832,31.27,no,re-barrido grilla n1=24 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n24_nx6
+2026-09-23 22:56,grid2_n30_nx5,-4.0 -2.0 -1.5 -0.5,64,32.32,30.43,0.9757,25.01,no,re-barrido grilla n1=30 nx=5 con reconstruccion nueva (4 g),autoexp/runs/grid2_n30_nx5
+2026-09-23 22:56,grid2_n30_nx6,-4.0 -2.0 -1.5 -0.5,64,39.50,35.09,0.9824,33.25,no,re-barrido grilla n1=30 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n30_nx6
+2026-09-23 22:57,grid2_n35_nx7,-4.0 -2.0 -1.5 -0.5,64,34.56,32.47,0.9828,26.84,no,re-barrido grilla n1=35 nx=7 con reconstruccion nueva (4 g),autoexp/runs/grid2_n35_nx7
+2026-09-23 22:57,grid2_n36_nx6,-4.0 -2.0 -1.5 -0.5,64,39.45,36.57,0.9792,33.79,no,re-barrido grilla n1=36 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n36_nx6
+2026-09-23 22:57,grid2_n40_nx8,-4.0 -2.0 -1.5 -0.5,64,32.59,28.83,0.9804,25.33,no,re-barrido grilla n1=40 nx=8 con reconstruccion nueva (4 g),autoexp/runs/grid2_n40_nx8
+2026-09-23 22:57,grid2_n42_nx6,-4.0 -2.0 -1.5 -0.5,64,35.55,33.98,0.9812,28.06,no,re-barrido grilla n1=42 nx=6 con reconstruccion nueva (4 g),autoexp/runs/grid2_n42_nx6

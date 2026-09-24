@@ -10,6 +10,34 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (10) — cotas por monotonía, criterio de relleno, re-barrido de grilla
+
+- **Cotas exactas por monotonía** (`interp.monotone_bounds`): un punto consultado abajo a la
+  derecha de p acota f(p) por abajo, y uno arriba a la izquierda por arriba (0 violaciones
+  en el mapa real). Recortar la TPS a [L, U] antes de proyectar: +0.2 dB en cada g
+  (4 g: 39.33 (34.86) → 39.50 (35.09)). Queda activado.
+- **Criterio de relleno por ancho de cotas** (U−L, incertidumbre exacta) contra LOO:
+  LOO 39.5 (35.1), cotas 38.7 (35.5), producto 38.5 (35.1). Queda LOO. Ojo: si el LOO usa
+  internamente la reconstrucción con mono/cotas, elige peores puntos (37.4); el muestreo
+  quedó aislado con su configuración validada.
+- **Re-barrido de grilla** con la reconstrucción nueva (4 g):
+
+| n1 / nx | media (peor) | g=-4 |
+|---|---|---|
+| 24 / 6 | 38.0 (35.0) | 41.7 |
+| **30 / 6** | **39.5 (35.1)** | 45.9 |
+| **36 / 6** | 39.5 (**36.6**) | 46.1 |
+| 42 / 6 | 35.6 (34.0) | 38.5 |
+| 30 / 5 | 32.3 (30.4) | 30.4 |
+| 35 / 7 | 34.6 (32.5) | 32.5 |
+| 40 / 8 | 32.6 (28.8) | 28.8 |
+
+  Con 7-8 columnas **no falla el detector** (la recta sale igual, pendiente −0.49 a −0.51):
+  se acaba el presupuesto. 35-40 de grilla + ~5 consultas de bisección por columna > 64, no
+  queda relleno y algunas bisecciones no terminan. Sin relleno nadie mide la transición
+  vertical de x≈85. **Regla para KMC: elegir las columnas según el presupuesto, dejando ~10
+  puntos para el relleno.** Con 5 columnas, al revés: el frente queda mal muestreado.
+
 ## 2026-09-24 (9) — franja adaptativa + fusión con la TPS nueva
 
 **Franja de la rampa adaptativa:** v_edge = mediana de los valores consultados a ≤2.5 px
