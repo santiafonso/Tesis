@@ -115,3 +115,8 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:57,VAL9_loo_n30_off0.5,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,38.65,33.17,0.9821,32.87,no,VALIDACION 9 g: relleno LOO n1=30 batch 4 offset=0.5,autoexp/runs/VAL9_loo_n30_off0.5
 2026-09-23 21:59,VAL9_loo_n30_off0.35,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,37.28,32.74,0.9764,30.71,no,VALIDACION 9 g: relleno LOO n1=30 batch 4 offset=0.35,autoexp/runs/VAL9_loo_n30_off0.35
 2026-09-23 22:00,VAL9_loo_n30_off0.65,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,36.45,33.57,0.9834,30.18,no,VALIDACION 9 g: relleno LOO n1=30 batch 4 offset=0.65,autoexp/runs/VAL9_loo_n30_off0.65
+2026-09-23 22:02,cliffL2_n24_b4_g4,-4.0 -2.0 -0.5,64,36.53,33.60,0.9788,29.96,no,relleno LOO n1=24 batch=4 gap=4,autoexp/runs/cliffL2_n24_b4_g4
+2026-09-23 22:02,cliffL2_n30_b2_g4,-4.0 -2.0 -0.5,64,38.32,36.69,0.9831,31.40,no,relleno LOO n1=30 batch=2 gap=4,autoexp/runs/cliffL2_n30_b2_g4
+2026-09-23 22:03,cliffL2_n30_b4_g2,-4.0 -2.0 -0.5,64,37.37,36.07,0.9828,30.71,no,relleno LOO n1=30 batch=4 gap=2,autoexp/runs/cliffL2_n30_b4_g2
+2026-09-23 22:03,cliffL2_n30_b4_g8,-4.0 -2.0 -0.5,64,37.05,36.05,0.9835,30.48,no,relleno LOO n1=30 batch=4 gap=8,autoexp/runs/cliffL2_n30_b4_g8
+2026-09-23 22:04,cliffL2_n30_b4_g0,-4.0 -2.0 -0.5,64,37.18,34.71,0.9834,30.45,no,relleno LOO n1=30 batch=4 gap=0,autoexp/runs/cliffL2_n30_b4_g0

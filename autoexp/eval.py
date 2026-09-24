@@ -149,7 +149,7 @@ def main():
         ax[0, c].xaxis.set_label_position("top")
     fig.suptitle("%s  --  media %.1f dB, peor g %.1f dB, <= %d puntos"
                  % (summary["run"], summary["mean_psnr"], summary["min_psnr"], summary["max_points"]))
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 1 - 0.35 / (3 * n)))  # deja lugar al suptitle
     fig.savefig(os.path.join(a.run_dir, "panel.png"), dpi=110)
     plt.close(fig)
 
