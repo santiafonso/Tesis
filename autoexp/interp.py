@@ -158,7 +158,7 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
 
 
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
-          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0):
+          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -201,7 +201,16 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
     yy, xx = np.mgrid[0:H, 0:W]
     below = yy > np.polyval(coef, xx)
     up = ~(ij[:, 0] > np.polyval(coef, ij[:, 1]))
-    rec = reconstruct(ij[up], v[up], shape, base, smoothing)
+    if vert < 1.0:
+        # lejos del borde la estructura es casi solo funcion de x (la transicion vertical de
+        # la zona que se desvanece): interpolar con la distancia vertical comprimida por `vert`
+        s_ = max(H, W)
+        sc = np.array([vert, 1.0]) / s_
+        q = np.column_stack([yy.ravel(), xx.ravel()]) * sc
+        rec = np.clip(RBFInterpolator(ij[up] * sc, v[up], kernel="thin_plate_spline",
+                                      smoothing=smoothing)(q).reshape(H, W), 0, 1)
+    else:
+        rec = reconstruct(ij[up], v[up], shape, base, smoothing)
     if along < 1.0 and deg == 1:
         # la rampa previa al acantilado se traslada paralela al borde: cerca de el,
         # interpolar en (u*along, d) con u a lo largo del borde y d la distancia a el;
