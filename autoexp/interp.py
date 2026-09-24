@@ -158,7 +158,8 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
 
 
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
-          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True):
+          smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
+          adapt=True):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -211,6 +212,17 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
                                       smoothing=smoothing)(q).reshape(H, W), 0, 1)
     else:
         rec = reconstruct(ij[up], v[up], shape, base, smoothing)
+    if adapt:
+        adapt = {} if adapt is True else adapt
+        # franja adaptativa: el valor justo arriba del acantilado dice que tan abrupto es el
+        # frente (g=-4: ~0.8, salto seco; g suaves: ~0.02-0.4, la rampa ya bajo casi todo).
+        # Frente suave -> franja ancha y mas comprimida a lo largo del borde.
+        dist_pts = np.polyval(coef, ij[:, 1]) - ij[:, 0]
+        edge = v[(dist_pts > 0) & (dist_pts <= 2.5) & (v >= eps)]
+        v_edge = float(np.median(edge)) if len(edge) else 0.8
+        f = float(np.clip(v_edge / adapt.get("v_sharp", 0.7), 0.0, 1.0))  # 1 = abrupto
+        along = adapt.get("along_soft", 0.3) + f * (adapt.get("along_sharp", 0.5) - adapt.get("along_soft", 0.3))
+        band = adapt.get("band_soft", 25.0) + f * (adapt.get("band_sharp", 15.0) - adapt.get("band_soft", 25.0))
     if along < 1.0 and deg == 1:
         # la rampa previa al acantilado se traslada paralela al borde: cerca de el,
         # interpolar en (u*along, d) con u a lo largo del borde y d la distancia a el;

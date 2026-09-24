@@ -132,3 +132,10 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:39,hib_vase_mono,-4.0 -2.0 -0.5,64,35.49,30.83,0.9767,27.17,no,hib_vase + proyeccion monotona (post-hoc local),autoexp/runs/hib_vase_mono
 2026-09-23 22:41,VAL9_loo_mono,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,39.31,33.73,0.9846,32.95,no,VALIDACION 9 g: LOO n30 + cliff + proyeccion monotona,autoexp/runs/VAL9_loo_mono
 2026-09-23 22:41,fuse_hib_tesis_B10,-4.0 -2.0 -0.5,64,40.87,38.57,0.9887,34.23,SI,"fusion DIP(tesis)+TPS por distancia al acantilado, B=10 (dev)",autoexp/runs/fuse_hib_tesis_B10
+2026-09-23 22:43,band_al0.5_b15,-4.0 -2.0 -1.5 -0.5,64,38.70,33.73,0.9835,32.28,no,"TPS+mono, rampa alineada along=0.5 band=15 (4 g)",autoexp/runs/band_al0.5_b15
+2026-09-23 22:44,band_al0.5_b25,-4.0 -2.0 -1.5 -0.5,64,38.30,33.54,0.9829,31.65,no,"TPS+mono, rampa alineada along=0.5 band=25 (4 g)",autoexp/runs/band_al0.5_b25
+2026-09-23 22:44,band_al0.5_b35,-4.0 -2.0 -1.5 -0.5,64,37.74,33.31,0.9811,31.05,no,"TPS+mono, rampa alineada along=0.5 band=35 (4 g)",autoexp/runs/band_al0.5_b35
+2026-09-23 22:45,band_al0.3_b25,-4.0 -2.0 -1.5 -0.5,64,38.36,35.60,0.9786,31.72,no,"TPS+mono, rampa alineada along=0.3 band=25 (4 g)",autoexp/runs/band_al0.3_b25
+2026-09-23 22:45,band_al0.3_b35,-4.0 -2.0 -1.5 -0.5,64,37.22,34.79,0.9753,30.58,no,"TPS+mono, rampa alineada along=0.3 band=35 (4 g)",autoexp/runs/band_al0.3_b35
+2026-09-23 22:46,adapt_vs0.7,-4.0 -2.0 -1.5 -0.5,64,39.12,35.31,0.9828,32.84,no,"TPS+mono, franja adaptativa v_sharp=0.7 (4 g)",autoexp/runs/adapt_vs0.7
+2026-09-23 22:46,adapt_vs0.4,-4.0 -2.0 -1.5 -0.5,64,38.82,35.06,0.9833,32.53,no,"TPS+mono, franja adaptativa v_sharp=0.4 (4 g)",autoexp/runs/adapt_vs0.4
