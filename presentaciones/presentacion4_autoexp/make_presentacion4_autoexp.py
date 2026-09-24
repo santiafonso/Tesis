@@ -581,7 +581,7 @@ def main():
                     col_w=[2.0, 2.4, 2.2, 2.4, 2.7])
 
     add_image_slide(prs, "Punto 5 de la reunión: Rosenbrock de vuelta a 3D",
-                    os.path.join(REPO, "results", "rosenbrock_3d", "rosenbrock_3d.png"),
+                    os.path.join(FIG, "rosenbrock_3d.png"),
                     "Con 1 % DIP recupera la forma pero la cresta angosta queda ondulada; con 5 % "
                     "queda fiel. Con 64 puntos la TPS da una superficie reconocible pero con bultos.")
 

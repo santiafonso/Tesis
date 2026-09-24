@@ -47,6 +47,11 @@ def main():
 
     cols = [("Original", truth, None)]
     cols.append(("TPS, 64 pts (grilla 8x8)", tps, ij))
+    new_run = os.environ.get("NEW_RUN", "autoexp/runs/OOD_auto2/grosenbrock")
+    if os.path.exists(os.path.join(new_run, "restored.npy")):
+        import json
+        q = np.array(json.load(open(os.path.join(new_run, "queries.json")))["points"])[:, :2].astype(int)
+        cols.append(("Método nuevo, 64 pts\n(muestreo activo, chequea supuestos)", np.load(os.path.join(new_run, "restored.npy")), q))
     for pct in (1, 5, 10):
         if os.path.isdir(os.path.join(DIP_DIR, "obs%dpct" % pct)):
             cols.append(("DIP, %d%% obs. (~%d pts)" % (pct, round(pct / 100 * H * W)), load_dip(pct), None))
