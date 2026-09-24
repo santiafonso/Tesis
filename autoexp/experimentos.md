@@ -10,6 +10,42 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (12) — fusión validada en 9 g + guarda de falla de DIP + Optuna profes
+
+**TPS + RANSAC en 9 g** (sin ruido): 40.31 (35.09); antes 40.17 (34.86).
+
+**Fusión en 9 g** (DIP híbrido del cluster + TPS actual, B=20):
+
+| | -4 | -3.5 | -3 | -2.5 | -2 | -1.5 | -1 | -0.5 | 0 | media (peor) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| TPS + RANSAC | 45.9 | 43.7 | 42.3 | 40.0 | 36.5 | 35.1 | 39.0 | 40.6 | 39.9 | 40.31 (35.09) |
+| fusión DIP tesis | 44.9 | 44.3 | 43.5 | 38.9 | 32.5 | 36.0 | 40.2 | 41.3 | 41.6 | 40.34 (32.46) |
+| fusión DIP intermedio | 26.6 | 43.2 | 40.4 | 35.1 | 37.0 | 35.6 | 39.4 | 42.1 | 40.0 | 37.71 (26.59) |
+
+→ La fusión gana en 6 de 9 g, pero cuando DIP falla arrastra todo. **Detector de falla sin
+mirar el mapa:** RMS del residuo de DIP en los puntos REALES consultados de arriba del
+acantilado. Cuando anda es ≤ 0.008; cuando falla, ≥ 0.03 (tesis g=-2: 0.034; intermedio
+g=-4: 0.156 y g=-2.5: 0.032). **Guarda 0.02 → solo TPS en ese g:**
+
+| | 9 g: media (peor) |
+|---|---|
+| **fusión DIP tesis + guarda** | **40.79 (36.01)**: mejor que la TPS en las dos métricas |
+| fusión DIP intermedio + guarda | 40.40 (35.60) |
+
+(El umbral se eligió mirando estos datos, pero el hueco entre 0.008 y 0.03 es grande.)
+
+**Estudio Optuna `profes_grid_uniform` (181 trials, pedido 1-3 del 17/9):** mejor DIP con
+grilla de 64 puntos ≈ **29.9 (26.2)**. Todos los mejores: meshgrid, skip 0, width 128, 5
+escalas, LR 0.005-0.017, ~3000 it, reg 0.015-0.07 (= la config "vase" del paper, afinada).
+Uniform nunca aparece arriba. Con los mismos puntos, la TPS da 24.4: DIP le gana por +5.5 dB,
+pero el muestreo nuevo + TPS da 40+.
+
+**`autoexp_v1` roto:** cambié las opciones de una categórica (`n1`) con el estudio empezado y
+Optuna rechaza el trial al instante: 49 192 trials fallidos en bucle (GPU quemada ~1.5 h,
+cancelado). Arreglado en `autoexp_v2`: muestreo fijo, objetivo = fusión con guarda, y el
+worker se corta tras 10 fallos seguidos. **Regla: no cambiar el espacio de un estudio
+existente; estudio nuevo.**
+
 ## 2026-09-24 (11) — ruido tipo KMC + RANSAC
 
 Oráculo con ruido opcional (`noise`: gaussiano fijo por pixel, recortado a [0,1]); el puntaje
