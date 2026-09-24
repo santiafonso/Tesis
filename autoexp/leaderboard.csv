@@ -209,3 +209,6 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 13:56,VAL9_actual,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,39.98,35.69,0.9843,33.35,no,"VALIDACION 9 g: receta tal como queda en el codigo (defaults actuales, biseccion en lote)",autoexp/runs/VAL9_actual
 2026-09-24 13:58,NZ_fuse_s0.05,-4.0 -2.0 -1.5 -0.5,64,32.62,31.24,0.9678,27.15,no,RUIDO sigma=0.05: fusion + guarda 0.12,autoexp/runs/NZ_fuse_s0.05
 2026-09-24 13:58,NZ_tps_s0.05,-4.0 -2.0 -1.5 -0.5,64,31.41,30.74,0.9387,26.76,no,RUIDO sigma=0.05: solo TPS robusta,autoexp/runs/NZ_tps_s0.05
+2026-09-24 14:58,bestof_k2_tesis_franja_fuse,-4.0 -2.0 -0.5,64,42.90,39.66,0.9905,35.99,SI,"mejor de k DIP por residuo (k2_tesis_franja (t1,t4)) + fusion",autoexp/runs/bestof_k2_tesis_franja_fuse
+2026-09-24 14:58,bestof_k2_tesis_ceros_fuse,-4.0 -2.0 -0.5,64,42.19,39.10,0.9894,35.07,SI,"mejor de k DIP por residuo (k2_tesis_ceros (t2,t5)) + fusion",autoexp/runs/bestof_k2_tesis_ceros_fuse
+2026-09-24 14:58,bestof_k_todas_fuse,-4.0 -2.0 -0.5,64,42.72,39.10,0.9907,35.72,SI,mejor de k DIP por residuo (k_todas) + fusion,autoexp/runs/bestof_k_todas_fuse
