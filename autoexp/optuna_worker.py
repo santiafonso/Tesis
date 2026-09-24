@@ -30,10 +30,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # los 9 g). La pregunta es si DIP mejora la parte suave con pseudo-puntos del modelo de
 # acantilado (ceros debajo del borde, opcionalmente mesetas de la reconstruccion clasica).
 SEEDS = [
-    {"n1": 36, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
+    {"n1": 30, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
      "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5, "skip": 4,
      "upsample": "bilinear"},
-    {"n1": 36, "aug": "zero+plateau", "n_zero": 4096, "n_pseudo": 256, "grad_q": 0.5,
+    {"n1": 30, "aug": "zero+plateau", "n_zero": 4096, "n_pseudo": 256, "grad_q": 0.5,
      "post_zero": True, "iters": 8000, "lr": 1e-3, "reg": 0.08, "input_type": "noise",
      "input_depth": 32, "width": 128, "scales": 5, "skip": 4, "upsample": "bilinear"},
 ]
@@ -41,8 +41,8 @@ SEEDS = [
 
 def build_params(t):
     p = {"n": 64, "recon": "dip", "sampler": "bisect",
-         "sampler_kw": {"n1": t.suggest_categorical("n1", [30, 36, 42]), "nx": 6, "target": "zero",
-                        "fill": "cliff", "gap": 4}}
+         "sampler_kw": {"n1": t.suggest_categorical("n1", [24, 30, 36]), "nx": 6, "target": "zero",
+                        "fill": "loo", "batch": 4}}
     aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau"])
     if aug != "none":
         p["aug"] = {"where": aug, "n_zero": t.suggest_int("n_zero", 256, 8192, log=True)}

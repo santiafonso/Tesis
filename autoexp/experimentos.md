@@ -10,6 +10,27 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-23 (6) — relleno por validación cruzada (leave-one-out) ★
+
+En vez de rellenar donde el gradiente es alto: cada punto de arriba del acantilado se predice
+con los demás (reconstrucción `cliff` completa), el |error LOO| se interpola a toda la imagen
+y los puntos nuevos van, en tandas de 4, donde ese error es alto y lejos de lo consultado. Va
+directo a donde el modelo se equivoca, sin suponer que el error vive donde hay gradiente.
+
+| corrida | dev: media (peor) | 9 g: media (peor) |
+|---|---|---|
+| cliffL_n36_b4 | 38.6 (35.0) | — |
+| cliffL_n36_b8 | 37.0 (35.0) | — |
+| **cliffL_n30_b4** | **39.6 (36.1)**: g=-4 44.9, -2 36.1, -0.5 38.0 | — |
+| **VAL9_loo_n30 offset 0.5** | — | **38.65 (33.2)**: ≥38 en g=-4 (44.9), -3.5 (42.8), -3 (41.4), -2.5 (38.0); -0.5 37.95 |
+| VAL9_loo_n30 offset 0.35 | — | 37.3 (32.7) |
+| VAL9_loo_n30 offset 0.65 | — | 36.5 (33.6) |
+
+**Promediando offsets, ~37.5 dB en los 9 g con 64 puntos** (antes ~34.7). El objetivo de 38 dB
+de media se cumple con la grilla centrada. Todavía no en todos los g: el peor sigue siendo
+g=-1.5 (~33). Grilla más chica (30 en vez de 36) + más relleno LOO rinde más: los puntos
+elegidos por error valen más que los de la grilla fija.
+
 ## 2026-09-23 (5) — robustez: ¿la receta depende de dónde cae la grilla?
 
 Receta actual (grilla 6×6 + bisección del acantilado + relleno `cliff` gap 4 + `cliff` con

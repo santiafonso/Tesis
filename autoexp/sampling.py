@@ -132,6 +132,8 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
         adaptive(oracle, n, n1=0, **kw)
     elif oracle.remaining > 0 and fill == "cliff":
         cliff_fill(oracle, n, **kw)
+    elif oracle.remaining > 0 and fill == "loo":
+        loo_fill(oracle, n, **kw)
     elif oracle.remaining > 0 and fill == "mix":  # mitad adaptativo (pegado al borde), mitad cliff
         adaptive(oracle, oracle.n_used + oracle.remaining // 2, n1=0)
         cliff_fill(oracle, n, **kw)
@@ -159,6 +161,45 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
         new = []
         for _ in range(min(batch, n - oracle.n_used)):
             k = int(np.argmax((gmag + 1e-3) ** power * np.sqrt(d2)))
+            i, j = divmod(k, W)
+            new.append((i, j))
+            d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+        oracle.query(new)
+
+
+def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, **kw):
+    """Relleno por validacion cruzada: cada punto de arriba del acantilado se predice
+    con interp.cliff sin el; |error LOO| se interpola (TPS) a toda la imagen y los puntos
+    nuevos van donde ese error es alto y lejos de lo consultado. Fuera: debajo del borde y
+    una franja de `gap` px arriba de el (ya resuelto por la biseccion)."""
+    from scipy.interpolate import RBFInterpolator
+
+    H, W = oracle.shape
+    yy, xx = np.mgrid[0:H, 0:W]
+    while oracle.n_used < n:
+        ij, v = oracle.observed()
+        _, info = interp.cliff(ij, v, oracle.shape, **kw)
+        if info is None:
+            return adaptive(oracle, n, n1=0)
+        line = lambda r, c: np.polyval(info[0], c) - r  # > 0: arriba del borde
+        up = np.where(line(ij[:, 0], ij[:, 1]) > gap)[0]
+        errs = []
+        for k in up:
+            m = np.ones(len(ij), bool)
+            m[k] = False
+            rec, _ = interp.cliff(ij[m], v[m], oracle.shape, **kw)
+            errs.append(abs(rec[ij[k, 0], ij[k, 1]] - v[k]))
+        s_ = float(max(H, W))
+        field = RBFInterpolator(ij[up] / s_, np.array(errs), kernel="linear")(
+            np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W)
+        field = np.clip(field, 0, None)
+        field[line(yy, xx) <= gap] = 0.0
+        d2 = np.full((H, W), np.inf)
+        for i, j in ij:
+            d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+        new = []
+        for _ in range(min(batch, n - oracle.n_used)):
+            k = int(np.argmax((field + 1e-4) ** power * np.sqrt(d2)))
             i, j = divmod(k, W)
             new.append((i, j))
             d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
