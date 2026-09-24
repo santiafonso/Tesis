@@ -130,3 +130,5 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:27,cliffM_it300,-4.0 -2.0 -0.5,64,40.36,36.80,0.9855,34.00,no,"LOO n30 + cliff mono, dykstra iters=300",autoexp/runs/cliffM_it300
 2026-09-23 22:38,hib_tesis_mono,-4.0 -2.0 -0.5,64,39.33,38.00,0.9879,31.58,SI,hib_tesis + proyeccion monotona (post-hoc local),autoexp/runs/hib_tesis_mono
 2026-09-23 22:39,hib_vase_mono,-4.0 -2.0 -0.5,64,35.49,30.83,0.9767,27.17,no,hib_vase + proyeccion monotona (post-hoc local),autoexp/runs/hib_vase_mono
+2026-09-23 22:41,VAL9_loo_mono,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,39.31,33.73,0.9846,32.95,no,VALIDACION 9 g: LOO n30 + cliff + proyeccion monotona,autoexp/runs/VAL9_loo_mono
+2026-09-23 22:41,fuse_hib_tesis_B10,-4.0 -2.0 -0.5,64,40.87,38.57,0.9887,34.23,SI,"fusion DIP(tesis)+TPS por distancia al acantilado, B=10 (dev)",autoexp/runs/fuse_hib_tesis_B10

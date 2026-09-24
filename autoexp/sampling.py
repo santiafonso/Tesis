@@ -147,7 +147,7 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
-        est, info = interp.cliff(ij, v, oracle.shape, **kw)
+        est, info = interp.cliff(ij, v, oracle.shape, **dict(kw, mono=False))
         gy, gx = np.gradient(est)
         gmag = np.hypot(gx, gy)
         if info is not None:
@@ -178,6 +178,7 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
+        kw = dict(kw, mono=False)  # la proyeccion monotona es cara y no cambia el LOO de forma util
         _, info = interp.cliff(ij, v, oracle.shape, **kw)
         if info is None:
             return adaptive(oracle, n, n1=0)
