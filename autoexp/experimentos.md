@@ -10,6 +10,34 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-23 (4) — ajuste fino del modelo de acantilado + pedidos de la reunión
+
+| corrida | qué | dev: media (peor) | 9 g: media (peor) |
+|---|---|---|---|
+| cliffK_* | núcleo base: tps / cubic-rbf / linear-rbf / griddata cúbica, suavizado 1e-5 a 1e-4 | TPS sin suavizar sigue siendo el mejor (35.5) | — |
+| cliffV_0.6 | TPS arriba del borde con la distancia vertical × 0.6 (la zona que se desvanece es una transición que depende casi solo de x) | **36.6 (33.9)** | **36.2 (31.9)**: g=-4 **41.7**, -3.5 **41.1**, -3 **38.4** |
+| cliffV_0.5 / 0.4 / 0.25 / 0.15 | más compresión | 36.5 / 36.5 / 35.0 / 31.4 | 0.5: 36.1 (31.7) |
+| cliffP_* | sondas del perfil de la rampa a d px sobre el borde, en 2-3 columnas | 33.4-35.9: **peor**, le quitan presupuesto al relleno. Revertido | — |
+
+Error restante (VAL9_cliffF_gap4): ~88 % en la rampa y la zona intermedia, ~12 % en la meseta,
+0 % debajo del borde.
+
+**Pedidos del 17/9:**
+- (1-3) Optuna + grid/uniform con hiperparámetros + grilla como hiperparámetro: estudio
+  `profes_grid_uniform` (sampler grid con nx/offset como hiperparámetros, o uniform; solo DIP).
+  Semillas: las configuraciones de inpainting del **paper** (notebooks/inpainting.ipynb:
+  "vase" = meshgrid, LR 0.01, 5000 it, reg 0.03, skip 0, nearest; "kate" = noise 32, LR 0.01,
+  6000 it, reg 0.03, skip 128, nearest) y la receta de la tesis (LR 0.001, reg 0.08, skip 4,
+  bilinear). **LR, skip y upsampling del paper nunca se habían probado** (la tesis usa un LR
+  10 veces menor). En paralelo, `autoexp_v1` (bisección del acantilado + DIP con pseudo-ceros).
+  Job 1178748 (multi, 4 workers, en cola) + 1178749 (short, 2 workers, corriendo desde ~23:40).
+- (4) Ventana: la bisección ya concentra ~25 de los 64 puntos en una franja angosta alrededor
+  del frente. Falta la variante con DIP solo dentro de la ventana.
+- (5) Rosenbrock → 3D: `analysis/rosenbrock_3d.py` → `results/rosenbrock_3d/rosenbrock_3d.png`
+  (DIP 1/5/10 % y TPS con 64 puntos, como superficie). Con 1 % DIP recupera la forma pero la
+  cresta angosta queda ondulada; recién con 5 % queda fiel.
+- (6) scipy vs DIP: tabla de arranque (TPS 24.4 con grilla 8×8).
+
 ## 2026-09-23 (3) — modelo de acantilado a cero (local, sin DIP)
 
 Hallazgo al mirar las columnas bisecadas: en **todos** los g el perfil vertical es meseta ≈1 →

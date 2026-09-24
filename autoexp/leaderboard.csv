@@ -104,3 +104,8 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:50,cliffV_0.15,-4.0 -2.0 -0.5,64,31.41,26.64,0.9447,28.36,no,cliffF gap4 + TPS con y comprimida vert=0.15,autoexp/runs/cliffV_0.15
 2026-09-23 21:50,VAL9_cliffV_0.6,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,36.24,31.87,0.9723,31.46,no,VALIDACION 9 g: cliffF gap4 + vert=0.6,autoexp/runs/VAL9_cliffV_0.6
 2026-09-23 21:50,VAL9_cliffV_0.5,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,36.13,31.66,0.9709,31.71,no,VALIDACION 9 g: cliffF gap4 + vert=0.5,autoexp/runs/VAL9_cliffV_0.5
+2026-09-23 21:51,cliffP_3-7-14_2,-4.0 -2.0 -0.5,64,35.33,33.44,0.9737,28.26,no,"cliffV + perfil de rampa d=[3,7,14] en 2 columnas",autoexp/runs/cliffP_3-7-14_2
+2026-09-23 21:51,cliffP_4-10_2,-4.0 -2.0 -0.5,64,35.89,32.49,0.9707,30.32,no,"cliffV + perfil de rampa d=[4,10] en 2 columnas",autoexp/runs/cliffP_4-10_2
+2026-09-23 21:51,cliffP_3-7-14_3,-4.0 -2.0 -0.5,64,34.14,33.45,0.9726,26.83,no,"cliffV + perfil de rampa d=[3,7,14] en 3 columnas",autoexp/runs/cliffP_3-7-14_3
+2026-09-23 21:51,cliffP_5-12_3,-4.0 -2.0 -0.5,64,35.27,33.02,0.9731,28.21,no,"cliffV + perfil de rampa d=[5,12] en 3 columnas",autoexp/runs/cliffP_5-12_3
+2026-09-23 21:51,cliffP_2-5-10-18_2,-4.0 -2.0 -0.5,64,33.41,32.40,0.9698,26.64,no,"cliffV + perfil de rampa d=[2,5,10,18] en 2 columnas",autoexp/runs/cliffP_2-5-10-18_2
