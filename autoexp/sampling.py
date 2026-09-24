@@ -87,7 +87,7 @@ def adaptive(oracle, n, n1=32, batch=8, first="grid", recon="rbf_tps", power=1.0
 
 
 def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adaptive", target="mid", eps=0.004,
-           cliff_min=0.05, sigma=0.0, check_shape=True, **kw):
+           cliff_min=0.05, sigma=0.0, check_shape=True, refine=3, refine_half=6, **kw):
     """Grilla gruesa + busqueda binaria vertical del frente en cada columna con salto.
 
     1. `n1` puntos en grilla (nx columnas).
@@ -136,6 +136,39 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
                 b[1], b[2] = ym, vm
             else:
                 b[3], b[4] = ym, vm
+    # segundo paso (solo si el borde sale CURVO): bisecar tambien en las columnas intermedias
+    # donde la curva ajustada mas se aparta de unir los cruces con rectas (una S cambia de
+    # curvatura entre columnas de la grilla). Con borde recto no se activa.
+    if refine and target == "zero" and oracle.remaining > 0:
+        ij2, v2 = oracle.observed()
+        info = interp.cliff(ij2, v2, oracle.shape, sigma=sigma, mono=False, bounds=False)[1]
+        if info is not None and (len(info[0]) > 2 or len(info[1]) < 4):
+            coef = info[0]
+            cr = sorted({b[0]: (b[1] + b[3]) / 2 for b in br if b[3] - b[1] <= tol}.items())
+            gaps = []
+            for (x0, y0), (x1, y1) in zip(cr, cr[1:]):
+                xm = (x0 + x1) // 2
+                dev = abs(interp.edge(coef, xm) - (y0 + y1) / 2)
+                gaps.append((dev, xm))
+            H = oracle.shape[0]
+            new_br = []
+            for dev, xm in sorted(gaps, reverse=True)[:refine]:
+                if dev < 1.5 or oracle.remaining < 2:
+                    continue
+                yc = int(round(interp.edge(coef, xm)))
+                a_, b_ = max(0, yc - refine_half), min(H - 1, yc + refine_half)
+                va, vb = oracle.query([(a_, xm), (b_, xm)])
+                if (va < eps) != (vb < eps):
+                    new_br.append([xm, a_, va, b_, vb, eps])
+            while oracle.remaining > 0 and any(b[3] - b[1] > tol for b in new_br):
+                openb = [b for b in new_br if b[3] - b[1] > tol][: oracle.remaining]
+                pts = [((b[1] + b[3]) // 2, b[0]) for b in openb]
+                vals = oracle.query(pts)
+                for b, (ym, _), vm in zip(openb, pts, vals):
+                    if (vm >= b[5]) == (b[2] >= b[5]):
+                        b[1], b[2] = ym, vm
+                    else:
+                        b[3], b[4] = ym, vm
     if target == "zero":
         kw = dict(kw, eps=eps)  # el relleno usa el mismo umbral de cero (con ruido: ~3 sigma)
     if oracle.remaining > 0 and fill == "adaptive":
@@ -161,9 +194,9 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
         gy, gx = np.gradient(est)
         gmag = np.hypot(gx, gy)
         if info is not None:
-            below = yy > np.polyval(info[0], xx)
+            below = yy > interp.edge(info[0], xx)
             # afuera el acantilado y una franja de `gap` px arriba (el salto contamina el grad)
-            gmag[below | (yy > np.polyval(info[0], xx) - gap)] = 0.0
+            gmag[below | (yy > interp.edge(info[0], xx) - gap)] = 0.0
         gmag = gmag / max(gmag.max(), 1e-12)
         d2 = np.full((H, W), np.inf)
         for i, j in ij:
@@ -194,7 +227,7 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, 
             # LOO generico (sin supuestos de forma): TPS comun, todo el mapa
             _generic_loo_batch(oracle, n, batch, power, kw.get("sigma", 0.0))
             continue
-        line = lambda r, c: np.polyval(info[0], c) - r  # > 0: arriba del borde
+        line = lambda r, c: interp.edge(info[0], c) - r  # > 0: arriba del borde
         up = np.where(line(ij[:, 0], ij[:, 1]) > gap)[0]
         field = np.ones((H, W))
         if crit in ("loo", "loo*bounds"):

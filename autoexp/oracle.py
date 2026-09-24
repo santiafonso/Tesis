@@ -40,8 +40,10 @@ def truth_path(g):
     """g numerico -> diagrama de fases; si no, una imagen sintetica por nombre (gauss,
     rosenbrock, ...), para probar el metodo en formas que no vio."""
     p = os.path.join(PHASE_DIR, "g%s" % g, "sim_128.png")
-    if not os.path.exists(p) and os.path.exists(os.path.join(SYNTH_DIR, "%s.png" % g)):
-        return os.path.join(SYNTH_DIR, "%s.png" % g)
+    if not os.path.exists(p):
+        for d in (SYNTH_DIR, SYNTH_DIR + "_warp"):  # sinteticas y diagramas deformados
+            if os.path.exists(os.path.join(d, "%s.png" % g)):
+                return os.path.join(d, "%s.png" % g)
     return p
 
 

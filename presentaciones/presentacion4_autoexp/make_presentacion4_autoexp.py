@@ -87,7 +87,7 @@ STEPS = [
     ("Fusión TPS + DIP\n(con guarda)", "fuse2_hib_tesis_B20"),
 ]
 BEST_TPS9 = "VAL9_ransac_s1e-4"                # mejor sin DIP, 9 g
-BEST_FUSE9 = "VAL9_fuseG2_tesis_B20"           # mejor validado, 9 g
+BEST_FUSE9 = "VAL9_F_bestof2_auto"             # mejor validado, 9 g
 
 
 # --------------------------------------------------------------- figuras -------
@@ -541,6 +541,24 @@ def main():
                     os.path.join(FIG, "zonas_tps_dip.png"),
                     "Debajo del borde (salto a 0): 0 directo. Pegado al borde: interpolación TPS. Lejos del "
                     "borde, en la zona lisa: DIP. El paso entre TPS y DIP es gradual (peso exp(−(d/20)²)).")
+
+    add_bullets_slide(prs, "En KMC no sabemos la forma exacta: el método chequea sus supuestos", [
+        "Todo se afinó con los 9 diagramas del modelo del continuo. En KMC la estructura es parecida "
+        "(mesetas, rampas, acantilado) pero con otra distribución.",
+        "Cada supuesto se verifica con los propios puntos y, si no se cumple, se apaga:",
+        "- Monotonía: solo si ningún par de puntos la viola (más allá del ruido). Si ya la grilla la "
+        "viola, no se hace bisección y todo el presupuesto va al relleno genérico.",
+        "- Acantilado: solo si casi todos los puntos debajo del borde valen 0. Borde recto, curvo "
+        "(parábola / cúbica por RANSAC) o por tramos, elegido con los propios cruces.",
+        "- Compresión vertical: la elige la validación cruzada entre 4 valores.",
+        "En los 9 diagramas originales no cambia nada (mismos puntos, mismo resultado).",
+        "Diagramas de fase nuevos (g = +2, +4): 36.6 y 38.4 dB vs 32.4 y 34.5 del baseline. En formas "
+        "totalmente distintas (Gauss, Rosenbrock, Himmelblau) ya no se rompe: cae a lo genérico.",
+    ], body_size=15)
+
+    add_image_slide(prs, "Misma estructura, otra geometría", os.path.join(FIG, "deformados.png"),
+                    "Los 3 g (-4, -2, -0.5) deformados: acantilado corrido, con otra inclinación, arqueado o en S. "
+                    "El método le gana al baseline por ~9 dB; lo más difícil es el frente en S.")
 
     add_image_slide(prs, "Ruido tipo KMC: la receta se puede hacer robusta", f_noise,
                     "Cada punto con ruido gaussiano de desvío σ (fijo por punto). Umbral de 'vale 0' = 3σ, salto "

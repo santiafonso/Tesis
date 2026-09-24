@@ -76,7 +76,7 @@ def prepare_g(g, gdir, p):
         target, info = interp.cliff(ij, v, (H, W), **p.get("recon_kw", {}))
         if info is not None:
             yy, xx = np.mgrid[0:H, 0:W]
-            below = yy > np.polyval(info[0], xx)
+            below = yy > interp.edge(info[0], xx)
             step = max(1, int(round(np.sqrt(H * W / aug.get("n_zero", 4096)))))
             sub = np.zeros((H, W), bool)
             sub[step // 2::step, step // 2::step] = True
@@ -85,7 +85,7 @@ def prepare_g(g, gdir, p):
             # franja de `band` px arriba del acantilado: ahi la reconstruccion clasica (rampa
             # alineada al borde) es precisa y DIP sin puntos deja un hueco; entra como
             # pseudo-puntos con la misma densidad que los ceros
-            dist = np.polyval(info[0], xx) - yy
+            dist = interp.edge(info[0], xx) - yy
             mask |= (dist > 0) & (dist <= aug.get("band", 6)) & sub
         if aug["where"] == "zero+plateau":
             pij, pv, _ = interp.pseudo_points(ij, v, (H, W), n_pseudo=aug.get("n_pseudo", 256),

@@ -160,37 +160,96 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
     return np.clip(out, 0, 1), (coef, x0, x1)
 
 
+class PiecewiseEdge:
+    """Borde por tramos: PCHIP (monotona, no oscila) por los cruces medidos, con extension
+    recta en los extremos (pendiente del ultimo tramo). len() > 2 = 'curvo' para el resto."""
+
+    def __init__(self, xs, ys):
+        from scipy.interpolate import PchipInterpolator
+
+        o = np.argsort(xs)
+        self.xs, self.ys = np.asarray(xs, float)[o], np.asarray(ys, float)[o]
+        self.f = PchipInterpolator(self.xs, self.ys, extrapolate=False)
+        self.m0 = (self.ys[1] - self.ys[0]) / (self.xs[1] - self.xs[0])
+        self.m1 = (self.ys[-1] - self.ys[-2]) / (self.xs[-1] - self.xs[-2])
+
+    def __call__(self, x):
+        x = np.asarray(x, float)
+        y = self.f(np.clip(x, self.xs[0], self.xs[-1]))
+        y = np.where(x < self.xs[0], self.ys[0] + self.m0 * (x - self.xs[0]), y)
+        return np.where(x > self.xs[-1], self.ys[-1] + self.m1 * (x - self.xs[-1]), y)
+
+    def __len__(self):
+        return 4
+
+
+def edge(c, x):
+    """Altura (fila) del borde en la columna x: polinomio (coeficientes) o PiecewiseEdge."""
+    return c(x) if callable(c) else np.polyval(c, x)
+
+
+def _choose_edge(mids, coef, outlier_px):
+    """Polinomio (RANSAC) o tramos por los inliers: tramos solo si el polinomio falla (error
+    de validacion cruzada sobre los cruces > 1.5 px) y los tramos predicen al menos 2 veces
+    mejor. En bordes rectos queda el polinomio."""
+    x, y = mids[:, 1], mids[:, 0]
+    inl = np.abs(y - np.polyval(coef, x)) <= outlier_px
+    xi, yi = x[inl], y[inl]
+    _, uq = np.unique(np.round(xi), return_index=True)
+    xi, yi = xi[uq], yi[uq]
+    if len(xi) < 4:
+        return coef
+    deg = len(coef) - 1
+    e_poly, e_pw = [], []
+    for k in range(1, len(xi) - 1):  # solo interiores: los extremos serian extrapolacion
+        m = np.ones(len(xi), bool)
+        m[k] = False
+        e_poly.append((np.polyval(np.polyfit(xi[m], yi[m], min(deg, m.sum() - 1)), xi[k]) - yi[k]) ** 2)
+        e_pw.append((PiecewiseEdge(xi[m], yi[m])(xi[k]) - yi[k]) ** 2)
+    # tramos solo si el polinomio falla de verdad (los cruces tienen ~1 px de ruido de biseccion)
+    if np.sqrt(np.mean(e_poly)) > 1.5 and np.mean(e_pw) < 0.5 * np.mean(e_poly):
+        return PiecewiseEdge(xi, yi)
+    return coef
+
+
 def _robust_line(mids, deg, outlier_px):
-    """fila = f(col). Con deg=1: RANSAC exhaustivo (todas las rectas por pares de puntos de
-    borde; gana la de mas inliers a <= outlier_px, desempate por residuo) y reajuste por
-    minimos cuadrados con los inliers. Con ruido, la cola suave de la zona que se desvanece
-    genera pares 0/no-0 falsos que un solo reajuste no alcanzaba a sacar."""
-    # bordes a < 2 px entre si cuentan una sola vez (un grupo de bordes falsos no suma votos)
+    """fila = f(col) robusto. RANSAC exhaustivo: todos los subconjuntos minimos (deg+1 puntos
+    de borde); gana el de mas inliers a <= outlier_px (desempate por residuo) y se reajusta
+    por minimos cuadrados con los inliers. Bordes a < 2 px entre si cuentan una vez.
+
+    deg="auto": prueba recta, parabola y cubica, y se queda con el grado MAS BAJO que logra
+    el maximo de inliers (en un borde recto sigue siendo una recta; si es curvo, lo sigue).
+    """
+    from itertools import combinations
+
     keep = []
     for k in range(len(mids)):
         if all(np.hypot(*(mids[k] - mids[q])) >= 2.0 for q in keep):
             keep.append(k)
     mids = mids[keep]
     x, y = mids[:, 1], mids[:, 0]
-    if deg != 1 or len(mids) < 4:
-        coef = np.polyfit(x, y, deg)
-        res = np.abs(y - np.polyval(coef, x))
-        if (res <= outlier_px).sum() >= deg + 2:
-            coef = np.polyfit(x[res <= outlier_px], y[res <= outlier_px], deg)
-        return coef
-    best, best_key = None, None
-    for a in range(len(mids)):
-        for b in range(a + 1, len(mids)):
-            if abs(x[b] - x[a]) < 1e-9:
+    degs = (1, 2, 3) if deg == "auto" else (deg,)
+    results = []
+    for d in degs:
+        if len(mids) < d + 2:
+            continue
+        best, best_key = None, None
+        for sub in combinations(range(len(mids)), d + 1):
+            sub = list(sub)
+            if len(set(np.round(x[sub]))) < d + 1:
                 continue
-            m = (y[b] - y[a]) / (x[b] - x[a])
-            c = y[a] - m * x[a]
-            res = np.abs(y - (m * x + c))
+            c = np.polyfit(x[sub], y[sub], d)
+            res = np.abs(y - np.polyval(c, x))
             inl = res <= outlier_px
             key = (inl.sum(), -res[inl].sum())
             if best_key is None or key > best_key:
                 best, best_key = inl, key
-    return np.polyfit(x[best], y[best], 1)
+        if best is not None and best.sum() >= d + 1:
+            results.append((int(best.sum()), -d, np.polyfit(x[best], y[best], d)))
+    if not results:
+        return np.polyfit(x, y, 1)
+    results.sort(key=lambda r: (r[0], r[1]), reverse=True)  # mas inliers; a igualdad, menor grado
+    return results[0][2]
 
 
 def noise_params(sigma):
@@ -201,7 +260,7 @@ def noise_params(sigma):
     return {"eps": max(0.004, 3 * sigma), "steep_min": max(0.1, 5 * sigma), "smoothing": 1e-4}
 
 
-def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
+def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg="auto", base="rbf_tps",
           smoothing=1e-4, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
           adapt=True, bounds=True, sigma=0.0):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
@@ -239,13 +298,15 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
     mids = [(ij[a] + ij[b]) / 2 for a, b in edges
             if (v[a] < eps) != (v[b] < eps) and np.linalg.norm(ij[a] - ij[b]) <= max_len
             and steep(a, b)]
-    if len(mids) < deg + 2:
+    if len(mids) < (1 if deg == "auto" else deg) + 2:
         return reconstruct(ij, v, shape, base, smoothing), None
     mids = np.array(mids)
     coef = _robust_line(mids, deg, outlier_px)
+    if deg == "auto":
+        coef = _choose_edge(mids, coef, outlier_px)
     yy, xx = np.mgrid[0:H, 0:W]
-    below = yy > np.polyval(coef, xx)
-    up = ~(ij[:, 0] > np.polyval(coef, ij[:, 1]))
+    below = yy > edge(coef, xx)
+    up = ~(ij[:, 0] > edge(coef, ij[:, 1]))
     if vert < 1.0:
         # lejos del borde la estructura es casi solo funcion de x (la transicion vertical de
         # la zona que se desvanece): interpolar con la distancia vertical comprimida por `vert`
@@ -261,13 +322,27 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
         # franja adaptativa: el valor justo arriba del acantilado dice que tan abrupto es el
         # frente (g=-4: ~0.8, salto seco; g suaves: ~0.02-0.4, la rampa ya bajo casi todo).
         # Frente suave -> franja ancha y mas comprimida a lo largo del borde.
-        dist_pts = np.polyval(coef, ij[:, 1]) - ij[:, 0]
-        edge = v[(dist_pts > 0) & (dist_pts <= 2.5) & (v >= eps)]
-        v_edge = float(np.median(edge)) if len(edge) else 0.8
+        dist_pts = edge(coef, ij[:, 1]) - ij[:, 0]
+        edge_v = v[(dist_pts > 0) & (dist_pts <= 2.5) & (v >= eps)]
+        v_edge = float(np.median(edge_v)) if len(edge_v) else 0.8
         f = float(np.clip(v_edge / adapt.get("v_sharp", 0.7), 0.0, 1.0))  # 1 = abrupto
         along = adapt.get("along_soft", 0.3) + f * (adapt.get("along_sharp", 0.5) - adapt.get("along_soft", 0.3))
         band = adapt.get("band_soft", 25.0) + f * (adapt.get("band_sharp", 15.0) - adapt.get("band_soft", 25.0))
-    if along < 1.0 and deg == 1:
+    if along < 1.0 and len(coef) > 2:
+        # borde curvo: coordenadas que siguen la curva, (x*along, f(x) - y); la rampa se
+        # traslada con el borde igual que en el caso recto
+        def fwd_c(P):
+            P = np.asarray(P, float)
+            return np.column_stack([P[:, 1] * along, edge(coef, P[:, 1]) - P[:, 0]])
+
+        pix = np.column_stack([yy.ravel(), xx.ravel()])
+        q = fwd_c(pix)
+        s_ = max(H, W)
+        ani = RBFInterpolator(fwd_c(ij[up]) / s_, v[up], kernel="thin_plate_spline",
+                              smoothing=smoothing)(q / s_).reshape(H, W)
+        w = np.exp(-(np.abs(q[:, 1]).reshape(H, W) / band) ** 2)
+        rec = w * ani + (1 - w) * rec
+    if along < 1.0 and len(coef) == 2:
         # la rampa previa al acantilado se traslada paralela al borde: cerca de el,
         # interpolar en (u*along, d) con u a lo largo del borde y d la distancia a el;
         # lejos (> band), la interpolacion isotropa (ahi hay estructura no alineada, como
@@ -377,7 +452,7 @@ def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.8, 0.6, 0.4), loo_
     rec, info = cliff(ij, v, shape, **base_kw)
     cliff_ok = False
     if info is not None:
-        below = (ij[:, 0] - np.polyval(info[0], ij[:, 1])) > 1.0
+        below = (ij[:, 0] - edge(info[0], ij[:, 1])) > 1.0
         cliff_ok = below.sum() >= 3 and float(np.mean(v[below] < eps)) >= 0.9
     info_d["cliff"] = cliff_ok
     if not cliff_ok:

@@ -36,7 +36,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 def fuse_one(dip, classic, coef, B):
     H, W = classic.shape
     yy, xx = np.mgrid[0:H, 0:W]
-    d = np.clip(np.polyval(coef, xx) - yy, 0, None)
+    d = np.clip(interp.edge(coef, xx) - yy, 0, None)
     w = np.exp(-(d / B) ** 2)
     return interp.monotone_2d(np.clip(w * classic + (1 - w) * dip, 0, 1))
 
@@ -61,7 +61,7 @@ def fuse_run(src, dst, B=20.0, guard=0.02, recon_kw=None, quiet=False, classic_m
         use_dip = info is not None
         if use_dip and guard > 0:
             ij = pts[:, :2].astype(int)
-            up = (np.polyval(info[0], ij[:, 1]) - ij[:, 0]) > 0
+            up = (interp.edge(info[0], ij[:, 1]) - ij[:, 0]) > 0
             res = float(np.sqrt(np.mean((d[ij[up, 0], ij[up, 1]] - pts[up, 2]) ** 2)))
             use_dip = res <= guard
             if not quiet:
@@ -80,7 +80,7 @@ def best_of(srcs, dst, recon_kw=None, quiet=False):
         pts = np.array(json.load(open(os.path.join(cands[0], "queries.json")))["points"])
         _, info = interp.cliff(pts[:, :2], pts[:, 2], (128, 128), **(recon_kw or {}))
         ij = pts[:, :2].astype(int)
-        up = (np.polyval(info[0], ij[:, 1]) - ij[:, 0]) > 0 if info is not None else np.ones(len(ij), bool)
+        up = (interp.edge(info[0], ij[:, 1]) - ij[:, 0]) > 0 if info is not None else np.ones(len(ij), bool)
         best, best_r = None, np.inf
         for c in cands:
             q = np.array(json.load(open(os.path.join(c, "queries.json")))["points"])

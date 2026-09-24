@@ -10,6 +10,26 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (17) — misma estructura, otra geometría: diagramas deformados
+
+Aclaración del usuario: en KMC la estructura es parecida (acantilados, mesetas, fronteras) pero
+con otra distribución. Test: los g -4, -2, -0.5 deformados (cada columna corrida verticalmente
+dy(x)): acantilado corrido, con otra inclinación, arqueado ∪/∩ y en S (15 mapas,
+`data/restoration/synthetic_warp/`).
+
+| mapas deformados | grilla + TPS | receta (borde recto) | + borde curvo (RANSAC grado 1-3) | + tramos + 2do paso |
+|---|---|---|---|---|
+| media 15 | 24.54 | 31.65 | 33.39 | 33.42 |
+
+- Corrido / otra inclinación: 30.7-44.5. Arcos: 29-36. S: 26-29 (lo más difícil).
+- Borde: RANSAC con grado automático (el más bajo que logra el máximo de inliers); curva
+  por tramos (PCHIP) solo si el polinomio falla (LOO de los cruces > 1.5 px y 2 veces peor).
+  Segundo paso de bisección en columnas intermedias si el borde sale curvo o hay < 4 cruces.
+  Rampa alineada en coordenadas que siguen la curva.
+- **En los 9 originales: idéntico** (recta en todos, mismos puntos, mismo PSNR, verificado).
+- Mejor de 2 DIP + TPS auto + fusión con guarda, 9 g originales: **41.26 (37.67)**; 6 de 9 g
+  ≥ 40 (faltan -2.5 38.3, -2 39.1, -1.5 37.7).
+
 ## 2026-09-24 (16) — "no sabemos la forma de antemano en KMC": prueba fuera de muestra ★
 
 Todo se venía afinando con los 9 g negativos del modelo del continuo (acantilado a 0, borde
