@@ -10,6 +10,43 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (8) — monotonía + híbrido DIP/TPS ★
+
+**Monotonía:** el mapa real es exactamente no creciente hacia abajo y hacia la derecha en
+todos los g (0 violaciones: SoC_max baja al crecer ℓ y Ξ). Proyección de la reconstrucción
+sobre ese conjunto (Dykstra, alternando regresión isotónica por columnas y por filas):
+
+| corrida | dev: media (peor) | 9 g: media (peor) |
+|---|---|---|
+| TPS (LOO n30) | 39.6 (36.1) | 38.65 (33.2) |
+| **TPS + monotonía** | **40.4 (36.8)** | **39.3 (33.7)**: 5 de 9 g ≥ 38 |
+
+(El muestreo LOO usa internamente la reconstrucción sin proyectar: es cara y no aportaba.)
+
+**Híbrido** (job 1178753; muestreo LOO n30 + pseudo-ceros debajo del borde + franja TPS de 6 px
+como pseudo-puntos + DIP):
+
+| DIP | media (peor) | -4 / -2 / -0.5 |
+|---|---|---|
+| receta de la tesis (LR 1e-3, reg .08, skip 4) | 39.3 (38.0) | 41.7 / **38.0** / 38.1 |
+| "vase" del paper | 35.4 (30.8) | 30.8 / 36.5 / **38.9** |
+| + monotonía post-hoc | +0.07: DIP ya sale liso | |
+
+**Fusión por distancia al acantilado** (`autoexp/fuse.py`, en local sobre las salidas de DIP):
+final = mono(w·TPS + (1−w)·DIP), w = exp(−(d/B)²):
+
+| B (px) | DIP tesis: media (peor) | DIP vase |
+|---|---|---|
+| solo DIP | 39.3 (38.0) | 35.5 (30.8) |
+| 3 / 6 | 40.6 (38.2) / 40.7 (38.3) | 40.5 (37.1) / 40.6 (37.0) |
+| **10** | **40.9 (38.6)**: 45.1 / 38.6 / 38.9 → **los 3 g ≥ 38** | 40.6 (36.8) |
+| 20 / 40 | 41.2 (38.0) / 41.0 (37.4) | 40.7 (36.6) / 41.0 (36.9) |
+| solo TPS | 40.4 (36.8) | |
+
+→ **Primera configuración con todos los g de desarrollo por encima de 38 dB con 64 puntos: TPS
+pegada al borde + DIP lejos de él.** Cada uno solo no llega. En validación (job 1178757):
+DIP híbrido en los 9 g → fusión local.
+
 ## 2026-09-24 (7) — DIP con 64 puntos (Mendieta) y proceso gaussiano (local)
 
 **DIP con los mismos 64 puntos de la grilla 8×8** (dev g; en la columna, la interpolación
