@@ -31,10 +31,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # acantilado (ceros debajo del borde, opcionalmente mesetas de la reconstruccion clasica).
 SEEDS = [
     {"n1": 36, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
-     "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5},
+     "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5, "skip": 4,
+     "upsample": "bilinear"},
     {"n1": 36, "aug": "zero+plateau", "n_zero": 4096, "n_pseudo": 256, "grad_q": 0.5,
      "post_zero": True, "iters": 8000, "lr": 1e-3, "reg": 0.08, "input_type": "noise",
-     "input_depth": 32, "width": 128, "scales": 5},
+     "input_depth": 32, "width": 128, "scales": 5, "skip": 4, "upsample": "bilinear"},
 ]
 
 
@@ -50,23 +51,60 @@ def build_params(t):
             p["aug"]["grad_q"] = t.suggest_float("grad_q", 0.2, 0.8)
         p["post_zero"] = t.suggest_categorical("post_zero", [True, False])
 
+    p["dip"] = dip_space(t)
+    return p
+
+
+def dip_space(t):
+    """Hiperparametros de DIP. Incluye los del paper (notebooks/inpainting.ipynb):
+    vase (agujeros grandes): meshgrid, LR 0.01, 5001 it, reg 0.03, skip 0, nearest;
+    kate/peppers: noise 32, LR 0.01, 6001 it, reg 0.03, skip 128, nearest.
+    La tesis venia usando LR 0.001, skip 4, bilinear, reg 0.08."""
     it = t.suggest_categorical("input_type", ["noise", "meshgrid"])
     d = {
-        "NUM_ITER": t.suggest_int("iters", 2000, 12000, step=2000),
-        "LR": t.suggest_float("lr", 1e-4, 1e-2, log=True),
+        "NUM_ITER": t.suggest_int("iters", 2000, 12000, step=1000),
+        "LR": t.suggest_float("lr", 1e-4, 2e-2, log=True),
         "REG_NOISE_STD": t.suggest_float("reg", 0.0, 0.2),
         "INPUT_TYPE": it,
         "NET_WIDTH": t.suggest_categorical("width", [32, 64, 128]),
         "NUM_SCALES": t.suggest_categorical("scales", [3, 4, 5]),
+        "SKIP_N11": t.suggest_categorical("skip", [0, 4, 16, 128]),
+        "UPSAMPLE_MODE": t.suggest_categorical("upsample", ["bilinear", "nearest"]),
     }
     if it == "noise":
         d["INPUT_DEPTH"] = t.suggest_categorical("input_depth", [8, 32])
-    p["dip"] = d
+    return d
+
+
+# Pedido de los profes (17/9): los mismos experimentos para grid y uniform tocando
+# hiperparametros, con la grilla como un hiperparametro mas. Solo DIP, sin pseudo-puntos.
+_PAPER = {"lr": 0.01, "reg": 0.03, "width": 128, "scales": 5, "upsample": "nearest"}
+PROFES_SEEDS = [
+    dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="meshgrid", iters=5000, skip=0),  # vase
+    dict(_PAPER, sampler="grid", grid_nx=8, grid_offset=0.5, input_type="noise", input_depth=32,
+         iters=6000, skip=128),  # kate/peppers
+    dict(_PAPER, sampler="uniform", uniform_seed=0, input_type="meshgrid", iters=5000, skip=0),
+    {"sampler": "grid", "grid_nx": 8, "grid_offset": 0.5, "input_type": "noise", "input_depth": 32,
+     "iters": 8000, "lr": 1e-3, "reg": 0.08, "width": 128, "scales": 5, "skip": 4,
+     "upsample": "bilinear"},  # receta de la tesis (17/9)
+]
+
+
+def build_params_profes(t):
+    p = {"n": 64, "recon": "dip"}
+    s = t.suggest_categorical("sampler", ["grid", "uniform"])
+    p["sampler"] = s
+    if s == "grid":
+        p["sampler_kw"] = {"nx": t.suggest_categorical("grid_nx", [4, 6, 8, 10, 12, 16]),
+                           "offset": t.suggest_float("grid_offset", 0.2, 0.8)}
+    else:
+        p["sampler_kw"] = {"seed": t.suggest_int("uniform_seed", 0, 9)}
+    p["dip"] = dip_space(t)
     return p
 
 
 def objective(t, study_name):
-    p = build_params(t)
+    p = build_params_profes(t) if study_name.startswith("profes") else build_params(t)
     name = "%s_t%04d" % (study_name, t.number)
     s = T.run(name, p, T.DEV_GS, note="optuna %s trial %d" % (study_name, t.number), log=False,
               runs_dir=os.path.join(HERE, "runs", study_name))
@@ -89,8 +127,8 @@ def main():
                                 load_if_exists=True,
                                 sampler=optuna.samplers.TPESampler(multivariate=True, group=True,
                                                                    n_startup_trials=12))
-    if os.environ.get("SLURM_ARRAY_TASK_ID", "0") == "0" and len(study.trials) == 0:
-        for s in SEEDS:
+    if len(study.trials) == 0:  # enqueue_trial con skip_if_exists: no se duplica entre workers
+        for s in (PROFES_SEEDS if a.study.startswith("profes") else SEEDS):
             study.enqueue_trial(s, skip_if_exists=True)
 
     deadline = time.time() + a.hours * 3600
