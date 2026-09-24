@@ -40,7 +40,8 @@ SEEDS = [
 
 def build_params(t):
     p = {"n": 64, "recon": "dip", "sampler": "bisect",
-         "sampler_kw": {"n1": t.suggest_categorical("n1", [30, 36, 42]), "nx": 6, "target": "zero"}}
+         "sampler_kw": {"n1": t.suggest_categorical("n1", [30, 36, 42]), "nx": 6, "target": "zero",
+                        "fill": "cliff", "gap": 4}}
     aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau"])
     if aug != "none":
         p["aug"] = {"where": aug, "n_zero": t.suggest_int("n_zero", 256, 8192, log=True)}

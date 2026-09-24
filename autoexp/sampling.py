@@ -130,9 +130,42 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", target=
                 b[3], b[4] = ym, vm
     if oracle.remaining > 0 and fill == "adaptive":
         adaptive(oracle, n, n1=0, **kw)
+    elif oracle.remaining > 0 and fill == "cliff":
+        cliff_fill(oracle, n, **kw)
+    elif oracle.remaining > 0 and fill == "mix":  # mitad adaptativo (pegado al borde), mitad cliff
+        adaptive(oracle, oracle.n_used + oracle.remaining // 2, n1=0)
+        cliff_fill(oracle, n, **kw)
 
 
-STRATEGIES = {"grid": grid, "halton": halton, "uniform": uniform, "adaptive": adaptive, "bisect": bisect}
+def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
+    """Relleno para el modelo de acantilado: como `adaptive`, pero el |grad| sale de
+    interp.cliff y solo del lado de arriba (el acantilado ya esta ubicado; lo que falta es
+    la estructura suave, ej. la transicion vertical de la zona que se desvanece)."""
+    H, W = oracle.shape
+    yy, xx = np.mgrid[0:H, 0:W]
+    while oracle.n_used < n:
+        ij, v = oracle.observed()
+        est, info = interp.cliff(ij, v, oracle.shape, **kw)
+        gy, gx = np.gradient(est)
+        gmag = np.hypot(gx, gy)
+        if info is not None:
+            below = yy > np.polyval(info[0], xx)
+            # afuera el acantilado y una franja de `gap` px arriba (el salto contamina el grad)
+            gmag[below | (yy > np.polyval(info[0], xx) - gap)] = 0.0
+        gmag = gmag / max(gmag.max(), 1e-12)
+        d2 = np.full((H, W), np.inf)
+        for i, j in ij:
+            d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+        new = []
+        for _ in range(min(batch, n - oracle.n_used)):
+            k = int(np.argmax((gmag + 1e-3) ** power * np.sqrt(d2)))
+            i, j = divmod(k, W)
+            new.append((i, j))
+            d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
+        oracle.query(new)
+
+
+STRATEGIES = {"grid": grid, "halton": halton, "uniform": uniform, "adaptive": adaptive, "bisect": bisect, "cliff_fill": cliff_fill}
 
 
 def sample(oracle, strategy, n, **kw):

@@ -77,3 +77,17 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:38,cliffA_al0.25_b15,-4.0 -2.0 -0.5,64,34.37,33.75,0.9694,28.59,no,cliff + rampa alineada al borde along=0.25 band=15,autoexp/runs/cliffA_al0.25_b15
 2026-09-23 21:38,cliffA_al0.25_b25,-4.0 -2.0 -0.5,64,32.99,32.35,0.9599,27.37,no,cliff + rampa alineada al borde along=0.25 band=25,autoexp/runs/cliffA_al0.25_b25
 2026-09-23 21:39,VAL9_cliffA,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,34.38,33.00,0.9714,28.22,no,VALIDACION 9 g: cliff + rampa alineada (along .5 band 15),autoexp/runs/VAL9_cliffA
+2026-09-23 21:41,cliffF_n24_adaptive,-4.0 -2.0 -0.5,64,32.26,31.29,0.9633,28.66,no,"cliff+rampa alineada, grilla n1=24 nx6, relleno=adaptive",autoexp/runs/cliffF_n24_adaptive
+2026-09-23 21:41,cliffF_n24_cliff,-4.0 -2.0 -0.5,64,34.48,30.74,0.9660,32.43,no,"cliff+rampa alineada, grilla n1=24 nx6, relleno=cliff",autoexp/runs/cliffF_n24_cliff
+2026-09-23 21:41,cliffF_n30_adaptive,-4.0 -2.0 -0.5,64,34.22,32.76,0.9742,29.59,no,"cliff+rampa alineada, grilla n1=30 nx6, relleno=adaptive",autoexp/runs/cliffF_n30_adaptive
+2026-09-23 21:42,cliffF_n30_cliff,-4.0 -2.0 -0.5,64,34.73,31.57,0.9732,29.69,no,"cliff+rampa alineada, grilla n1=30 nx6, relleno=cliff",autoexp/runs/cliffF_n30_cliff
+2026-09-23 21:42,cliffF_n36_adaptive,-4.0 -2.0 -0.5,64,34.54,33.44,0.9722,28.30,no,"cliff+rampa alineada, grilla n1=36 nx6, relleno=adaptive",autoexp/runs/cliffF_n36_adaptive
+2026-09-23 21:42,cliffF_n36_cliff,-4.0 -2.0 -0.5,64,35.62,32.68,0.9721,29.73,no,"cliff+rampa alineada, grilla n1=36 nx6, relleno=cliff",autoexp/runs/cliffF_n36_cliff
+2026-09-23 21:42,cliffG_n36_cliff_gap0,-4.0 -2.0 -0.5,64,33.92,32.47,0.9731,26.79,no,relleno=cliff gap=0 n1=36,autoexp/runs/cliffG_n36_cliff_gap0
+2026-09-23 21:42,cliffG_n36_cliff_gap1,-4.0 -2.0 -0.5,64,35.67,32.83,0.9728,29.61,no,relleno=cliff gap=1 n1=36,autoexp/runs/cliffG_n36_cliff_gap1
+2026-09-23 21:43,cliffG_n36_cliff_gap4,-4.0 -2.0 -0.5,64,35.54,33.38,0.9713,30.15,no,relleno=cliff gap=4 n1=36,autoexp/runs/cliffG_n36_cliff_gap4
+2026-09-23 21:43,cliffG_n36_mix_gap2,-4.0 -2.0 -0.5,64,35.38,32.71,0.9723,29.41,no,relleno=mix gap=2 n1=36,autoexp/runs/cliffG_n36_mix_gap2
+2026-09-23 21:43,cliffG_n30_mix_gap2,-4.0 -2.0 -0.5,64,35.06,31.60,0.9743,30.07,no,relleno=mix gap=2 n1=30,autoexp/runs/cliffG_n30_mix_gap2
+2026-09-23 21:43,cliffG_n30_cliff_gap0,-4.0 -2.0 -0.5,64,33.26,31.67,0.9747,26.84,no,relleno=cliff gap=0 n1=30,autoexp/runs/cliffG_n30_cliff_gap0
+2026-09-23 21:43,VAL9_cliffF_gap4,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,35.23,32.24,0.9708,29.91,no,VALIDACION 9 g: cliff + relleno cliff gap=4,autoexp/runs/VAL9_cliffF_gap4
+2026-09-23 21:44,VAL9_cliffF_gap2,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,34.95,32.68,0.9712,29.02,no,VALIDACION 9 g: cliff + relleno cliff gap=2,autoexp/runs/VAL9_cliffF_gap2

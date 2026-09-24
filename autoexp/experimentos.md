@@ -10,6 +10,40 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-23 (3) — modelo de acantilado a cero (local, sin DIP)
+
+Hallazgo al mirar las columnas bisecadas: en **todos** los g el perfil vertical es meseta ≈1 →
+rampa suave (corta en g=-4, larga en g=-0.5) → **salto a exactamente 0**. La bisección al nivel
+medio caía dentro de la rampa, así que en g=-2/-0.5 el `front_split` nunca encontraba el frente
+y caía a TPS común.
+
+| corrida | qué | dev: media (peor) | 9 g: media (peor) |
+|---|---|---|---|
+| cliff_b36_d1 | bisección del borde v=0 + `cliff` (0 debajo, TPS arriba), eps=0.02 | 28.7 (19.7) | — |
+| cliff2_b36_d1 | eps=1/255 (0.02 era un escalón de cuantización del PNG) + salto ≥0.05 + ajuste robusto | 32.8 (30.4) | — |
+| cliff3_b36_cm0.03 | salto ≥0.03 (en g=-0.5 el último pixel antes del 0 vale 0.047) | 33.6 (32.7) | 33.2 (28.5): g=-1.5 sin acantilado |
+| VAL9_cliffsteep | criterio por pendiente local (algún punto a ≤5 px del lado no nulo vale ≥0.1) | — | 33.4 (29.9) |
+| VAL9_cliffA | + rampa interpolada en coords alineadas al borde (along .5, band 15) | 34.5 (33.4) | **34.4 (33.0)**: los 9 g entre 33 y 35 |
+| cliffF_n36_cliff | relleno con \|∇\| de la reconstrucción `cliff`, solo arriba del borde | 35.6 (32.7): g=-4 **39.8** | — |
+| **VAL9_cliffF_gap4** | ídem, excluyendo 4 px sobre el borde | 35.5 (33.4) | **35.2 (32.2)**: g=-4 **39.1**, g=-3.5 **39.05** |
+| VAL9_cliffF_gap2 | gap 2 px | — | 35.0 (32.7) |
+
+Descartados: grillas nx=8/10 o n1=48/50 (28-30 dB; menos columnas bisecadas o menos relleno),
+tol=2 en la bisección (peor), relleno mixto (entre medio de los dos).
+
+**Conclusiones:**
+- Error restante de VAL9_cliffA: ≥99 % arriba del borde; el borde está bien ubicado (<1 % del
+  error en píxeles mal clasificados). Fuentes: la rampa entre columnas bisecadas (se arregló
+  con las coords alineadas) y la transición vertical de la zona que se desvanece, en x≈85, que
+  cae entre dos columnas de la grilla (se arregló con el relleno `cliff`).
+- **Con 64 puntos y sin DIP, los dos g más duros ya pasan los 38 dB** (39.1 / 39.05). Los de
+  rampa suave quedan en 32-34. Sensibilidad: el resultado depende de dónde caen las columnas
+  de la grilla (nx=6 anda y nx=8 no), así que ojo con el sobreajuste a estos mapas. Por eso
+  se valida siempre en los 9 g.
+
+**Siguiente:** Optuna en Mendieta (en cola desde las 21:30) sobre este muestreo: ¿DIP con
+pseudo-ceros debajo del borde mejora la parte suave?
+
 ## 2026-09-23 (2) — frente explícito + bisección (local, sin DIP)
 
 | corrida | qué | media (peor) |
