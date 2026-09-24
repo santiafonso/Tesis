@@ -601,6 +601,22 @@ def main():
                     "Mismo método que con 64 puntos: los 32 puntos extra van al relleno por validación cruzada, "
                     "que los pone en la rampa pegada al borde de los g suaves (donde faltaba información).")
 
+    add_table_slide(prs, "TPS vs DIP en otras formas (misma cantidad de puntos, al azar)",
+                    ["imagen", "1 %: TPS / DIP", "5 %: TPS / DIP", "10 %: TPS / DIP"],
+                    [["Gauss (suave)", "51.0 / 11.7", "56.7 / 51.6", "57.1 / 53.3"],
+                     ["Himmelblau (suave, 4 pozos)", "29.6 / 29.1", "42.7 / 41.4", "48.7 / 47.6"],
+                     ["Rosenbrock (cresta angosta)", "26.3 / 25.7", "35.7 / 38.3", "40.9 / 46.1"],
+                     ["Tablero (saltos)", "6.5 / 5.7", "10.6 / 16.0", "12.4 / 20.0"],
+                     ["Barrido de frecuencia", "6.7 / 6.9", "6.9 / 7.2", "7.3 / 7.4"]],
+                    note="En formas suaves la TPS gana o empata siempre (DIP hasta puede fallar: Gauss 1 %). En "
+                         "estructuras finas o saltos DIP gana, pero solo con suficientes puntos (5-10 %). El barrido de "
+                         "frecuencia no lo reconstruye ninguno: el detalle es más fino que la separación entre puntos (Nyquist).",
+                    col_w=[4.1, 2.5, 2.5, 2.5])
+
+    add_image_slide(prs, "TPS vs DIP en 3D", os.path.join(FIG, "tps_vs_dip_3d.png"),
+                    "Rosenbrock: la TPS deja la cresta ondulada, DIP la sigue lisa. Himmelblau: iguales. "
+                    "Tablero: la TPS no puede hacer escalones (es una chapa que se dobla), DIP sí.", width=8.0)
+
     add_bullets_slide(prs, "Pedidos de la reunión: estado", [
         "1–3) Optuna + grid/uniform con hiperparámetros + la grilla como hiperparámetro: 181 trials en "
         "Mendieta. Mejor DIP con 64 puntos en grilla: 29.9 dB (config 'vase' del paper afinada); uniform "
