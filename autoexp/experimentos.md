@@ -32,7 +32,9 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 | **96** | **41.84 (40.18)** | **4/4** |
 
   Los otros 5 g ya pasaban los 40 con 64, así que **con 96 puntos (0.59 % de la imagen) los 9 g
-  superan los 40 dB sin DIP**. Con la fusión con DIP probablemente alcancen ~80 (no corrido).
+  superan los 40 dB sin DIP**. **Validado en los 9 g: 44.38 (40.18)**; por g: -4 49.7, -3.5 48.3,
+  -3 45.3, -2.5 43.7, -2 40.2, -1.5 40.8, -1 42.8, -0.5 44.7, 0 44.1. Con la fusión con DIP
+  probablemente alcancen ~80 (en curso: job 1178816).
 
 ## 2026-09-24 (17) — misma estructura, otra geometría: diagramas deformados
 

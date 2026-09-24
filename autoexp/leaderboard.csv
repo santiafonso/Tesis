@@ -234,3 +234,4 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 17:07,budget_72,-2.5 -2.0 -1.5 -1.0,72,38.88,37.59,0.9835,31.75,no,"presupuesto 72 puntos (TPS auto, sin DIP)",autoexp/runs/budget_72
 2026-09-24 17:29,budget_80,-2.5 -2.0 -1.5 -1.0,80,39.86,39.00,0.9852,32.19,no,"presupuesto 80 puntos (TPS auto, sin DIP)",autoexp/runs/budget_80
 2026-09-24 17:36,budget_96,-2.5 -2.0 -1.5 -1.0,96,41.84,40.18,0.9915,33.74,no,"presupuesto 96 puntos (TPS auto, sin DIP)",autoexp/runs/budget_96
+2026-09-24 17:51,VAL9_96pts,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,96,44.38,40.18,0.9928,37.02,no,"VALIDACION 9 g: 96 puntos, TPS auto sin DIP",autoexp/runs/VAL9_96pts
