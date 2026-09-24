@@ -60,12 +60,33 @@ def prepare_g(g, gdir, p):
     # en la loss, se rellena con el interpolante solo para que la imagen sea legible).
     mask = np.zeros((H, W), bool)
     mask[ij[:, 0], ij[:, 1]] = True
-    aug = p.get("aug")
-    if aug:
+    aug = dict(p.get("aug") or {})
+    below = None
+    if aug.get("where") in ("zero", "zero+plateau"):
+        # modelo de acantilado: debajo del borde el valor es 0 con certeza -> pseudo-puntos
+        # de cero ahi (densidad n_zero); con "zero+plateau", ademas pseudo-puntos de la
+        # reconstruccion clasica en las zonas planas de arriba.
+        target, info = interp.cliff(ij, v, (H, W), **p.get("recon_kw", {}))
+        if info is not None:
+            yy, xx = np.mgrid[0:H, 0:W]
+            below = yy > np.polyval(info[0], xx)
+            step = max(1, int(round(np.sqrt(H * W / aug.get("n_zero", 4096)))))
+            sub = np.zeros((H, W), bool)
+            sub[step // 2::step, step // 2::step] = True
+            mask |= below & sub
+        if aug["where"] == "zero+plateau":
+            pij, pv, _ = interp.pseudo_points(ij, v, (H, W), n_pseudo=aug.get("n_pseudo", 256),
+                                              where="plateau", grad_q=aug.get("grad_q", 0.5))
+            keep = ~below[pij[:, 0], pij[:, 1]] if below is not None else np.ones(len(pij), bool)
+            mask[pij[keep, 0], pij[keep, 1]] = True
+            target[pij[keep, 0], pij[keep, 1]] = pv[keep]
+    elif aug:
         pij, pv, target = interp.pseudo_points(ij, v, (H, W), **aug)
         mask[pij[:, 0], pij[:, 1]] = True
     else:
         target = interp.reconstruct(ij, v, (H, W), "nearest")
+    if p.get("post_zero") and below is not None:
+        np.save(os.path.join(gdir, "post_zero.npy"), below)
     target[ij[:, 0], ij[:, 1]] = v  # los reales siempre con su valor exacto
     Image.fromarray(np.round(target * 255).astype(np.uint8), "L").save(os.path.join(gdir, "target.png"))
     np.save(os.path.join(gdir, "mask.npy"), mask)
@@ -99,6 +120,12 @@ def run(name, p, gs, note="", log=True, runs_dir=None):
         if pr.wait() != 0:
             raise RuntimeError("DIP fallo en %s (ver dip.log)" % gdir)
         os.replace(os.path.join(gdir, "dip", "restored.npy"), os.path.join(gdir, "restored.npy"))
+        pz = os.path.join(gdir, "post_zero.npy")
+        if os.path.exists(pz):  # forzar 0 debajo del acantilado (la salida trae el pad de 1 px)
+            r = np.load(os.path.join(gdir, "restored.npy"))
+            z = np.pad(np.load(pz), 1, mode="edge")
+            r[..., z] = 0.0
+            np.save(os.path.join(gdir, "restored.npy"), r)
 
     cmd = [sys.executable, "-m", "autoexp.eval", run_dir, "--note", note]
     if not log:

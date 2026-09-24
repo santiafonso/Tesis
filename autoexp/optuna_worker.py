@@ -1,8 +1,7 @@
 """Worker de Optuna (puntos 1-3 de la reunion del 17/9) -- MODIFICABLE por el loop.
 
-Busca a la vez muestreo (la grilla como un hiperparametro mas, o adaptativo),
-pseudo-puntos de interpolacion, e hiperparametros de DIP, con presupuesto fijo de 64
-consultas. Cada trial = autoexp.trial con recon=dip sobre los g de desarrollo
+Busca pseudo-puntos del modelo de acantilado + hiperparametros de DIP, con el muestreo
+del loop local (biseccion del acantilado) y presupuesto fijo de 64 consultas. Cada trial = autoexp.trial con recon=dip sobre los g de desarrollo
 (-4.0, -2.0, -0.5), los 3 en paralelo en la GPU del worker.
 
 Objetivo (a maximizar): (mean_psnr + min_psnr) / 2 -- empuja el promedio sin dejar
@@ -26,32 +25,29 @@ from autoexp import trial as T
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Receta actual de la tesis (presentacion 17/9): grilla + REG_NOISE_STD=0.08, sin
-# pseudo-puntos; y la mejor combinacion local sin DIP (adaptativo 48+16) con pseudo-puntos.
+# v1 (23/9, reformulado antes de arrancar): el muestreo queda fijo en lo mejor del loop local
+# (grilla 6x6 + biseccion del acantilado a 0 + relleno adaptativo; clasico solo = 34.4 dB en
+# los 9 g). La pregunta es si DIP mejora la parte suave con pseudo-puntos del modelo de
+# acantilado (ceros debajo del borde, opcionalmente mesetas de la reconstruccion clasica).
 SEEDS = [
-    {"sampler": "grid", "aug": "none", "iters": 8000, "lr": 1e-3, "reg": 0.08,
-     "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5},
-    {"sampler": "adaptive", "n1": 48, "power": 1.0, "aug": "plateau", "n_pseudo": 1024,
-     "grad_q": 0.6, "iters": 8000, "lr": 1e-3, "reg": 0.08,
-     "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5},
+    {"n1": 36, "aug": "zero", "n_zero": 4096, "post_zero": True, "iters": 8000, "lr": 1e-3,
+     "reg": 0.08, "input_type": "noise", "input_depth": 32, "width": 128, "scales": 5},
+    {"n1": 36, "aug": "zero+plateau", "n_zero": 4096, "n_pseudo": 256, "grad_q": 0.5,
+     "post_zero": True, "iters": 8000, "lr": 1e-3, "reg": 0.08, "input_type": "noise",
+     "input_depth": 32, "width": 128, "scales": 5},
 ]
 
 
 def build_params(t):
-    p = {"n": 64, "recon": "dip"}
-    s = t.suggest_categorical("sampler", ["grid", "adaptive"])
-    p["sampler"] = s
-    if s == "grid":
-        nx = t.suggest_categorical("grid_nx", [4, 6, 8, 10, 12, 16])
-        p["sampler_kw"] = {"nx": nx, "offset": t.suggest_float("grid_offset", 0.2, 0.8)}
-    else:
-        p["sampler_kw"] = {"n1": t.suggest_int("n1", 24, 56, step=8),
-                           "power": t.suggest_float("power", 0.5, 2.0)}
-
-    aug = t.suggest_categorical("aug", ["none", "plateau", "all"])
+    p = {"n": 64, "recon": "dip", "sampler": "bisect",
+         "sampler_kw": {"n1": t.suggest_categorical("n1", [30, 36, 42]), "nx": 6, "target": "zero"}}
+    aug = t.suggest_categorical("aug", ["none", "zero", "zero+plateau"])
     if aug != "none":
-        p["aug"] = {"where": aug, "n_pseudo": t.suggest_int("n_pseudo", 64, 4096, log=True),
-                    "grad_q": t.suggest_float("grad_q", 0.3, 0.9) if aug == "plateau" else 0.5}
+        p["aug"] = {"where": aug, "n_zero": t.suggest_int("n_zero", 256, 8192, log=True)}
+        if aug == "zero+plateau":
+            p["aug"]["n_pseudo"] = t.suggest_int("n_pseudo", 32, 1024, log=True)
+            p["aug"]["grad_q"] = t.suggest_float("grad_q", 0.2, 0.8)
+        p["post_zero"] = t.suggest_categorical("post_zero", [True, False])
 
     it = t.suggest_categorical("input_type", ["noise", "meshgrid"])
     d = {
