@@ -10,6 +10,30 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (19) — bajando el presupuesto: 96 → 88 → 80
+
+**Sin DIP** (TPS auto; 4 g difíciles: -2.5, -2, -1.5, -1):
+
+| puntos | grilla 24 | grilla 30 | grilla 36 |
+|---|---|---|---|
+| 80 | 40.60 (38.66), 3/4 | 39.86 (39.00), 1/4 | … |
+| 84 | … | 40.10 (39.17), 1/4 | … |
+| 88 | **41.95 (40.96), 4/4** | 41.15 (39.61), 3/4 | **41.64 (41.22), 4/4** |
+| 92 | | 41.60 (39.80), 3/4 | |
+| 96 | | 41.84 (40.18), 4/4 (9 g: 44.38 (40.18)) | |
+
+Con más presupuesto, la grilla óptima no es 30 (dónde caen las columnas influye; parte es suerte).
+
+**Con DIP, 80 puntos (9 g, mejor de 2 semillas + TPS auto + fusión con guarda):**
+
+| 80 pts, 9 g | media (peor) | ≥ 40 |
+|---|---|---|
+| TPS sola | 42.17 (39.00) | 5/9 |
+| **fusión TPS + DIP** | **43.32 (39.79)** | **8/9** (solo g=-1.5: 39.79) |
+
+→ DIP suma +1.2 dB de media y lleva 3 g más por encima de 40 con los mismos puntos. Sin DIP
+hacen falta 96; con DIP, 80 queda a 0.2 dB.
+
 ## 2026-09-24 (18) — ¿cuántos puntos para 40 dB en todos los g?
 
 - Optuna v2 (28 trials, objetivo = fusión): el mejor sigue siendo la receta de la tesis
