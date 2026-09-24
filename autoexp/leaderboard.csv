@@ -30,3 +30,29 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 21:28,bisect36_fs_al0.25_splitfalse,-4.0 -2.0 -0.5,64,27.82,26.76,0.8602,21.09,no,"bisect36 + front_split, coords alineadas al frente along=0.25 band=8 split=false",autoexp/runs/bisect36_fs_al0.25_splitfalse
 2026-09-23 21:28,bisect36_fs_al0.1_splittrue,-4.0 -2.0 -0.5,64,30.18,26.83,0.9086,23.04,no,"bisect36 + front_split, coords alineadas al frente along=0.1 band=8 split=true",autoexp/runs/bisect36_fs_al0.1_splittrue
 2026-09-23 21:28,bisect36_fs_al0.1_splitfalse,-4.0 -2.0 -0.5,64,28.12,26.83,0.8595,21.48,no,"bisect36 + front_split, coords alineadas al frente along=0.1 band=8 split=false",autoexp/runs/bisect36_fs_al0.1_splitfalse
+2026-09-23 21:30,bisect36_lvl_ml4_al1.0,-4.0 -2.0 -0.5,64,30.58,26.83,0.9099,23.52,no,"bisect36 + front_split por cruce de nivel, split auto, max_len=4 along=1.0",autoexp/runs/bisect36_lvl_ml4_al1.0
+2026-09-23 21:31,bisect36_lvl_ml12_al1.0,-4.0 -2.0 -0.5,64,25.12,20.29,0.8323,20.09,no,"bisect36 + front_split por cruce de nivel, split auto, max_len=12 along=1.0",autoexp/runs/bisect36_lvl_ml12_al1.0
+2026-09-23 21:31,bisect36_lvl_ml4_al0.3,-4.0 -2.0 -0.5,64,30.60,26.83,0.9100,23.56,no,"bisect36 + front_split por cruce de nivel, split auto, max_len=4 along=0.3",autoexp/runs/bisect36_lvl_ml4_al0.3
+2026-09-23 21:31,bisect36_lvl_ml12_al0.3,-4.0 -2.0 -0.5,64,27.41,22.17,0.8430,23.37,no,"bisect36 + front_split por cruce de nivel, split auto, max_len=12 along=0.3",autoexp/runs/bisect36_lvl_ml12_al0.3
+2026-09-23 21:32,cliff_b25_d1,-4.0 -2.0 -0.5,64,25.71,24.73,0.9124,18.61,no,grilla 25 + biseccion del acantilado a 0 + cliff (deg 1),autoexp/runs/cliff_b25_d1
+2026-09-23 21:32,cliff_b25_d2,-4.0 -2.0 -0.5,64,26.39,25.15,0.9216,20.34,no,grilla 25 + biseccion del acantilado a 0 + cliff (deg 2),autoexp/runs/cliff_b25_d2
+2026-09-23 21:32,cliff_b30_d1,-4.0 -2.0 -0.5,64,25.61,24.55,0.9173,18.32,no,grilla 30 + biseccion del acantilado a 0 + cliff (deg 1),autoexp/runs/cliff_b30_d1
+2026-09-23 21:32,cliff_b30_d2,-4.0 -2.0 -0.5,64,26.13,25.20,0.9152,20.34,no,grilla 30 + biseccion del acantilado a 0 + cliff (deg 2),autoexp/runs/cliff_b30_d2
+2026-09-23 21:32,cliff_b36_d1,-4.0 -2.0 -0.5,64,28.74,19.68,0.9337,21.45,no,grilla 36 + biseccion del acantilado a 0 + cliff (deg 1),autoexp/runs/cliff_b36_d1
+2026-09-23 21:32,cliff_b36_d2,-4.0 -2.0 -0.5,64,29.09,21.74,0.9382,21.86,no,grilla 36 + biseccion del acantilado a 0 + cliff (deg 2),autoexp/runs/cliff_b36_d2
+2026-09-23 21:32,cliff_b42_d1,-4.0 -2.0 -0.5,64,27.70,18.97,0.9373,19.22,no,grilla 42 + biseccion del acantilado a 0 + cliff (deg 1),autoexp/runs/cliff_b42_d1
+2026-09-23 21:32,cliff_b42_d2,-4.0 -2.0 -0.5,64,28.41,21.66,0.9461,20.05,no,grilla 42 + biseccion del acantilado a 0 + cliff (deg 2),autoexp/runs/cliff_b42_d2
+2026-09-23 21:33,cliff2_b25_d1,-4.0 -2.0 -0.5,64,28.26,27.27,0.9242,23.29,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 25 deg 1",autoexp/runs/cliff2_b25_d1
+2026-09-23 21:33,cliff2_b25_d2,-4.0 -2.0 -0.5,64,28.36,27.37,0.9242,23.54,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 25 deg 2",autoexp/runs/cliff2_b25_d2
+2026-09-23 21:33,cliff2_b30_d1,-4.0 -2.0 -0.5,64,27.66,26.50,0.9238,22.51,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 30 deg 1",autoexp/runs/cliff2_b30_d1
+2026-09-23 21:33,cliff2_b30_d2,-4.0 -2.0 -0.5,64,27.45,25.82,0.9219,22.24,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 30 deg 2",autoexp/runs/cliff2_b30_d2
+2026-09-23 21:33,cliff2_b36_d1,-4.0 -2.0 -0.5,64,32.84,30.41,0.9509,25.95,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 36 deg 1",autoexp/runs/cliff2_b36_d1
+2026-09-23 21:33,cliff2_b36_d2,-4.0 -2.0 -0.5,64,31.85,30.41,0.9499,24.61,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 36 deg 2",autoexp/runs/cliff2_b36_d2
+2026-09-23 21:33,cliff2_b42_d1,-4.0 -2.0 -0.5,64,32.13,29.87,0.9585,24.10,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 42 deg 1",autoexp/runs/cliff2_b42_d1
+2026-09-23 21:34,cliff2_b42_d2,-4.0 -2.0 -0.5,64,31.21,29.87,0.9577,22.93,no,"biseccion acantilado (eps 1/255, salto>=0.05) + cliff robusto, grilla 42 deg 2",autoexp/runs/cliff2_b42_d2
+2026-09-23 21:34,cliff3_b25_cm0.03,-4.0 -2.0 -0.5,64,28.29,27.38,0.9241,23.41,no,"cliff robusto cliff_min=0.03, grilla 25",autoexp/runs/cliff3_b25_cm0.03
+2026-09-23 21:34,cliff3_b36_cm0.03,-4.0 -2.0 -0.5,64,33.59,32.66,0.9681,26.46,no,"cliff robusto cliff_min=0.03, grilla 36",autoexp/runs/cliff3_b36_cm0.03
+2026-09-23 21:34,cliff3_b42_cm0.03,-4.0 -2.0 -0.5,64,32.90,31.32,0.9722,24.58,no,"cliff robusto cliff_min=0.03, grilla 42",autoexp/runs/cliff3_b42_cm0.03
+2026-09-23 21:34,cliff3_b25_cm0.02,-4.0 -2.0 -0.5,64,28.29,27.38,0.9241,23.41,no,"cliff robusto cliff_min=0.02, grilla 25",autoexp/runs/cliff3_b25_cm0.02
+2026-09-23 21:35,cliff3_b36_cm0.02,-4.0 -2.0 -0.5,64,33.59,32.66,0.9681,26.46,no,"cliff robusto cliff_min=0.02, grilla 36",autoexp/runs/cliff3_b36_cm0.02
+2026-09-23 21:35,cliff3_b42_cm0.02,-4.0 -2.0 -0.5,64,32.90,31.32,0.9722,24.58,no,"cliff robusto cliff_min=0.02, grilla 42",autoexp/runs/cliff3_b42_cm0.02

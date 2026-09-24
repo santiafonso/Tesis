@@ -66,7 +66,7 @@ def pseudo_points(ij, v, shape, n_pseudo=256, method="rbf_tps", where="plateau",
 
 
 def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smoothing=0.0,
-                full_width=True, split=True, along=1.0, band=8.0):
+                full_width=True, split="auto", along=1.0, band=8.0):
     """Interpolacion que respeta un frente abrupto (sin mirar la imagen real).
 
     1. Triangulacion de Delaunay de lo consultado; una arista es "cruce de frente" si
@@ -97,13 +97,22 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
     for s in tri.simplices:
         for a, b in ((0, 1), (1, 2), (0, 2)):
             edges.add(tuple(sorted((s[a], s[b]))))
-    mids = []
+    # cruces: aristas cortas que quedan a ambos lados del nivel medio (sirve para frentes
+    # abruptos y para rampas suaves); el punto de cruce se interpola sobre la arista.
+    level = 0.5 * (v.min() + v.max())
+    mids, slopes = [], []
     for a, b in edges:
-        if abs(v[a] - v[b]) >= jump and np.linalg.norm(ij[a] - ij[b]) <= max_len:
-            mids.append((ij[a] + ij[b]) / 2)
+        L = np.linalg.norm(ij[a] - ij[b])
+        if L <= max_len and (v[a] - level) * (v[b] - level) < 0:
+            f = (level - v[a]) / (v[b] - v[a])
+            mids.append(ij[a] + f * (ij[b] - ij[a]))
+            slopes.append((abs(v[a] - v[b]), L))
     if len(mids) < deg + 2:
         return reconstruct(ij, v, shape, base, smoothing), None
     mids = np.array(mids)
+    if split == "auto":  # abrupto si en los corchetes mas cortos el salto sigue siendo grande
+        sl = sorted(slopes, key=lambda x: x[1])[: max(3, len(slopes) // 3)]
+        split = bool(np.median([dv for dv, _ in sl]) >= jump)
     coef = np.polyfit(mids[:, 1], mids[:, 0], deg)
     x0, x1 = (-np.inf, np.inf) if full_width else (mids[:, 1].min(), mids[:, 1].max())
 
@@ -146,3 +155,44 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
             full = wgt * np.clip(ani.reshape(H, W), 0, 1) + (1 - wgt) * full
         out[pix_low == lab] = full[pix_low == lab]
     return np.clip(out, 0, 1), (coef, x0, x1)
+
+
+def cliff(ij, v, shape, eps=0.004, cliff_min=0.03, max_len=4.0, deg=1, base="rbf_tps", smoothing=0.0,
+          outlier_px=3.0):
+    """Reconstruccion con acantilado a cero (sin mirar la imagen real).
+
+    Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
+    con las aristas cortas (<= max_len px) de la triangulacion que unen un punto nulo
+    (v < eps) con uno no nulo; su punto medio es un punto del borde. Se ajusta
+    fila = f(columna) (polinomio de grado `deg`) y:
+      - pixeles con fila > f(col): 0
+      - resto: `base` interpolando SOLO los puntos de arriba del acantilado.
+    Solo cuentan como borde los pares cuyo lado no nulo es >= cliff_min, y el ajuste se
+    repite una vez sin los puntos a mas de outlier_px de la primera recta.
+    """
+    from scipy.spatial import Delaunay
+
+    H, W = shape
+    ij = np.asarray(ij, float)
+    v = np.asarray(v, float)
+    tri = Delaunay(ij)
+    edges = set()
+    for s_ in tri.simplices:
+        for a, b in ((0, 1), (1, 2), (0, 2)):
+            edges.add(tuple(sorted((s_[a], s_[b]))))
+    mids = [(ij[a] + ij[b]) / 2 for a, b in edges
+            if (v[a] < eps) != (v[b] < eps) and max(v[a], v[b]) >= cliff_min
+            and np.linalg.norm(ij[a] - ij[b]) <= max_len]
+    if len(mids) < deg + 2:
+        return reconstruct(ij, v, shape, base, smoothing), None
+    mids = np.array(mids)
+    coef = np.polyfit(mids[:, 1], mids[:, 0], deg)
+    res = np.abs(mids[:, 0] - np.polyval(coef, mids[:, 1]))
+    if (res <= outlier_px).sum() >= deg + 2:  # ajuste robusto: un reajuste sin outliers
+        coef = np.polyfit(mids[res <= outlier_px, 1], mids[res <= outlier_px, 0], deg)
+    yy, xx = np.mgrid[0:H, 0:W]
+    below = yy > np.polyval(coef, xx)
+    up = ~(ij[:, 0] > np.polyval(coef, ij[:, 1]))
+    rec = reconstruct(ij[up], v[up], shape, base, smoothing)
+    rec[below] = 0.0
+    return np.clip(rec, 0, 1), (coef, mids)

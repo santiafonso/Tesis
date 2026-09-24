@@ -86,7 +86,8 @@ def adaptive(oracle, n, n1=32, batch=8, first="grid", recon="rbf_tps", power=1.0
         oracle.query(new)
 
 
-def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", **kw):
+def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", target="mid", eps=0.004,
+           cliff_min=0.05, **kw):
     """Grilla gruesa + busqueda binaria vertical del frente en cada columna con salto.
 
     1. `n1` puntos en grilla (nx columnas).
@@ -95,6 +96,12 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", **kw):
        por ronda, asi un presupuesto corto se reparte parejo) hasta que el corchete
        mide <= tol px. El umbral de cada corchete es el punto medio de sus dos extremos.
     3. Lo que sobre, con `fill` (adaptive: |grad| x distancia, como `adaptive`).
+
+    target="zero": en vez del nivel medio, se biseca el ACANTILADO -- el borde entre
+    valor exactamente 0 (v < eps; el PNG es de 8 bit, 1/255 = 0.0039) y no-cero, solo
+    donde el lado no nulo es >= cliff_min (en la zona que se desvanece arriba a la
+    derecha los valores bajan suave hasta ~0.02 y eso no es un acantilado). En todos los g el perfil vertical es meseta
+    -> rampa suave -> salto a 0; el nivel medio caia dentro de la rampa.
     """
     grid(oracle, min(n1, n), nx=nx)
     ij, v = oracle.observed()
@@ -104,7 +111,10 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, fill="adaptive", **kw):
     for x in sorted(set(ij[:, 1].tolist())):
         col = [(y, val[(y, x)]) for y in ys if (y, x) in val]
         for (y0, v0), (y1, v1) in zip(col, col[1:]):
-            if abs(v1 - v0) >= jump:
+            if target == "zero":
+                if (v0 < eps) != (v1 < eps) and max(v0, v1) >= cliff_min:
+                    br.append([x, y0, v0, y1, v1, eps])
+            elif abs(v1 - v0) >= jump:
                 br.append([x, y0, v0, y1, v1, (v0 + v1) / 2])
     while oracle.remaining > 0 and any(b[3] - b[1] > tol for b in br):
         for b in br:

@@ -48,8 +48,8 @@ def prepare_g(g, gdir, p):
     H, W = orc.shape
     recon = p.get("recon", "rbf_tps")
 
-    if recon == "front_split":
-        rec, _ = interp.front_split(ij, v, (H, W), **p.get("recon_kw", {}))
+    if recon in ("front_split", "cliff"):
+        rec, _ = getattr(interp, recon)(ij, v, (H, W), **p.get("recon_kw", {}))
         np.save(os.path.join(gdir, "restored.npy"), rec)
         return None
     if recon != "dip":
