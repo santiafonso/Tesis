@@ -10,6 +10,31 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (7) — DIP con 64 puntos (Mendieta) y proceso gaussiano (local)
+
+**DIP con los mismos 64 puntos de la grilla 8×8** (dev g; en la columna, la interpolación
+TPS con esos puntos da 24.4 (21.2)):
+
+| config DIP | media (peor) | por g |
+|---|---|---|
+| receta de la tesis: LR 0.001, reg 0.08, skip 4, bilinear, 8000 it | 25.0 (21.9) | -4 21.9, -2 23.9, -0.5 29.3 |
+| paper "kate": noise 32, LR 0.01, reg 0.03, skip 128, nearest, 6000 it | 18.1 (13.7) | -4 13.7, -2 17.4, -0.5 23.1 |
+| **paper "vase": meshgrid, LR 0.01, reg 0.03, skip 0, nearest, 5000 it** | **28.5 (25.3)** | -4 25.3, -2 26.7, -0.5 33.3 |
+| paper "vase" + uniform (seed 0) | 22.2 (19.4) | |
+
+→ **Con los hiperparámetros del paper para agujeros grandes, DIP le gana por +4 dB a la
+interpolación con los mismos puntos. La receta de la tesis no.** La receta venía afinada para
+~328 puntos; con 64, lo que manda es una red sin skips (más suave) y un LR 10 veces más alto.
+
+**DIP con el muestreo del acantilado** (`autoexp_v1`, relleno por gradiente viejo): 27.8 a 28.7,
+fallando en g=-4 (~18.5: DIP deja un hueco arriba del borde, sin puntos). Pendiente: el híbrido
+(job 1178753): muestreo LOO + ceros + franja clásica de 6 px junto al borde + DIP
+{tesis, vase, intermedia}, solo o promediado 50/50 con la clásica.
+
+**Proceso gaussiano** (Matérn anisótropo, escalas aprendidas) en lugar de la TPS arriba del
+acantilado: **peor**. nu=2.5: 31.7 (22.4); nu=1.5: 35.8 (30.6); contra TPS 39.6 (36.1). Con tan
+pocos puntos, las escalas aprendidas quedan mal y deja agujeros entre los datos. Revertido.
+
 ## 2026-09-23 (6) — relleno por validación cruzada (leave-one-out) ★
 
 En vez de rellenar donde el gradiente es alto: cada punto de arriba del acantilado se predice
