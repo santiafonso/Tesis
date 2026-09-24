@@ -537,6 +537,11 @@ def main():
                          "residuo > 0.02; cuando anda es ≤ 0.008 y cuando falla ≥ 0.03), en ese g se usa solo la TPS.",
                     col_w=[5.6, 1.9, 1.9, 2.3])
 
+    add_image_slide(prs, "Quién rellena cada zona: 0 / TPS / DIP",
+                    os.path.join(FIG, "zonas_tps_dip.png"),
+                    "Debajo del borde (salto a 0): 0 directo. Pegado al borde: interpolación TPS. Lejos del "
+                    "borde, en la zona lisa: DIP. El paso entre TPS y DIP es gradual (peso exp(−(d/20)²)).")
+
     add_image_slide(prs, "Ruido tipo KMC: la receta se puede hacer robusta", f_noise,
                     "Cada punto con ruido gaussiano de desvío σ (fijo por punto). Umbral de 'vale 0' = 3σ, salto "
                     "mínimo ~5σ y recta del acantilado por RANSAC. σ hay que estimarlo en KMC con corridas repetidas.",
