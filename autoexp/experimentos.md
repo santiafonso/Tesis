@@ -10,6 +10,22 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (15) — planificador de tandas para KMC, σ=0.05, perfil de rampa (no)
+
+- **`autoexp/kmc_planner.py`**: init / next / add / reconstruct / simulate. Oráculo de
+  "repetición": en cada `next` se vuelve a correr el muestreo con los resultados ya cargados y
+  se corta en los puntos que faltan (la tanda siguiente). Bisección pasada a rondas en lote
+  (mismos puntos que de a uno, verificado). Simulación: **9 tandas** [30, 5, 5, 5, 5, 4-5, 4,
+  4, 1-2]; PSNR g=-4 46.2, g=-2 38.6, g=-0.5 39.4; g=-2 con σ=0.01: 37.6.
+- Ojo: al volver el suavizado 1e-4 el default, el LOO interno también lo usaba y rendía menos
+  (9 g: 39.98 (35.69), g=-3.5 38.4). El muestreo usa ahora la TPS sin suavizar (sin ruido) y
+  reproduce exactamente VAL9_ransac_s1e-4: 40.62 (36.20).
+- **σ=0.05 con DIP:** TPS robusta 31.41 (30.74), fusión + guarda (0.12) **32.62 (31.24)**, SSIM
+  0.939 → 0.968. **Lo que suma DIP crece con el ruido:** +0.7 (σ .01), +0.7 (.03), +1.2 (.05) dB.
+- **Perfil de rampa juntando todas las columnas** (regresión isotónica en d + TPS del residuo):
+  33-34 contra 40.2. Mezcla la izquierda (meseta ~1) con la derecha (zona que se desvanece
+  ~0.2). Descartado.
+
 ## 2026-09-24 (14) — DIP con ruido, robustez v2, sondas de rampa (otra vez no)
 
 **DIP con ruido** (cluster, híbrido con parámetros robustos; 4 g). Fusión con guarda

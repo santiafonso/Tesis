@@ -45,3 +45,16 @@ Clon de trabajo: local `~/Tesis-autoexp` (worktree del branch `autoexp`), y en M
 `~/Tesis-autoexp` (worktree de `~/Tesis-frontier`, que tiene cambios locales propios: no
 tocarlo). En los dos, `venv` y `results/phase_diagram_g` son symlinks al clon principal. En el
 cluster, el worker usa `~/venv-autoexp` (py3.11 + optuna) y DIP usa `./venv` (py3.6).
+
+## Usarlo con KMC real: `autoexp/kmc_planner.py`
+
+```
+python -m autoexp.kmc_planner init  --state kmc.json --budget 64 --sigma 0.01   # sigma: ruido de KMC (NRUNS)
+python -m autoexp.kmc_planner next  --state kmc.json            # -> tanda_01.csv (row, col, logxi, logell, xi, ell)
+#   ... correr KMC en esos puntos, armar resultados.csv con row,col,value (o logxi,logell,value) ...
+python -m autoexp.kmc_planner add   --state kmc.json resultados.csv
+python -m autoexp.kmc_planner next  --state kmc.json            # tanda siguiente, hasta "presupuesto completo"
+python -m autoexp.kmc_planner reconstruct --state kmc.json --out mapa_kmc
+python -m autoexp.kmc_planner simulate --g -2.0 --sigma 0.01    # prueba contra un mapa del continuo
+```
+Con 64 puntos son 9 tandas: 30 (grilla), 4-5 rondas de ~5 (bisección) y 3-4 de 4 (relleno).

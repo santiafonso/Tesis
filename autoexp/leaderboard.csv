@@ -203,3 +203,9 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-24 13:49,NZ_tps_s0.01,-4.0 -2.0 -1.5 -0.5,64,38.31,35.02,0.9833,32.22,no,RUIDO sigma=0.01: solo TPS robusta (mismos puntos que DIP),autoexp/runs/NZ_tps_s0.01
 2026-09-24 13:49,NZ_fuse_s0.03,-4.0 -2.0 -1.5 -0.5,64,34.89,33.64,0.9816,28.49,no,"RUIDO sigma=0.03: fusion TPS robusta + DIP, guarda 0.08",autoexp/runs/NZ_fuse_s0.03
 2026-09-24 13:49,NZ_tps_s0.03,-4.0 -2.0 -1.5 -0.5,64,34.23,32.44,0.9627,28.26,no,RUIDO sigma=0.03: solo TPS robusta (mismos puntos que DIP),autoexp/runs/NZ_tps_s0.03
+2026-09-24 13:51,prof_b20_d35,-4.0 -2.0 -1.5 -0.5,64,33.29,31.68,0.9768,25.71,no,"perfil de rampa pooleado (isotonico) + TPS residuo, band=20 dmax=35",autoexp/runs/prof_b20_d35
+2026-09-24 13:52,prof_b12_d35,-4.0 -2.0 -1.5 -0.5,64,33.88,32.30,0.9810,25.92,no,"perfil de rampa pooleado (isotonico) + TPS residuo, band=12 dmax=35",autoexp/runs/prof_b12_d35
+2026-09-24 13:52,prof_b30_d45,-4.0 -2.0 -1.5 -0.5,64,33.18,31.44,0.9730,25.57,no,"perfil de rampa pooleado (isotonico) + TPS residuo, band=30 dmax=45",autoexp/runs/prof_b30_d45
+2026-09-24 13:56,VAL9_actual,-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0,64,39.98,35.69,0.9843,33.35,no,"VALIDACION 9 g: receta tal como queda en el codigo (defaults actuales, biseccion en lote)",autoexp/runs/VAL9_actual
+2026-09-24 13:58,NZ_fuse_s0.05,-4.0 -2.0 -1.5 -0.5,64,32.62,31.24,0.9678,27.15,no,RUIDO sigma=0.05: fusion + guarda 0.12,autoexp/runs/NZ_fuse_s0.05
+2026-09-24 13:58,NZ_tps_s0.05,-4.0 -2.0 -1.5 -0.5,64,31.41,30.74,0.9387,26.76,no,RUIDO sigma=0.05: solo TPS robusta,autoexp/runs/NZ_tps_s0.05

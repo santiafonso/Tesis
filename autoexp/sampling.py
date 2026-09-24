@@ -120,14 +120,13 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
                     br.append([x, y0, v0, y1, v1, eps])
             elif abs(v1 - v0) >= jump:
                 br.append([x, y0, v0, y1, v1, (v0 + v1) / 2])
+    # rondas en lote: cada ronda pide el punto medio de todos los corchetes abiertos a la vez
+    # (con KMC: una tanda de corridas en paralelo por ronda). Mismas decisiones que de a uno.
     while oracle.remaining > 0 and any(b[3] - b[1] > tol for b in br):
-        for b in br:
-            if oracle.remaining == 0:
-                break
-            if b[3] - b[1] <= tol:
-                continue
-            ym = (b[1] + b[3]) // 2
-            vm = oracle.query([(ym, b[0])])[0]
+        openb = [b for b in br if b[3] - b[1] > tol][: oracle.remaining]
+        pts = [((b[1] + b[3]) // 2, b[0]) for b in openb]
+        vals = oracle.query(pts)
+        for b, (ym, _), vm in zip(openb, pts, vals):
             if (vm >= b[5]) == (b[2] >= b[5]):
                 b[1], b[2] = ym, vm
             else:
@@ -153,7 +152,7 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
-        est, info = interp.cliff(ij, v, oracle.shape, **dict(kw, mono=False, bounds=False))
+        est, info = interp.cliff(ij, v, oracle.shape, **dict(kw, mono=False, bounds=False, smoothing=0.0))
         gy, gx = np.gradient(est)
         gmag = np.hypot(gx, gy)
         if info is not None:
@@ -184,7 +183,7 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
-        kw = dict(kw, mono=False, bounds=False)  # config validada del LOO (mono/cotas adentro empeoraban)
+        kw = dict(kw, mono=False, bounds=False, smoothing=0.0)  # config validada del LOO (mono/cotas/suavizado adentro empeoraban; con sigma>0, cliff usa el suavizado de ruido igual)
         _, info = interp.cliff(ij, v, oracle.shape, **kw)
         if info is None:
             return adaptive(oracle, n, n1=0)

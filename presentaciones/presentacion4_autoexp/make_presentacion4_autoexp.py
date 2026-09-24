@@ -545,10 +545,11 @@ def main():
     add_table_slide(prs, "Con ruido, DIP sí suma (fusión)",
                     ["ruido σ (4 g)", "TPS robusta sola", "DIP solo", "fusión TPS + DIP", "SSIM TPS → fusión"],
                     [["0.01", "38.3 (35.0)", "35.8 (33.8)", "39.0 (35.5)", "0.983 → 0.990"],
-                     ["0.03", "34.2 (32.4)", "33.0 (31.3)", "34.9 (33.6)", "0.963 → 0.982"]],
-                    note="Media (peor g). Con ruido, DIP solo pierde contra la TPS, pero fusionado suma ~0.7 dB, "
-                         "más en el peor g, y sobre todo en SSIM: DIP filtra el ruido que la TPS copia punto a punto.\n"
-                         "Guarda con ruido: 0.02 + 2σ.",
+                     ["0.03", "34.2 (32.4)", "33.0 (31.3)", "34.9 (33.6)", "0.963 → 0.982"],
+                     ["0.05", "31.4 (30.7)", "29.6 (28.9)", "32.6 (31.2)", "0.939 → 0.968"]],
+                    note="Media (peor g). Con ruido, DIP solo pierde contra la TPS, pero fusionado suma, y más "
+                         "cuanto más ruido (+0.7, +0.7, +1.2 dB), sobre todo en SSIM: DIP filtra el ruido que la TPS "
+                         "copia punto a punto. Guarda con ruido: 0.02 + 2σ.",
                     col_w=[2.0, 2.4, 2.2, 2.4, 2.7])
 
     add_image_slide(prs, "Punto 5 de la reunión: Rosenbrock de vuelta a 3D",
@@ -578,6 +579,15 @@ def main():
         "DIP 'kate' del paper con 64 puntos (18 dB): pensado para imágenes casi completas.",
         "Fusión sin guarda en 9 g: cuando DIP falla en un g (-4 dB), arrastra el promedio.",
     ], body_size=15)
+
+    add_bullets_slide(prs, "Listo para KMC: planificador de tandas (autoexp/kmc_planner.py)", [
+        "init --budget 64 --sigma σ  →  next  →  (correr KMC)  →  add resultados.csv  →  next ...  →  reconstruct",
+        "Cada 'next' devuelve la tanda siguiente en (log Ξ, log ℓ), para correr en paralelo en el cluster.",
+        "Con 64 puntos: 9 tandas = 30 (grilla) + 4-5 rondas de ~5 (bisección) + 3-4 rondas de 4 (relleno).",
+        "Probado de punta a punta contra el modelo del continuo (simulate): g=-4 46.2 dB, g=-2 38.6, "
+        "g=-0.5 39.4; g=-2 con ruido σ=0.01: 37.6.",
+        "σ se estima con corridas repetidas de KMC (NRUNS) y fija todos los umbrales solo.",
+    ], body_size=17)
 
     add_bullets_slide(prs, "Para KMC: recomendación y lo que falta validar", [
         "Muestreo por tandas: grilla (paralelo) → ~5 rondas de bisección (una corrida por columna, "
