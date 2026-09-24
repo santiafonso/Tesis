@@ -596,6 +596,11 @@ def main():
                          "(0-12 px), donde ni la TPS ni DIP tienen datos: falta información, no un mejor reconstructor.",
                     col_w=[3.2, 3.2, 2.2, 2.2])
 
+    add_image_slide(prs, "Con 96 puntos, sin DIP: los 9 g sobre 40 dB",
+                    os.path.join(FIG, "mejores_9g_96pts.png"),
+                    "Mismo método que con 64 puntos: los 32 puntos extra van al relleno por validación cruzada, "
+                    "que los pone en la rampa pegada al borde de los g suaves (donde faltaba información).")
+
     add_bullets_slide(prs, "Pedidos de la reunión: estado", [
         "1–3) Optuna + grid/uniform con hiperparámetros + la grilla como hiperparámetro: 181 trials en "
         "Mendieta. Mejor DIP con 64 puntos en grilla: 29.9 dB (config 'vase' del paper afinada); uniform "
