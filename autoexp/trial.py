@@ -93,6 +93,9 @@ def prepare_g(g, gdir, p):
         target = interp.reconstruct(ij, v, (H, W), "nearest")
     if p.get("post_zero") and below is not None:
         np.save(os.path.join(gdir, "post_zero.npy"), below)
+    if p.get("blend"):
+        classic, _ = interp.cliff(ij, v, (H, W), **p.get("recon_kw", {}))
+        np.save(os.path.join(gdir, "classic.npy"), classic)
     target[ij[:, 0], ij[:, 1]] = v  # los reales siempre con su valor exacto
     Image.fromarray(np.round(target * 255).astype(np.uint8), "L").save(os.path.join(gdir, "target.png"))
     np.save(os.path.join(gdir, "mask.npy"), mask)
@@ -132,6 +135,14 @@ def run(name, p, gs, note="", log=True, runs_dir=None):
             z = np.pad(np.load(pz), 1, mode="edge")
             r[..., z] = 0.0
             np.save(os.path.join(gdir, "restored.npy"), r)
+        pc = os.path.join(gdir, "classic.npy")
+        if os.path.exists(pc):  # promedio con la clasica: final = w*DIP + (1-w)*clasica
+            w = float(json.load(open(os.path.join(os.path.dirname(gdir), "params.json")))["blend"])
+            r = np.load(os.path.join(gdir, "restored.npy"))
+            r = r[0] if r.ndim == 3 else r
+            r = r[1:-1, 1:-1] if r.shape[0] == np.load(pc).shape[0] + 2 else r
+            np.save(os.path.join(gdir, "dip_only.npy"), r)
+            np.save(os.path.join(gdir, "restored.npy"), w * r + (1 - w) * np.load(pc))
 
     cmd = [sys.executable, "-m", "autoexp.eval", run_dir, "--note", note]
     if not log:
