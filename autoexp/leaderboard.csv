@@ -149,3 +149,11 @@ fecha,run,g_evaluados,max_puntos,mean_psnr,min_psnr,mean_ssim,mean_psnr_front,ob
 2026-09-23 22:48,fuse2_hib_mid_B6,-4.0 -2.0 -0.5,64,41.41,39.70,0.9855,34.69,SI,"fusion (TPS mono+franja adaptativa) + DIP hib_mid, B=6",autoexp/runs/fuse2_hib_mid_B6
 2026-09-23 22:49,fuse2_hib_mid_B10,-4.0 -2.0 -0.5,64,41.70,39.84,0.9865,35.12,SI,"fusion (TPS mono+franja adaptativa) + DIP hib_mid, B=10",autoexp/runs/fuse2_hib_mid_B10
 2026-09-23 22:49,fuse2_hib_mid_B20,-4.0 -2.0 -0.5,64,41.69,39.59,0.9875,35.08,SI,"fusion (TPS mono+franja adaptativa) + DIP hib_mid, B=20",autoexp/runs/fuse2_hib_mid_B20
+2026-09-23 22:50,bounds_false,-4.0 -2.0 -1.5 -0.5,64,39.33,34.86,0.9809,33.21,no,"TPS adapt+mono, recorte a cotas monotonas=false (4 g)",autoexp/runs/bounds_false
+2026-09-23 22:51,bounds_true,-4.0 -2.0 -1.5 -0.5,64,39.50,35.09,0.9824,33.25,no,"TPS adapt+mono, recorte a cotas monotonas=true (4 g)",autoexp/runs/bounds_true
+2026-09-23 22:52,fill_loo,-4.0 -2.0 -1.5 -0.5,64,37.41,33.31,0.9818,30.81,no,"relleno crit=loo, TPS adapt+mono+cotas (4 g)",autoexp/runs/fill_loo
+2026-09-23 22:52,fill_bounds,-4.0 -2.0 -1.5 -0.5,64,38.72,35.48,0.9828,33.57,no,"relleno crit=bounds, TPS adapt+mono+cotas (4 g)",autoexp/runs/fill_bounds
+2026-09-23 22:52,fill_looxbounds,-4.0 -2.0 -1.5 -0.5,64,36.31,33.10,0.9802,29.64,no,"relleno crit=loo*bounds, TPS adapt+mono+cotas (4 g)",autoexp/runs/fill_looxbounds
+2026-09-23 22:53,fill2_loo,-4.0 -2.0 -1.5 -0.5,64,39.50,35.09,0.9824,33.25,no,"relleno crit=loo (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_loo
+2026-09-23 22:53,fill2_bounds,-4.0 -2.0 -1.5 -0.5,64,38.72,35.48,0.9828,33.57,no,"relleno crit=bounds (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_bounds
+2026-09-23 22:54,fill2_looxbounds,-4.0 -2.0 -1.5 -0.5,64,38.48,35.07,0.9818,33.50,no,"relleno crit=loo*bounds (LOO sin mono/cotas), TPS adapt+mono+cotas (4 g)",autoexp/runs/fill2_looxbounds

@@ -159,7 +159,7 @@ def front_split(ij, v, shape, jump=0.3, max_len=24.0, deg=1, base="rbf_tps", smo
 
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=1, base="rbf_tps",
           smoothing=0.0, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
-          adapt=True):
+          adapt=True, bounds=True):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -245,6 +245,9 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
         w = np.exp(-(np.abs(q[:, 1]).reshape(H, W) / band) ** 2)
         rec = w * ani + (1 - w) * rec
     rec[below] = 0.0
+    if bounds:  # recorte a las cotas exactas por monotonia, antes de proyectar
+        L, U = monotone_bounds(ij, v, shape)
+        rec = np.minimum(np.maximum(rec, L), U)
     if mono:
         rec = monotone_2d(np.clip(rec, 0, 1))
         rec[below] = 0.0
@@ -283,3 +286,19 @@ def monotone_2d(img, iters=100):
             break
         x = zr
     return x
+
+
+def monotone_bounds(ij, v, shape):
+    """Cotas exactas por monotonia (mapa no creciente hacia abajo y a la derecha):
+    un punto consultado q abajo-derecha de p (q_i >= p_i, q_j >= p_j) da v(q) <= f(p);
+    uno arriba-izquierda da f(p) <= v(q). Devuelve (L, U) de shape (H, W)."""
+    H, W = shape
+    M = np.zeros((H, W))
+    N = np.ones((H, W))
+    ij = np.asarray(ij, int)
+    for (i, j), x in zip(ij, v):
+        M[i, j] = max(M[i, j], x)
+        N[i, j] = min(N[i, j], x)
+    L = np.maximum.accumulate(np.maximum.accumulate(M[::-1, ::-1], axis=0), axis=1)[::-1, ::-1]
+    U = np.minimum.accumulate(np.minimum.accumulate(N, axis=0), axis=1)
+    return L, U

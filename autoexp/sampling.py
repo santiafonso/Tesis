@@ -147,7 +147,7 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
-        est, info = interp.cliff(ij, v, oracle.shape, **dict(kw, mono=False))
+        est, info = interp.cliff(ij, v, oracle.shape, **dict(kw, mono=False, bounds=False))
         gy, gx = np.gradient(est)
         gmag = np.hypot(gx, gy)
         if info is not None:
@@ -167,7 +167,7 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
         oracle.query(new)
 
 
-def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, **kw):
+def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", **kw):
     """Relleno por validacion cruzada: cada punto de arriba del acantilado se predice
     con interp.cliff sin el; |error LOO| se interpola (TPS) a toda la imagen y los puntos
     nuevos van donde ese error es alto y lejos de lo consultado. Fuera: debajo del borde y
@@ -178,22 +178,28 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, **kw):
     yy, xx = np.mgrid[0:H, 0:W]
     while oracle.n_used < n:
         ij, v = oracle.observed()
-        kw = dict(kw, mono=False)  # la proyeccion monotona es cara y no cambia el LOO de forma util
+        kw = dict(kw, mono=False, bounds=False)  # config validada del LOO (mono/cotas adentro empeoraban)
         _, info = interp.cliff(ij, v, oracle.shape, **kw)
         if info is None:
             return adaptive(oracle, n, n1=0)
         line = lambda r, c: np.polyval(info[0], c) - r  # > 0: arriba del borde
         up = np.where(line(ij[:, 0], ij[:, 1]) > gap)[0]
-        errs = []
-        for k in up:
-            m = np.ones(len(ij), bool)
-            m[k] = False
-            rec, _ = interp.cliff(ij[m], v[m], oracle.shape, **kw)
-            errs.append(abs(rec[ij[k, 0], ij[k, 1]] - v[k]))
-        s_ = float(max(H, W))
-        field = RBFInterpolator(ij[up] / s_, np.array(errs), kernel="linear")(
-            np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W)
-        field = np.clip(field, 0, None)
+        field = np.ones((H, W))
+        if crit in ("loo", "loo*bounds"):
+            errs = []
+            for k in up:
+                m = np.ones(len(ij), bool)
+                m[k] = False
+                rec, _ = interp.cliff(ij[m], v[m], oracle.shape, **kw)
+                errs.append(abs(rec[ij[k, 0], ij[k, 1]] - v[k]))
+            s_ = float(max(H, W))
+            field = RBFInterpolator(ij[up] / s_, np.array(errs), kernel="linear")(
+                np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W)
+            field = np.clip(field, 0, None)
+        if crit in ("bounds", "loo*bounds"):
+            # ancho del intervalo de cotas exactas por monotonia: incertidumbre sin estimar
+            Lb, Ub = interp.monotone_bounds(ij, v, oracle.shape)
+            field = field * (Ub - Lb)
         field[line(yy, xx) <= gap] = 0.0
         d2 = np.full((H, W), np.inf)
         for i, j in ij:
