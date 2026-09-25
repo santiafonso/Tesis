@@ -10,6 +10,22 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-24 (20) — mínimo de puntos para 40 dB en los 9 g ★
+
+| 9 g | puntos | media (peor) | ≥ 40 |
+|---|---|---|---|
+| sin DIP | 84 (grilla 30) | 42.64 (39.17) | 7/9 |
+| **con DIP** (mejor de 2 + fusión + guarda) | **84 (grilla 30)** | **43.36 (40.22)** | **9/9** |
+| **sin DIP** | **88 (grilla 36)** | **42.93 (41.22)** | **9/9** |
+| con DIP | 80 (grilla 36) | 42.16 (39.12) | 8/9 |
+| con DIP | 80 (grilla 30) | 43.32 (39.79) | 8/9 |
+| sin DIP | 80 (grilla 36) | 41.43 (39.25) | 5/9 |
+
+**Mínimo para 40 dB en los 9 g: 84 puntos (0.51 %) con DIP; 88 (0.54 %) sin DIP.** Con 80, a
+0.2-0.9 dB. DIP suma ~0.7-1.2 dB de media con los mismos puntos y mueve el borde en ~4 puntos.
+Referencia: DIP previo (frontier_mix, mirando el mapa denso) necesitaba ~328 puntos → **~4
+veces menos puntos**, y sin mirar el mapa.
+
 ## 2026-09-24 (19) — bajando el presupuesto: 96 → 88 → 80
 
 **Sin DIP** (TPS auto; 4 g difíciles: -2.5, -2, -1.5, -1):
