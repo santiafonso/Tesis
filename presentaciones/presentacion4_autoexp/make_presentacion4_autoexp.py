@@ -453,8 +453,8 @@ def main():
     add_text_image_slide(prs, "Punto de partida: interpolación de scipy (punto 6 de la reunión)", [
         "Grilla 8×8 = 64 puntos, cuatro interpoladores de scipy.",
         "El mejor es la RBF thin-plate spline (TPS): 24.4 dB de media, 21.2 en el peor g.",
-        "Nota: el interp2d del link ya no existe en scipy moderno; se usaron griddata y "
-        "RBFInterpolator, que son sus reemplazos.",
+        "El interp2d del link se eliminó en scipy 1.14. Con su motor interno (RectBivariateSpline en "
+        "grilla): linear 23.3, cubic 24.1, quintic 21.9 dB; la TPS (RBFInterpolator) 24.4. Equivalentes.",
         "Con los mismos 64 puntos, DIP con la receta de la tesis da 25.0: prácticamente igual.",
     ], f_base, img_w=7.6)
 
@@ -464,8 +464,9 @@ def main():
 
     add_text_image_slide(prs, "Muestreo: dónde gastar los 64 puntos", [
         "1) Grilla de 30 puntos (6 columnas): idea global y en qué columnas hay salto a 0.",
-        "2) Bisección: en cada columna con salto, búsqueda binaria vertical ('¿vale 0 o no?'). "
-        "Ubica el acantilado a 1 px con ~5 consultas por columna.",
+        "2) Bisección (método de bisección del análisis numérico; retoma el prototipo de búsqueda binaria "
+        "del 15/9): en cada columna con salto, búsqueda binaria vertical ('¿vale 0 o no?'). Ubica el "
+        "acantilado a 1 px con ~5 consultas por columna.",
         "3) Relleno por validación cruzada: cada punto se predice con los demás y los puntos "
         "nuevos van donde el modelo más se equivoca (tandas de 4).",
         "Con KMC: son ~10 rondas de corridas en paralelo, no 64 corridas en serie.",

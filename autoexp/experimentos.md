@@ -10,6 +10,13 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-09-25 — interp2d (lo que pidió el profe)
+
+`scipy.interpolate.interp2d` se eliminó en scipy 1.14 (tenemos 1.17). Con su motor interno sobre
+los mismos 64 puntos de la grilla 8×8 (3 g dev): grilla (`RectBivariateSpline`) linear 23.3,
+cubic 24.1, quintic 21.9; puntos dispersos (`bisplrep`) 18.7-23.5. La TPS que se usó: 24.4.
+Equivalentes: la conclusión "scipy vs DIP" no cambia.
+
 ## 2026-09-24 (20) — mínimo de puntos para 40 dB en los 9 g ★
 
 | 9 g | puntos | media (peor) | ≥ 40 |
