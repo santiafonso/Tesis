@@ -1,0 +1,19 @@
+{
+ "res": 128,
+ "budget": 64,
+ "sigma": 0.01,
+ "sampler_kw": {
+  "n1": 30,
+  "nx": 6,
+  "target": "zero",
+  "fill": "loo",
+  "batch": 4
+ },
+ "known": {},
+ "rounds": [
+  {
+   "n": 30,
+   "file": "tanda_01.csv"
+  }
+ ]
+}
