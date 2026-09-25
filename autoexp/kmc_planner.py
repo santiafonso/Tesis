@@ -166,6 +166,8 @@ def cmd_add(a):
     st = load(a.state)
     n = 0
     for r in csv.DictReader(open(a.results)):
+        if r.get("status") and r["status"] != "terminado":
+            continue  # salida de autoexp.kmc_results: solo corridas terminadas
         if "row" in r and r.get("row", "") != "":
             i, j = int(r["row"]), int(r["col"])
         else:
