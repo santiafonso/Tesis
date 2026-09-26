@@ -7,6 +7,10 @@ Estructura de la tanda: runs/r<row>_c<col>_k<rep>/ con datos-*.dat (salida del K
   rc=124        cortado por el tope de tiempo: el SoC real es >= el ultimo (no se usa)
   rc=corriendo  en curso
   rc=<otro>     error (ver kmc.out en la carpeta)
+Con rc=0 y ninguna fila, el sobrepotencial paso el corte en el primer intervalo: SoC = 0 (pasa en
+toda la zona de Xi bajo, donde el continuo tambien da 0). Si termino con filas pero el SoC nunca
+supero `SOC_MIN`, se marca `sospechoso` y no se carga (visto en log Xi 1.43, log l -3.53: el KMC
+recorre todos los intervalos sin intercalar, y el continuo da 0.996 ahi).
 El estado sale del codigo de salida, no de la ultima E: el ultimo intervalo no siempre se
 imprime (y cuando se imprime vacio da `-inf`, que se descarta).
 
@@ -25,6 +29,7 @@ from collections import defaultdict
 
 import numpy as np
 
+SOC_MIN = 0.01
 RUN_RE = re.compile(r"r(\d+)_c(\d+)_k(\d+)$")
 
 
@@ -62,7 +67,9 @@ def read_run(d):
          "rc": est.get("rc", ""), "segundos": est.get("segundos", ""), "filas": len(rows)}
     r["status"] = status_of(est.get("rc"))
     if r["status"] == "terminado" and not rows:
-        r["status"] = "error"  # salio bien pero no escribio nada
+        r.update(value=0.0, E_final="", nota="corte en el primer intervalo")
+    elif r["status"] == "terminado" and max(x[0] for x in rows) < SOC_MIN and len(rows) > 5:
+        r["status"] = "sospechoso"
     if rows:
         soc, E, t, lx, le = rows[-1]
         r.update(value=soc, E_final=E, logxi=lx, logell=le)
@@ -104,7 +111,7 @@ def main():
         w.writeheader()
         w.writerows(pts)
     if a.runs:
-        rcols = ["run", "row", "col", "rep", "logxi", "logell", "value", "E_final", "filas", "rc", "segundos", "status"]
+        rcols = ["run", "row", "col", "rep", "logxi", "logell", "value", "E_final", "filas", "rc", "segundos", "status", "nota"]
         with open(a.runs, "w", newline="") as f:
             w = csv.DictWriter(f, rcols, extrasaction="ignore", restval="")
             w.writeheader()
