@@ -79,6 +79,33 @@ def plot(a):
     subprocess.run([sys.executable, "-m", "autoexp.kmc_plot", "--state", a.state], check=False)
 
 
+def final_dip(a, here):
+    """Reconstruccion final TPS + DIP (autoexp.kmc_dip) con DIP en Mendieta."""
+    out = os.path.join(here, "dip")
+    rel = os.path.relpath(out, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_dip", "prepare", "--state", a.state, "--out", out], check=True)
+    sh(a.dip_host, "mkdir -p ~/Tesis-autoexp/%s ~/Tesis-autoexp/slurm" % rel)
+    subprocess.run(["rsync", "-aq", out + "/", "%s:Tesis-autoexp/%s/" % (a.dip_host, rel)], check=True)
+    subprocess.run(["scp", "-q", "slurm/kmc_dip.slurm", "%s:Tesis-autoexp/slurm/" % a.dip_host], check=True)
+    job = sh(a.dip_host, "cd ~/Tesis-autoexp && sbatch --parsable --export=ALL,DIPDIR=%s slurm/kmc_dip.slurm"
+             % rel).strip().split(";")[0]
+    log("DIP final: job %s en Mendieta" % job)
+    while True:
+        time.sleep(120)
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", a.dip_host, "sacct -n -X -P -j %s -o State" % job],
+                           capture_output=True, text=True)
+        q = r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"
+        if q not in ("?", "PENDING", "RUNNING", "COMPLETING", "CONFIGURING"):
+            break
+    if q != "COMPLETED":
+        log("DIP final termino con %s: queda solo la TPS (mapa_kmc)" % q)
+        return
+    subprocess.run(["rsync", "-aq", "--include=*/", "--include=restored.npy", "--include=dip.log", "--exclude=*",
+                    "%s:Tesis-autoexp/%s/" % (a.dip_host, rel), out + "/"], check=True)
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_dip", "fuse", "--state", a.state, "--out", out], check=True)
+    log("LISTO: mapa final TPS + DIP en %s/final.{npy,png}" % out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", required=True)
@@ -87,6 +114,7 @@ def main():
     ap.add_argument("--tag", default="g-4")
     ap.add_argument("--time", default="1-00:00:00")
     ap.add_argument("--poll", type=int, default=600)
+    ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
     a = ap.parse_args()
 
@@ -109,7 +137,8 @@ def main():
             subprocess.run([sys.executable, "-m", "autoexp.kmc_planner", "reconstruct", "--state", a.state,
                             "--out", os.path.join(here, "mapa_kmc")], check=True)
             plot(a)
-            log("presupuesto completo: %d puntos. Mapa en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
+            log("presupuesto completo: %d puntos. Mapa TPS en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
+            final_dip(a, here)
             return
         k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1
         submit(a, st, k, pts)
