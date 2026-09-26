@@ -19,6 +19,8 @@
 #
 # Uso (desde la carpeta de la tanda, que tiene tanda.csv y logs/):
 #   sbatch ~/kmc/kmc_tanda.slurm [tanda.csv]
+# tanda.csv: row,col,logxi,logell,xi,ell[,g]. Con la columna g (opcional) cada punto corre con su g
+# (4to argumento del KMC) en runs/g<g>_r..._c..._k.../: varios g en un mismo nodo. Sin g: -4.
 # Env: KMC_DIR (default ~/kmc: kmc_fast + CS-40x20x40.xyz), NREP (default: nucleos / puntos),
 #      MARGIN (segundos antes del fin del job en que se corta cada corrida, default 600),
 #      KEEP_VMD=1 para no borrar los vmd-*.xyz (80-180 MB por corrida).
@@ -57,8 +59,9 @@ mkdir -p runs
 launched=0
 for rep in $(seq 1 "$NREP"); do
   for line in "${PTS[@]}"; do
-    IFS=, read -r row col logxi logell _ <<< "$line"
-    d=$(printf "runs/r%03d_c%03d_k%d" "$row" "$col" "$rep")
+    IFS=, read -r row col logxi logell _ _ g <<< "$line"
+    g=${g//[[:space:]]/}
+    d=$(printf "runs/%sr%03d_c%03d_k%d" "${g:+g${g}_}" "$row" "$col" "$rep")
     grep -q '^rc=0 ' "$d/estado.txt" 2>/dev/null && continue
     while (( $(jobs -rp | wc -l) >= NCORES )); do wait -n; done
     tope=$(( END - $(date +%s) - MARGIN ))
@@ -69,13 +72,13 @@ for rep in $(seq 1 "$NREP"); do
       cd "$d" || exit
       t0=$(date +%s)
       echo "rc=corriendo inicio=$t0" > estado.txt
-      timeout "$tope" "$EXE" "$logxi" "$logell" "$rep" > kmc.out 2>&1
+      timeout "$tope" "$EXE" "$logxi" "$logell" "$rep" ${g:+"$g"} > kmc.out 2>&1
       rc=$?
-      echo "rc=$rc segundos=$(( $(date +%s) - t0 )) xi=$logxi el=$logell" > estado.txt
+      echo "rc=$rc segundos=$(( $(date +%s) - t0 )) xi=$logxi el=$logell g=${g:--4}" > estado.txt
       [[ ${KEEP_VMD:-0} == 1 ]] || rm -f vmd-*.xyz
     ) &
     launched=$((launched + 1))
-    echo "$(date): [$launched] r$row c$col k$rep  log xi $logxi  log l $logell  (tope ${tope}s)"
+    echo "$(date): [$launched] ${g:+g$g }r$row c$col k$rep  log xi $logxi  log l $logell  (tope ${tope}s)"
     sleep 1.1  # el KMC siembra con srand(time(0)): un arranque por segundo -> semillas distintas
   done
 done

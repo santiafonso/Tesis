@@ -106,6 +106,48 @@ def final_dip(a, here):
     log("LISTO: mapa final TPS + DIP en %s/final.{npy,png}" % out)
 
 
+def wait_job(host, job, poll):
+    while True:
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host,
+                            "sacct -n -X -P -j %s -o State" % job], capture_output=True, text=True)
+        q = r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"
+        if q not in ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING"):
+            return q
+        time.sleep(poll)
+
+
+def control(a, here):
+    """Tanda de control: 10 puntos al azar no usados, KMC, error contra el mapa final."""
+    final = os.path.join(here, "dip", "final.npy")
+    if not os.path.exists(final):
+        final = os.path.join(here, "mapa_kmc.npy")
+    csv_local = os.path.join(here, "control.csv")
+    if not os.path.exists(csv_local):
+        subprocess.run([sys.executable, "-m", "autoexp.kmc_control", "pick", "--state", a.state, "--out", csv_local],
+                       check=True)
+    rdir = "%s/%s_control" % (a.remote, a.tag)
+    st = kmc_planner.load(a.state)
+    job = st.get("control_job")
+    if not job:
+        sh(a.host, "mkdir -p %s/logs" % rdir)
+        subprocess.run(["scp", "-q", csv_local, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
+        job = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time)
+                 ).strip().splitlines()[-1].split(";")[0]
+        st["control_job"] = job
+        kmc_planner.save(st, a.state)
+    log("tanda de control: job %s" % job)
+    wait_job(a.host, job, a.poll)
+    local = os.path.join(a.scratch, "%s_control" % a.tag)
+    os.makedirs(local, exist_ok=True)
+    subprocess.run(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz", "%s:%s/" % (a.host, rdir),
+                    local + "/"], check=True)
+    res = os.path.join(here, "resultados_control.csv")
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_results", local, "--out", res], check=True)
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_control", "eval", "--state", a.state, "--results", res,
+                    "--final", final, "--out", os.path.join(here, "control")], check=True)
+    log("LISTO control: %s/control.{json,png}" % here)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", required=True)
@@ -139,6 +181,7 @@ def main():
             plot(a)
             log("presupuesto completo: %d puntos. Mapa TPS en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
             final_dip(a, here)
+            control(a, here)
             return
         k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1
         submit(a, st, k, pts)

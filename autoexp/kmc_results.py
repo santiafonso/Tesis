@@ -32,7 +32,7 @@ from collections import defaultdict
 import numpy as np
 
 SOC_MIN = 0.01
-RUN_RE = re.compile(r"r(\d+)_c(\d+)_k(\d+)$")
+RUN_RE = re.compile(r"(?:g([-\d.]+)_)?r(\d+)_c(\d+)_k(\d+)$")
 
 
 def read_datos(path):
@@ -65,7 +65,8 @@ def read_run(d):
     est = read_estado(os.path.join(d, "estado.txt"))
     datos = sorted(glob.glob(os.path.join(d, "datos-*.dat")))
     rows = read_datos(datos[0]) if datos else []
-    r = {"run": os.path.basename(d), "row": int(m.group(1)), "col": int(m.group(2)), "rep": int(m.group(3)),
+    r = {"run": os.path.basename(d), "g": m.group(1) or est.get("g", "-4"),
+         "row": int(m.group(2)), "col": int(m.group(3)), "rep": int(m.group(4)),
          "rc": est.get("rc", ""), "segundos": est.get("segundos", ""), "filas": len(rows)}
     r["status"] = status_of(est.get("rc"))
     if r["status"] == "terminado" and not rows:
@@ -83,12 +84,12 @@ def read_run(d):
 def aggregate(runs):
     by = defaultdict(list)
     for r in runs:
-        by[(r["row"], r["col"])].append(r)
+        by[(float(r["g"]), r["row"], r["col"])].append(r)
     pts = []
-    for (i, j), rs in sorted(by.items()):
+    for (g, i, j), rs in sorted(by.items()):
         ok = [r["value"] for r in rs if r["status"] == "terminado"]
         lb = [r["value"] for r in rs if r["status"] in ("cortado", "en_curso") and r["filas"]]
-        pts.append({"row": i, "col": j, "logxi": next((r["logxi"] for r in rs if r["logxi"] != ""), ""),
+        pts.append({"g": g, "row": i, "col": j, "logxi": next((r["logxi"] for r in rs if r["logxi"] != ""), ""),
                     "logell": next((r["logell"] for r in rs if r["logell"] != ""), ""),
                     "value": float(np.mean(ok)) if ok else (max(lb) if lb else ""), "std": float(np.std(ok, ddof=1)) if len(ok) > 1 else "",
                     "n_term": len(ok), "n_runs": len(rs), "status": "terminado" if ok else "cota" if lb else
@@ -102,19 +103,19 @@ def main():
     ap.add_argument("--out", default="resultados_kmc.csv")
     ap.add_argument("--runs", help="CSV opcional con una fila por corrida")
     a = ap.parse_args()
-    dirs = sorted(d for d in glob.glob(os.path.join(a.tanda, "runs", "r*_c*_k*")) if os.path.isdir(d))
+    dirs = sorted(d for d in glob.glob(os.path.join(a.tanda, "runs", "*r*_c*_k*")) if os.path.isdir(d))
     if not dirs:
         raise SystemExit("no hay corridas en %s/runs/" % a.tanda)
     runs = [read_run(d) for d in dirs]
     pts = aggregate(runs)
 
-    cols = ["row", "col", "logxi", "logell", "value", "std", "n_term", "n_runs", "status"]
+    cols = ["g", "row", "col", "logxi", "logell", "value", "std", "n_term", "n_runs", "status"]
     with open(a.out, "w", newline="") as f:
         w = csv.DictWriter(f, cols)
         w.writeheader()
         w.writerows(pts)
     if a.runs:
-        rcols = ["run", "row", "col", "rep", "logxi", "logell", "value", "E_final", "filas", "rc", "segundos", "status", "nota"]
+        rcols = ["run", "g", "row", "col", "rep", "logxi", "logell", "value", "E_final", "filas", "rc", "segundos", "status", "nota"]
         with open(a.runs, "w", newline="") as f:
             w = csv.DictWriter(f, rcols, extrasaction="ignore", restval="")
             w.writeheader()
@@ -131,8 +132,8 @@ def main():
         s = " +- %.3f" % p["std"] if p["std"] != "" else ""
         lx = "%6.2f" % p["logxi"] if p["logxi"] != "" else "     ?"
         le = "%6.2f" % p["logell"] if p["logell"] != "" else "     ?"
-        print("  r%3d c%3d  log Xi %s  log l %s  %s%-9s  %d/%d  %s" % (
-            p["row"], p["col"], lx, le, v, s, p["n_term"], p["n_runs"], p["status"]))
+        print("  g%5.1f r%3d c%3d  log Xi %s  log l %s  %s%-9s  %d/%d  %s" % (
+            p["g"], p["row"], p["col"], lx, le, v, s, p["n_term"], p["n_runs"], p["status"]))
     stds = [p["std"] for p in pts if p["std"] != ""]
     if stds:
         print("sigma entre replicas: %.4f (raiz del promedio de varianzas, %d puntos)" % (

@@ -67,8 +67,9 @@ static constexpr double Qmax = Np * ce;
 static constexpr double BK = 0.00008617385 * 1000.0;
 static constexpr double T = 298.0;
 static constexpr double kT = BK * T;
-static constexpr double g_pot = -4.0;
-static constexpr double J1 = (g_pot / 6.0) * kT;
+// g (interaccion de Frumkin): 4to argumento opcional, -4 por defecto (valor historico)
+static double g_pot = -4.0;
+static double J1 = (g_pot / 6.0) * kT;
 double J2 = 0.0;
 
 /// Galvanostatic constants — calculados en main() a partir de xi_val, el_val
@@ -217,7 +218,7 @@ inline void SetEvento(int i, int jj, double val) {
 int main(int argc, char *argv[]) {
 
   if (argc < 4) {
-    std::cerr << "Uso: " << argv[0] << " <xi> <el> <numValue>" << std::endl;
+    std::cerr << "Uso: " << argv[0] << " <xi> <el> <numValue> [g=-4]" << std::endl;
     return 1;
   }
 
@@ -225,6 +226,9 @@ int main(int argc, char *argv[]) {
   xi_val = std::stod(argv[1]);
   el_val = std::stod(argv[2]);
   int numValue = std::stoi(argv[3]);
+  std::string g_tag = (argc > 4) ? argv[4] : "-4";
+  g_pot = std::stod(g_tag);
+  J1 = (g_pot / 6.0) * kT;
   numValue_global = numValue;
 
   // --- Calcular cantidades derivadas ---
@@ -246,8 +250,8 @@ int main(int argc, char *argv[]) {
   // --- Construir prefijos de archivos de salida ---
   std::string xi_tag = sanitize(argv[1]);
   std::string el_tag = sanitize(argv[2]);
-  grabadif_en = "datos-40x20x40-xi" + xi_tag + "-el" + el_tag + "-g-4-";
-  grabavmd_en = "vmd-40x20x40-xi"   + xi_tag + "-el" + el_tag + "-g-4-";
+  grabadif_en = "datos-40x20x40-xi" + xi_tag + "-el" + el_tag + "-g" + g_tag + "-";
+  grabavmd_en = "vmd-40x20x40-xi"   + xi_tag + "-el" + el_tag + "-g" + g_tag + "-";
 
   // --- Registro de parametros ---
   FILE *archivo = AbrirArchivo(grabaparam_en, "a");

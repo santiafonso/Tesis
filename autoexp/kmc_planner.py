@@ -177,7 +177,8 @@ def st_pseudo(st):
 def cmd_add(a):
     st = load(a.state)
     n = npseudo = 0
-    rows = list(csv.DictReader(open(a.results)))
+    # con varios g en la misma tanda, solo las filas del g de este estado (def -4)
+    rows = [r for r in csv.DictReader(open(a.results)) if float(r.get("g") or -4) == float(st.get("g", -4))]
     for r in rows:
         if "row" in r and r.get("row", "") != "":
             r["ij"] = (int(r["row"]), int(r["col"]))
