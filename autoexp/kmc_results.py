@@ -17,7 +17,9 @@ imprime (y cuando se imprime vacio da `-inf`, que se descarta).
 Uso:
     python -m autoexp.kmc_results <carpeta de la tanda> [--out resultados.csv] [--runs corridas.csv]
 Escribe `row,col,logxi,logell,value,std,n_term,n_runs,status` por punto (status=terminado si
-termino al menos una replica), que `kmc_planner add` acepta tal cual. La dispersion entre
+termino al menos una replica), que `kmc_planner add` acepta tal cual. Si ninguna termino pero
+alguna cortada / en curso escribio filas, status=cota y value = el mayor SoC alcanzado (el SoC
+real es >= eso); `kmc_planner add --monotone` lo usa como pseudo-punto. La dispersion entre
 replicas estima el `sigma` del planificador.
 """
 import argparse
@@ -85,10 +87,11 @@ def aggregate(runs):
     pts = []
     for (i, j), rs in sorted(by.items()):
         ok = [r["value"] for r in rs if r["status"] == "terminado"]
+        lb = [r["value"] for r in rs if r["status"] in ("cortado", "en_curso") and r["filas"]]
         pts.append({"row": i, "col": j, "logxi": next((r["logxi"] for r in rs if r["logxi"] != ""), ""),
                     "logell": next((r["logell"] for r in rs if r["logell"] != ""), ""),
-                    "value": float(np.mean(ok)) if ok else "", "std": float(np.std(ok, ddof=1)) if len(ok) > 1 else "",
-                    "n_term": len(ok), "n_runs": len(rs), "status": "terminado" if ok else
+                    "value": float(np.mean(ok)) if ok else (max(lb) if lb else ""), "std": float(np.std(ok, ddof=1)) if len(ok) > 1 else "",
+                    "n_term": len(ok), "n_runs": len(rs), "status": "terminado" if ok else "cota" if lb else
                     "/".join(sorted({r["status"] for r in rs}))})
     return pts
 

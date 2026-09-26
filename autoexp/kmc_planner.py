@@ -162,20 +162,46 @@ def cmd_next(a):
                                                          len(st["known_d"]), st["budget"]))
 
 
+def monotone_fill(st, i, j, lower=0.0):
+    """Pseudo-valor para un punto sin resultado final: el SoC baja al subir l (mas corriente), asi
+    que SoC(i, j) >= SoC medido en la misma fila con l mayor. Devuelve max(cota, ese vecino) o None."""
+    right = [v for (ii, jj), v in st["known_d"].items() if ii == i and jj > j and (ii, jj) not in st_pseudo(st)]
+    v = max([lower] + right) if (right or lower > 0) else None
+    return None if v is None else float(np.clip(v, 0.0, 1.0))
+
+
+def st_pseudo(st):
+    return set(map(tuple, st.get("pseudo", [])))
+
+
 def cmd_add(a):
     st = load(a.state)
-    n = 0
-    for r in csv.DictReader(open(a.results)):
+    n = npseudo = 0
+    rows = list(csv.DictReader(open(a.results)))
+    for r in rows:
+        if "row" in r and r.get("row", "") != "":
+            r["ij"] = (int(r["row"]), int(r["col"]))
+        else:
+            r["ij"] = to_pix(st, float(r["logxi"]), float(r["logell"]))
+    for r in rows:  # primero lo medido: el relleno por monotonia se apoya en eso
         if r.get("status") and r["status"] != "terminado":
             continue  # salida de autoexp.kmc_results: solo corridas terminadas
-        if "row" in r and r.get("row", "") != "":
-            i, j = int(r["row"]), int(r["col"])
-        else:
-            i, j = to_pix(st, float(r["logxi"]), float(r["logell"]))
-        st["known_d"][(i, j)] = float(np.clip(float(r["value"]), 0.0, 1.0))
+        st["known_d"][r["ij"]] = float(np.clip(float(r["value"]), 0.0, 1.0))
+        st["pseudo"] = [p for p in st.get("pseudo", []) if tuple(p) != r["ij"]]
         n += 1
+    if a.monotone:
+        for r in rows:
+            if r.get("status") not in ("cota", "sospechoso") or r["ij"] in st["known_d"]:
+                continue
+            v = monotone_fill(st, *r["ij"], lower=float(r["value"]) if r.get("value") else 0.0)
+            if v is None:
+                continue
+            st["known_d"][r["ij"]] = v
+            st.setdefault("pseudo", []).append(list(r["ij"]))
+            npseudo += 1
+            print("  pseudo r%d c%d = %.3f (%s)" % (*r["ij"], v, r["status"]))
     save(st, a.state)
-    print("cargados %d resultados (total %d de %d)" % (n, len(st["known_d"]), st["budget"]))
+    print("cargados %d resultados + %d pseudo (total %d de %d)" % (n, npseudo, len(st["known_d"]), st["budget"]))
 
 
 def cmd_reconstruct(a):
@@ -236,6 +262,8 @@ def main():
     p = sp.add_parser("add")
     p.add_argument("--state", required=True)
     p.add_argument("results")
+    p.add_argument("--monotone", action="store_true",
+                   help="cargar status cota/sospechoso como pseudo-punto (cota + monotonia en l)")
     p = sp.add_parser("reconstruct")
     p.add_argument("--state", required=True)
     p.add_argument("--out", default="mapa_kmc")
