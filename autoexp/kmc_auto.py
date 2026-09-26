@@ -66,9 +66,56 @@ def rows_for(st, pts):
     return out
 
 
+def to_secs(t):
+    d, _, t = t.rpartition("-")
+    x = 0
+    for p in t.split(":"):
+        x = x * 60 + int(p)
+    return x + int(d or 0) * 86400
+
+
+def reuse_step(a, name, local_csv):
+    """Si --reuse-job es un job propio corriendo con tiempo de sobra (> tope + 30 min), corre la
+    tanda entera como step (srun --overlap) en su nodo: sin cola. Devuelve la parte o None."""
+    if not a.reuse_job:
+        return None
+    left = sh(a.host, "squeue -h -j %s -o %%L" % a.reuse_job, check=False).strip()
+    tope = to_secs(a.time)
+    if not left or not left[0].isdigit() or to_secs(left) < tope + 1800:
+        return None
+    rdir = "%s/%s" % (a.remote, name)
+    sh(a.host, "mkdir -p %s/logs" % rdir)
+    subprocess.run(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
+    before = set(sh(a.host, "squeue -s -h -j %s -o %%i" % a.reuse_job).split())
+    # ssh no vuelve mientras srun vive aunque este en segundo plano: se lanza sin esperar y se
+    # suelta cuando aparece el step (srun sigue en el login con setsid). -c: nucleos que se usan,
+    # dejando lugar a lo que el job ya tenga corriendo.
+    pr = subprocess.Popen(["ssh", "-o", "BatchMode=yes", a.host,
+                           'cd %s && nohup setsid srun --jobid=%s --overlap -N1 -n1 -c%d --export=ALL,TOPE_MAX=%d '
+                           'bash ~/kmc/kmc_tanda.slurm tanda.csv > logs/step.out 2> logs/step.err < /dev/null &'
+                           % (rdir, a.reuse_job, a.reuse_cores, tope)],
+                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    for _ in range(12):
+        time.sleep(5)
+        new = set(sh(a.host, "squeue -s -h -j %s -o %%i" % a.reuse_job).split()) - before
+        if new:
+            time.sleep(5)
+            pr.kill()
+            step = sorted(new, key=lambda x: int(x.split(".")[1]) if x.split(".")[1].isdigit() else -1)[-1]
+            log("%s: %d puntos -> step %s (nodo del job %s, sin cola)" % (name, len(open(local_csv).readlines()) - 1,
+                                                                          step, a.reuse_job))
+            return {"host": a.host, "job": step, "remote": rdir}
+    pr.kill()
+    raise RuntimeError("no aparecio el step en el job %s" % a.reuse_job)
+
+
 def launch(a, name, rows, local_csv):
-    """Parte las filas por costo y manda cada parte a su cluster. Devuelve la lista de partes."""
+    """Parte las filas por costo y manda cada parte a su cluster (o todo a un job propio con
+    tiempo, ver reuse_step). Devuelve la lista de partes."""
     write_rows(rows, local_csv)
+    part = reuse_step(a, name, local_csv)
+    if part:
+        return [dict(part, n=len(rows))]
     fast = [r for r in rows if float(r[3]) > a.fast_logell]
     slow = [r for r in rows if float(r[3]) <= a.fast_logell]
     parts = []
@@ -198,6 +245,8 @@ def main():
     ap.add_argument("--tag", default="g-4")
     ap.add_argument("--time", default="08:00:00", help="tope de las tandas lentas (Serafin)")
     ap.add_argument("--poll", type=int, default=600)
+    ap.add_argument("--reuse-job", help="job propio corriendo en --host cuyo nodo se reusa con srun --overlap")
+    ap.add_argument("--reuse-cores", type=int, default=60)
     ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
     a = ap.parse_args()
