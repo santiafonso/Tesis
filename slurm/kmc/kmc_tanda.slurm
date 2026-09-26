@@ -23,6 +23,7 @@
 # (4to argumento del KMC) en runs/g<g>_r..._c..._k.../: varios g en un mismo nodo. Sin g: -4.
 # Env: KMC_DIR (default ~/kmc: kmc_fast + CS-40x20x40.xyz), NREP (default: nucleos / puntos),
 #      MARGIN (segundos antes del fin del job en que se corta cada corrida, default 600),
+#      TOPE_MAX (segundos maximos por corrida, p. ej. al correr como step dentro de un job largo),
 #      KEEP_VMD=1 para no borrar los vmd-*.xyz (80-180 MB por corrida).
 # Reenviar la misma tanda saltea las corridas con rc=0 (retoma cortadas y errores).
 set -u
@@ -65,6 +66,7 @@ for rep in $(seq 1 "$NREP"); do
     grep -q '^rc=0 ' "$d/estado.txt" 2>/dev/null && continue
     while (( $(jobs -rp | wc -l) >= NCORES )); do wait -n; done
     tope=$(( END - $(date +%s) - MARGIN ))
+    [[ -n ${TOPE_MAX:-} ]] && (( tope > TOPE_MAX )) && tope=$TOPE_MAX
     (( tope > 60 )) || { echo "$(date): sin tiempo, no lanzo mas"; break 2; }
     mkdir -p "$d"; rm -f "$d"/datos-*.dat "$d"/vmd-*.xyz "$d"/parametros.dat
     ln -sf "$XYZ" "$d/CS-40x20x40.xyz"

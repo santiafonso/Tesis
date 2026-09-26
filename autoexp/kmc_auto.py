@@ -36,9 +36,19 @@ def log(*a):
 
 
 def job_state(host, job):
+    """Estado SLURM de un job, o de un step ("<job>.<n>": tanda lanzada con srun --overlap dentro
+    de un job propio que ya tenia nodo)."""
+    step = "." in str(job)
     r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host,
-                        "sacct -n -X -P -j %s -o State" % job], capture_output=True, text=True)
-    return r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"  # ? = red caida
+                        "sacct -n -P -j %s -o JobID,State%s" % (job, "" if step else " -X")],
+                       capture_output=True, text=True)
+    if r.returncode or not r.stdout.strip():
+        return "?"  # red caida
+    for line in r.stdout.strip().splitlines():
+        jid, state = line.split("|")[:2]
+        if jid == str(job) or not step:
+            return state.split()[0]
+    return "?"
 
 
 def write_rows(rows, path):

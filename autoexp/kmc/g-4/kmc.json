@@ -71,10 +71,17 @@
  ],
  "jobs": {
   "2": {
-   "job": "429064",
-   "remote": "~/kmc/tandas/g-4_t02",
+   "parts": [
+    {
+     "host": "siaosorio@serafin.ccad.unc.edu.ar",
+     "job": "428862.0",
+     "remote": "~/kmc/tandas/g-4_t02",
+     "n": 5
+    }
+   ],
    "n": 5,
-   "sent": 1790448297.405629
+   "sent": 1790448297.405629,
+   "nota": "step dentro del job 428862 (nodo de la tanda 1); 429064 cancelado"
   }
  },
  "pending": [
