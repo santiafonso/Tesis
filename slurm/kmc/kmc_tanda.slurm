@@ -2,10 +2,9 @@
 #SBATCH --job-name=kmc_tanda
 #SBATCH --partition=multi
 #SBATCH --nodes=1
-#SBATCH --exclusive
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=64
-#SBATCH --time=2-00:00:00
+#SBATCH --time=08:00:00
 #SBATCH --output=logs/tanda_%j.out
 #SBATCH --error=logs/tanda_%j.err
 # Una tanda del planificador (autoexp/kmc_planner.py next -> tanda_XX.csv) en un nodo de Serafin.
@@ -18,7 +17,8 @@
 #                                           (0 = terminado, 124 = cortado por tope, otro = error)
 #
 # Uso (desde la carpeta de la tanda, que tiene tanda.csv y logs/):
-#   sbatch ~/kmc/kmc_tanda.slurm [tanda.csv]
+#   sbatch ~/kmc/kmc_tanda.slurm [tanda.csv]                        Serafin: nodo entero (64 nucleos)
+#   sbatch -p short --time=00:59:00 -c 10 ~/kmc/kmc_tanda.slurm      Mulatona: pocos nucleos (puntos rapidos)
 # tanda.csv: row,col,logxi,logell,xi,ell[,g]. Con la columna g (opcional) cada punto corre con su g
 # (4to argumento del KMC) en runs/g<g>_r..._c..._k.../: varios g en un mismo nodo. Sin g: -4.
 # Env: KMC_DIR (default ~/kmc: kmc_fast + CS-40x20x40.xyz), NREP (default: nucleos / puntos),

@@ -1,11 +1,15 @@
-"""Loop automatico del KMC real: next -> Serafin (kmc_tanda.slurm) -> esperar -> traer ->
-kmc_results -> add --monotone -> figura -> next ... hasta completar el presupuesto, y al final
-reconstruct. Se puede cortar y relanzar: el estado (incluido el job en vuelo) vive en kmc.json.
+"""Loop automatico del KMC real: next -> cluster(s) (kmc_tanda.slurm) -> esperar -> traer ->
+kmc_results -> add --monotone -> figura -> next ... hasta completar el presupuesto; al final
+reconstruccion TPS + DIP (Mendieta) y tanda de control. Se puede cortar y relanzar: el estado
+(incluidos los jobs en vuelo) vive en kmc.json.
+
+Cada tanda se parte por costo: el tiempo de una corrida va como ~1/l (medido: log l -0.5 ~6 min,
+-1.5 ~45 min, -2.5 ~6.5 h). Los puntos rapidos (log l > --fast-logell) van a Mulatona con pocos
+nucleos (particion short, 1 h: entran facil en la cola); los lentos a Serafin, nodo entero, tope
+--time (lo que no termina queda como cota y entra por monotonia en l).
 
 Uso (desde la raiz del repo, en segundo plano):
-    nohup ./venv/bin/python -m autoexp.kmc_auto --state autoexp/kmc/g-4/kmc.json > autoexp/kmc/g-4/auto.log 2>&1 &
-Env/args: --host (siaosorio@serafin...), --remote (~/kmc/tandas), --tag (g-4), --time (tope del job
-por tanda, 1-00:00:00: lo que no termina queda como cota y entra por monotonia en l), --poll (s).
+    nohup ./venv/bin/python -m autoexp.kmc_auto --state autoexp/kmc/g-4/kmc.json >> autoexp/kmc/g-4/auto.log 2>&1 &
 """
 import argparse
 import csv
@@ -14,7 +18,9 @@ import subprocess
 import sys
 import time
 
-from autoexp import kmc_planner, kmc_results
+from autoexp import kmc_planner
+
+ACTIVE = ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING")
 
 
 def sh(host, cmd, check=True):
@@ -29,39 +35,80 @@ def log(*a):
     print(time.strftime("%Y-%m-%d %H:%M:%S"), *a, flush=True)
 
 
-def write_tanda(st, pts, path):
+def job_state(host, job):
+    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host,
+                        "sacct -n -X -P -j %s -o State" % job], capture_output=True, text=True)
+    return r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"  # ? = red caida
+
+
+def write_rows(rows, path):
     with open(path, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["row", "col", "logxi", "logell", "xi", "ell"])
-        for i, j in pts:
-            lx, le = kmc_planner.to_log(st, i, j)
-            w.writerow([i, j, "%.6f" % lx, "%.6f" % le, "%.6g" % 10 ** lx, "%.6g" % 10 ** le])
+        w.writerows(rows)
+
+
+def rows_for(st, pts):
+    out = []
+    for i, j in pts:
+        lx, le = kmc_planner.to_log(st, i, j)
+        out.append([i, j, "%.6f" % lx, "%.6f" % le, "%.6g" % 10 ** lx, "%.6g" % 10 ** le])
+    return out
+
+
+def launch(a, name, rows, local_csv):
+    """Parte las filas por costo y manda cada parte a su cluster. Devuelve la lista de partes."""
+    write_rows(rows, local_csv)
+    fast = [r for r in rows if float(r[3]) > a.fast_logell]
+    slow = [r for r in rows if float(r[3]) <= a.fast_logell]
+    parts = []
+    for host, sub, opts in ((a.fast_host, fast, "-p short --time=00:59:00 -c %d" % min(32, max(2, 2 * len(fast)))),
+                            (a.host, slow, "--time=%s" % a.time)):
+        if not sub:
+            continue
+        rdir = "%s/%s" % (a.remote, name)
+        tmp = local_csv + ".part"
+        write_rows(sub, tmp)
+        sh(host, "mkdir -p %s/logs" % rdir)
+        subprocess.run(["scp", "-q", tmp, "%s:%s/tanda.csv" % (host, rdir)], check=True)
+        job = sh(host, "cd %s && sbatch --parsable %s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, opts)
+                 ).strip().splitlines()[-1].split(";")[0]
+        os.remove(tmp)
+        parts.append({"host": host, "job": job, "remote": rdir, "n": len(sub)})
+        log("%s: %d puntos -> %s job %s" % (name, len(sub), host.split("@")[1].split(".")[0], job))
+    return parts
+
+
+def parts_of(info, a):
+    return info.get("parts") or [{"host": a.host, "job": info["job"], "remote": info["remote"]}]  # formato viejo
+
+
+def all_done(parts):
+    return all(job_state(p["host"], p["job"]) not in ACTIVE for p in parts)
+
+
+def fetch(parts, local):
+    os.makedirs(local, exist_ok=True)
+    for p in parts:
+        subprocess.run(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz",
+                        "%s:%s/" % (p["host"], p["remote"]), local + "/"], check=True)
 
 
 def submit(a, st, k, pts):
     here = os.path.dirname(a.state)
     csv_local = os.path.join(here, "tanda_%02d.csv" % k)
-    write_tanda(st, pts, csv_local)
-    rdir = "%s/%s_t%02d" % (a.remote, a.tag, k)
-    sh(a.host, "mkdir -p %s/logs" % rdir)
-    subprocess.run(["scp", "-q", csv_local, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
-    out = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time))
-    job = out.strip().splitlines()[-1].split(";")[0]
-    st.setdefault("jobs", {})[str(k)] = {"job": job, "remote": rdir, "n": len(pts), "sent": time.time()}
+    parts = launch(a, "%s_t%02d" % (a.tag, k), rows_for(st, pts), csv_local)
+    st.setdefault("jobs", {})[str(k)] = {"parts": parts, "n": len(pts), "sent": time.time()}
     st["pending"] = [list(p) for p in pts]
     if len(st["rounds"]) < k:
         st["rounds"].append({"n": len(pts), "file": os.path.basename(csv_local)})
     kmc_planner.save(st, a.state)
-    log("tanda %d: %d puntos, job %s -> %s" % (k, len(pts), job, rdir))
 
 
 def collect(a, st, k):
     here = os.path.dirname(a.state)
-    info = st["jobs"][str(k)]
     local = os.path.join(a.scratch, "%s_t%02d" % (a.tag, k))
-    os.makedirs(local, exist_ok=True)
-    subprocess.run(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz",
-                    "%s:%s/" % (a.host, info["remote"]), local + "/"], check=True)
+    fetch(parts_of(st["jobs"][str(k)], a), local)
     res = os.path.join(here, "resultados_t%02d.csv" % k)
     subprocess.run([sys.executable, "-m", "autoexp.kmc_results", local, "--out", res,
                     "--runs", os.path.join(here, "corridas_t%02d.csv" % k)], check=True)
@@ -106,18 +153,8 @@ def final_dip(a, here):
     log("LISTO: mapa final TPS + DIP en %s/final.{npy,png}" % out)
 
 
-def wait_job(host, job, poll):
-    while True:
-        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host,
-                            "sacct -n -X -P -j %s -o State" % job], capture_output=True, text=True)
-        q = r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"
-        if q not in ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING"):
-            return q
-        time.sleep(poll)
-
-
 def control(a, here):
-    """Tanda de control: 10 puntos al azar no usados, KMC, error contra el mapa final."""
+    """Tanda de control: 10 puntos no usados (kmc_control pick), KMC, error contra el mapa final."""
     final = os.path.join(here, "dip", "final.npy")
     if not os.path.exists(final):
         final = os.path.join(here, "mapa_kmc.npy")
@@ -125,22 +162,15 @@ def control(a, here):
     if not os.path.exists(csv_local):
         subprocess.run([sys.executable, "-m", "autoexp.kmc_control", "pick", "--state", a.state, "--out", csv_local],
                        check=True)
-    rdir = "%s/%s_control" % (a.remote, a.tag)
     st = kmc_planner.load(a.state)
-    job = st.get("control_job")
-    if not job:
-        sh(a.host, "mkdir -p %s/logs" % rdir)
-        subprocess.run(["scp", "-q", csv_local, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
-        job = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time)
-                 ).strip().splitlines()[-1].split(";")[0]
-        st["control_job"] = job
+    if not st.get("control_parts"):
+        rows = list(csv.reader(open(csv_local)))[1:]
+        st["control_parts"] = launch(a, "%s_control" % a.tag, rows, csv_local)
         kmc_planner.save(st, a.state)
-    log("tanda de control: job %s" % job)
-    wait_job(a.host, job, a.poll)
+    while not all_done(st["control_parts"]):
+        time.sleep(a.poll)
     local = os.path.join(a.scratch, "%s_control" % a.tag)
-    os.makedirs(local, exist_ok=True)
-    subprocess.run(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz", "%s:%s/" % (a.host, rdir),
-                    local + "/"], check=True)
+    fetch(st["control_parts"], local)
     res = os.path.join(here, "resultados_control.csv")
     subprocess.run([sys.executable, "-m", "autoexp.kmc_results", local, "--out", res], check=True)
     subprocess.run([sys.executable, "-m", "autoexp.kmc_control", "eval", "--state", a.state, "--results", res,
@@ -151,10 +181,12 @@ def control(a, here):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", required=True)
-    ap.add_argument("--host", default="siaosorio@serafin.ccad.unc.edu.ar")
+    ap.add_argument("--host", default="siaosorio@serafin.ccad.unc.edu.ar", help="puntos lentos")
+    ap.add_argument("--fast-host", default="siaosorio@mulatona.ccad.unc.edu.ar", help="puntos rapidos")
+    ap.add_argument("--fast-logell", type=float, default=-1.2, help="log l > esto -> fast-host")
     ap.add_argument("--remote", default="~/kmc/tandas")
     ap.add_argument("--tag", default="g-4")
-    ap.add_argument("--time", default="1-00:00:00")
+    ap.add_argument("--time", default="08:00:00", help="tope de las tandas lentas (Serafin)")
     ap.add_argument("--poll", type=int, default=600)
     ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
@@ -165,13 +197,10 @@ def main():
         open_jobs = {int(k): v for k, v in st.get("jobs", {}).items() if "done" not in v}
         if open_jobs:
             k, info = min(open_jobs.items())
-            r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", a.host,
-                                "sacct -n -X -P -j %s -o State" % info["job"]], capture_output=True, text=True)
-            q = r.stdout.strip().split()[0] if r.returncode == 0 and r.stdout.strip() else "?"  # ? = red caida
-            if q not in ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING"):
+            if all_done(parts_of(info, a)):
                 collect(a, st, k)
-                continue
-            time.sleep(a.poll)
+            else:
+                time.sleep(a.poll)
             continue
         pts = kmc_planner.next_batch(st)
         if not pts:
