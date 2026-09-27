@@ -105,5 +105,21 @@
    51,
    96
   ]
- ]
+ ],
+ "largos": {
+  "job": "429089",
+  "host": "siaosorio@serafin.ccad.unc.edu.ar",
+  "remote": "~/kmc/tandas/g-4_largos",
+  "puntos": [
+   [
+    102,
+    10
+   ],
+   [
+    12,
+    10
+   ]
+  ],
+  "nota": "tope 48 h, fuera del loop. (102,10) reemplaza al pseudo/cota en la reconstruccion final; (12,10) = chequeo del 'sospechoso' con 12 semillas"
+ }
 }
