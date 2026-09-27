@@ -177,6 +177,20 @@ KMC-*.cpp acumulador_claude.h   the KMC simulation (Part 2), plus its .dat/.xyz 
 New DIP runs write under `results/` (git-ignored); nothing there is precious — the images that back
 the presentation live in `archive/dip_sweep_{64,128}/` and `archive/phase_diagram/`.
 
+## Branches y carpetas locales (27/9)
+
+Todos los branches están en GitHub (`origin`). Carpetas locales: solo `~/Tesis` (master) y
+`~/Tesis-autoexp` (worktree de `autoexp`); en los worktrees `venv` y `results` son enlaces a `~/Tesis`.
+
+| branch | estado | qué tiene |
+|---|---|---|
+| `master` | base | DIP (`dip/`), slurm, presentaciones hasta el 17/9 |
+| `autoexp` | **activo** | loop de muestreo activo + TPS/DIP (≤64 pts, >40 dB en el continuo); KMC real con planificador de tandas (`autoexp/kmc_*`), presentación 4. Sin mergear: lo decide el usuario |
+| `physics-calibration` | aparcado | calibrar `g` con pocos puntos y regenerar el mapa (`physics_fit/`): ~34 dB en limpio, ~25 fuera de la familia |
+| `curvefit-frontier` | aparcado | reconstrucción geométrica de la frontera sin red; DIP gana salvo en la máscara `frontier` |
+
+Para retomar uno aparcado: `git worktree add ~/Tesis-<branch> <branch>` y enlazar `venv`/`results`.
+
 ## Working across both parts
 
 - Do not assume shared conventions between the two parts (e.g. Python formatting rules do not apply to the

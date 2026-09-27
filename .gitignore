@@ -3,11 +3,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.swp
-venv/
+venv
 .venv/
 
 # --- DIP / restoration outputs ---
 results/
+results
 results_*/
 result_*/
 GRIS/
