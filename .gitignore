@@ -45,3 +45,7 @@ kmc_launched_points.txt
 
 # --- autoexp: corridas del loop de experimentacion (score.json/panel.png se miran ahi) ---
 autoexp/runs/
+
+# --- autoexp/kmc: log del loop automatico y pruebas de DIP (locales) ---
+autoexp/kmc/*/auto.log
+autoexp/kmc/*/dip_prueba*/
