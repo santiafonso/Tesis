@@ -1,74 +1,42 @@
-**Warning!** The optimization may not converge on some GPUs. We've personally experienced issues on Tesla V100 and P40 GPUs. When running the code, make sure you get similar results to the paper first. Easiest to check using text inpainting notebook.  Try to set double precision mode or turn off cudnn. 
+# Thesis: Deep Image Prior for KMC phase diagrams
 
-# Deep image prior
+Undergraduate thesis in Computer Science at FaMAF, Universidad Nacional de Córdoba. Work in progress.
 
-In this repository we provide *Jupyter Notebooks* to reproduce each figure from the paper:
+The goal is to reconstruct phase diagrams of electrochemical intercalation from a small set of
+kinetic Monte Carlo (KMC) simulations. Each point of the diagram is an expensive simulation, so
+only a sparse sample is run and the rest is filled in with Deep Image Prior, treating the diagram
+as an image with missing pixels.
 
-> **Deep Image Prior**
+## Contents
 
-> CVPR 2018
+| Path | What it is |
+| --- | --- |
+| `KMC-Galvanostatic_noclus_param.cpp`, `acumulador.h` | Galvanostatic KMC simulation in C++ with OpenMP |
+| `dip/` | Reconstruction code: DIP inpainting, metrics, phase diagrams, point sampling |
+| `slurm/` | Job scripts for the SLURM cluster (DIP runs and KMC sweeps) |
+| `analysis/` | One-off analysis scripts |
+| `models/`, `utils/`, `notebooks/` | Code from the original [Deep Image Prior](https://github.com/DmitryUlyanov/deep-image-prior) repository |
 
-> Dmitry Ulyanov, Andrea Vedaldi, Victor Lempitsky
+## Running
 
+KMC simulation:
 
-[[paper]](https://sites.skoltech.ru/app/data/uploads/sites/25/2018/04/deep_image_prior.pdf) [[supmat]](https://box.skoltech.ru/index.php/s/ib52BOoV58ztuPM) [[project page]](https://dmitryulyanov.github.io/deep_image_prior)
-
-![](data/teaser_compiled.jpg)
-
-Here we provide hyperparameters and architectures, that were used to generate the figures. Most of them are far from optimal. Do not hesitate to change them and see the effect.
-
-We will expand this README with a list of hyperparameters and options shortly.
-
-# Install
-
-Here is the list of libraries you need to install to execute the code:
-- python = 3.6
-- [pytorch](http://pytorch.org/) = 0.4
-- numpy
-- scipy
-- matplotlib
-- scikit-image
-- jupyter
-
-All of them can be installed via `conda` (`anaconda`), e.g.
-```
-conda install jupyter
+```bash
+g++ -O3 -fopenmp KMC-Galvanostatic_noclus_param.cpp -o KMC-Galvanostatic_noclus_param
+./KMC-Galvanostatic_noclus_param <xi> <el> <run_index>
 ```
 
+DIP reconstruction (from the repository root):
 
-or create an conda env with all dependencies via environment file
-
-```
-conda env create -f environment.yml
-```
-
-## Docker image
-
-Alternatively, you can use a Docker image that exposes a Jupyter Notebook with all required dependencies. To build this image ensure you have both [docker](https://www.docker.com/) and  [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) installed, then run
-
-```
-nvidia-docker build -t deep-image-prior .
+```bash
+pip install -r requirements.txt
+python -m dip.restoration
 ```
 
-After the build you can start the container as
+See `dip/README.md` for the available options.
 
-```
-nvidia-docker run --rm -it --ipc=host -p 8888:8888 deep-image-prior
-```
+## Credits
 
-you will be provided an URL through which you can connect to the Jupyter notebook.
-
-## Google Colab
-
-To run it using Google Colab, click [here](https://colab.research.google.com/github/DmitryUlyanov/deep-image-prior) and select the notebook to run. Remember to uncomment the first cell to clone the repository into colab's environment.
-
-
-# Citation
-```
-@article{UlyanovVL17,
-    author    = {Ulyanov, Dmitry and Vedaldi, Andrea and Lempitsky, Victor},
-    title     = {Deep Image Prior},
-    journal   = {arXiv:1711.10925},
-    year      = {2017}
-}
-```
+Built on [Deep Image Prior](https://github.com/DmitryUlyanov/deep-image-prior) by Dmitry Ulyanov,
+Andrea Vedaldi and Victor Lempitsky (CVPR 2018). Licensed under Apache 2.0, see `LICENSE` and
+`NOTICE`.
