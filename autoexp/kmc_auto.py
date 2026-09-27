@@ -4,9 +4,10 @@ reconstruccion TPS + DIP (Mendieta) y tanda de control. Se puede cortar y relanz
 (incluidos los jobs en vuelo) vive en kmc.json.
 
 Cada tanda se parte por costo: el tiempo de una corrida va como ~1/l (medido: log l -0.5 ~6 min,
--1.5 ~45 min, -2.5 ~6.5 h). Los puntos rapidos (log l > --fast-logell) van a Mulatona con pocos
-nucleos (particion short, 1 h: entran facil en la cola); los lentos a Serafin, nodo entero, tope
---time (lo que no termina queda como cota y entra por monotonia en l).
+-1.5 ~45 min, -2.5 ~6.5 h). Los puntos rapidos (log l > --fast-logell) van a Mulatona short (1 h);
+los lentos a --slow-host (def. Mulatona mono, 2 replicas por punto, pocos nucleos: entra en la cola
+mucho antes que un nodo entero de Serafin), tope --time (lo que no termina queda como cota y entra
+por monotonia en l). --host (Serafin) queda para --reuse-job.
 
 Uso (desde la raiz del repo, en segundo plano):
     nohup ./venv/bin/python -m autoexp.kmc_auto --state autoexp/kmc/g-4/kmc.json >> autoexp/kmc/g-4/auto.log 2>&1 &
@@ -119,11 +120,13 @@ def launch(a, name, rows, local_csv):
     fast = [r for r in rows if float(r[3]) > a.fast_logell]
     slow = [r for r in rows if float(r[3]) <= a.fast_logell]
     parts = []
-    for host, sub, opts in ((a.fast_host, fast, "-p short --time=00:59:00 -c %d" % min(32, max(2, 2 * len(fast)))),
-                            (a.host, slow, "--time=%s" % a.time)):
+    slow_opts = ("-p mono --time=%s -c %d --export=ALL,NREP=2" % (a.time, min(32, 2 * len(slow)))
+                 if "mulatona" in a.slow_host else "--time=%s" % a.time)
+    for host, sub, opts, sfx in ((a.fast_host, fast, "-p short --time=00:59:00 -c %d" % min(32, max(2, 2 * len(fast))), ""),
+                                 (a.slow_host, slow, slow_opts, "_lentos")):
         if not sub:
             continue
-        rdir = "%s/%s" % (a.remote, name)
+        rdir = "%s/%s%s" % (a.remote, name, sfx)
         tmp = local_csv + ".part"
         write_rows(sub, tmp)
         sh(host, "mkdir -p %s/logs" % rdir)
@@ -240,6 +243,8 @@ def main():
     ap.add_argument("--state", required=True)
     ap.add_argument("--host", default="siaosorio@serafin.ccad.unc.edu.ar", help="puntos lentos")
     ap.add_argument("--fast-host", default="siaosorio@mulatona.ccad.unc.edu.ar", help="puntos rapidos")
+    ap.add_argument("--slow-host", default="siaosorio@mulatona.ccad.unc.edu.ar",
+                    help="puntos lentos: Mulatona mono con pocos nucleos (la cola de nodo entero en Serafin era de ~1.5 dias)")
     ap.add_argument("--fast-logell", type=float, default=-1.2, help="log l > esto -> fast-host")
     ap.add_argument("--remote", default="~/kmc/tandas")
     ap.add_argument("--tag", default="g-4")

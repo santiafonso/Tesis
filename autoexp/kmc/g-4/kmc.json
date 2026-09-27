@@ -106,14 +106,15 @@
      "n": 2
     },
     {
-     "host": "siaosorio@serafin.ccad.unc.edu.ar",
-     "job": "429121",
-     "remote": "~/kmc/tandas/g-4_t03",
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299896",
+     "remote": "~/kmc/tandas/g-4_t03_lentos",
      "n": 3
     }
    ],
    "n": 5,
-   "sent": 1790525435.0827558
+   "sent": 1790525435.0827558,
+   "nota": "parte lenta movida de Serafin (429121, cola hasta 29/9) a Mulatona mono (arranco al instante)"
   }
  },
  "pending": [
@@ -139,8 +140,8 @@
   ]
  ],
  "largos": {
-  "job": "429089",
-  "host": "siaosorio@serafin.ccad.unc.edu.ar",
+  "job": "299897",
+  "host": "siaosorio@mulatona.ccad.unc.edu.ar",
   "remote": "~/kmc/tandas/g-4_largos",
   "puntos": [
    [
@@ -152,6 +153,6 @@
     10
    ]
   ],
-  "nota": "tope 48 h, fuera del loop. (102,10) reemplaza al pseudo/cota en la reconstruccion final; (12,10) = chequeo del 'sospechoso' con 12 semillas"
+  "nota": "tope 48 h, fuera del loop. (102,10) reemplaza al pseudo/cota en la reconstruccion final; (12,10) = chequeo del 'sospechoso' con 12 semillas | movido de Serafin 429089 a Mulatona mono (4 replicas por punto)"
  }
 }
