@@ -184,6 +184,7 @@ def collect(a, st, k):
 
 def plot(a):
     subprocess.run([sys.executable, "-m", "autoexp.kmc_plot", "--state", a.state], check=False)
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_plot_tandas", "--state", a.state], check=False)
 
 
 def final_dip(a, here):
