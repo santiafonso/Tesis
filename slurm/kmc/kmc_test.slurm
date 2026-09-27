@@ -30,7 +30,7 @@ xi_list=("-1.0" "0.0")
 el_list=("-1.147" "-1.147")
 NRUNS=1
 
-EXEC="./KMC-Galvanostatic_noclus_param_claude"
+EXEC="./KMC-Galvanostatic_noclus_param"
 
 echo "$(date): Prueba iniciada. NTASKS=$SLURM_NTASKS"
 

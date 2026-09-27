@@ -42,3 +42,6 @@ kmc_launched_points.txt
 
 # --- LibreOffice lock files (left behind when a .pptx is open) ---
 .~lock.*
+
+# --- Local notes for Claude Code (not part of the repo) ---
+CLAUDE.md

@@ -30,7 +30,7 @@ mkdir -p logs
 POINTS_FILE="kmc_sample_points.txt"
 NRUNS=1          # trayectorias independientes por punto (subir si se necesita promediar)
 
-EXEC="./KMC-Galvanostatic_noclus_param_claude"
+EXEC="./KMC-Galvanostatic_noclus_param"
 
 SAFETY_MARGIN=3600   # 1 hora de margen
 JOB_SECS=$((2*24*3600))

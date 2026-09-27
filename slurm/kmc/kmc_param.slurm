@@ -22,7 +22,7 @@ xi_list=("-1.5" "-1.0" "-0.5" "0.0" "0.5" "1.0")
 el_list=("-1.147" "-0.8" "-0.5" "-0.2")
 NRUNS=4          # trayectorias independientes por combinacion (xi, el)
 
-EXEC="./KMC-Galvanostatic_noclus_param_claude"  
+EXEC="./KMC-Galvanostatic_noclus_param"  
 
 # ============================================================
 # TIEMPO LIMITE

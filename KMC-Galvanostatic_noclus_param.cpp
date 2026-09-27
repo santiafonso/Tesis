@@ -2,14 +2,14 @@
 ///--- KMC galvanostatico — sin clusters, xi y el parametrizables via argv -------------///
 ///  Uso: ./ejecutable <xi> <el> <numValue>                                             ///
 ///  Optimizaciones:                                                                    ///
-///  - acumulador_claude.h: Fenwick tree O(log N) en vez de scan O(N) por paso         ///
+///  - acumulador.h: Fenwick tree O(log N) en vez de scan O(N) por paso         ///
 ///  - Preparar() solo al inicio; VelocidadesAds/Dif usan updates incrementales        ///
 ///  - potencial() lazy: solo se recalcula cuando cambia la superficie                  ///
 ///  - has_surface_neighbor[] precomputado para decidir si recalcular potencial         ///
 ///  - Sin clusters(): elimina BFS O(N) y acumuladores PNN2/NN2 por paso               ///
 ///-------------------------------------------------------------------------------------///
 
-#include "acumulador_claude.h"
+#include "acumulador.h"
 
 #include <algorithm>
 #include <cerrno>

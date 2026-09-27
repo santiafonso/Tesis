@@ -31,7 +31,7 @@ POINTS_FILE="kmc_sample_points_demo.txt"
 NRUNS=1
 POINT_TIMEOUT="12m"
 
-EXEC="./KMC-Galvanostatic_noclus_param_claude"
+EXEC="./KMC-Galvanostatic_noclus_param"
 
 SAFETY_MARGIN=600
 JOB_SECS=$((2*3600))

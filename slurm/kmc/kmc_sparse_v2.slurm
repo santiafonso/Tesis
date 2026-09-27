@@ -48,7 +48,7 @@ POINTS_FILE="kmc_sample_points.txt"
 NRUNS=1                # trayectorias independientes por punto
 POINT_TIMEOUT="90m"    # tope de tiempo real por punto (kill -TERM si se pasa)
 
-EXEC="./KMC-Galvanostatic_noclus_param_claude"
+EXEC="./KMC-Galvanostatic_noclus_param"
 
 SAFETY_MARGIN=1800   # 30 min de margen
 JOB_SECS=$((18*3600))
