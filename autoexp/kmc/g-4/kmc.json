@@ -44,7 +44,12 @@
   "76,53": 0.9259426666666667,
   "76,74": 0.0,
   "102,32": 0.0,
-  "102,10": 0.229015
+  "102,10": 0.229015,
+  "57,96": 0.137537,
+  "70,74": 0.640788,
+  "82,53": 0.8470165000000001,
+  "95,32": 0.764669,
+  "108,10": 0.0
  },
  "rounds": [
   {
@@ -58,6 +63,10 @@
   {
    "n": 5,
    "file": "tanda_03.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_04.csv"
   }
  ],
  "pseudo": [
@@ -114,28 +123,54 @@
    ],
    "n": 5,
    "sent": 1790525435.0827558,
-   "nota": "parte lenta movida de Serafin (429121, cola hasta 29/9) a Mulatona mono (arranco al instante)"
+   "nota": "parte lenta movida de Serafin (429121, cola hasta 29/9) a Mulatona mono (arranco al instante)",
+   "done": 1790616148.7926636
+  },
+  "4": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299948",
+     "remote": "~/kmc/tandas/g-4_t04",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299949",
+     "remote": "~/kmc/tandas/g-4_t04_lentos",
+     "n": 3
+    }
+   ],
+   "n": 5,
+   "sent": 1790616161.9075818,
+   "alt_parts": [
+    {
+     "host": "siaosorio@serafin.ccad.unc.edu.ar",
+     "job": "429500",
+     "remote": "~/kmc/tandas/g-4_t04_serafin"
+    }
+   ]
   }
  },
  "pending": [
   [
-   108,
+   105,
    10
   ],
   [
-   95,
+   98,
    32
   ],
   [
-   82,
+   85,
    53
   ],
   [
-   70,
+   73,
    74
   ],
   [
-   57,
+   60,
    96
   ]
  ],

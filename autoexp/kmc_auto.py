@@ -154,11 +154,44 @@ def fetch(parts, local):
                         "%s:%s/" % (p["host"], p["remote"]), local + "/"], check=True)
 
 
+def launch_alt(a, name, local_csv):
+    """Copia de la tanda entera en --host (Serafin, nodo entero) que compite con las partes de
+    Mulatona: la que arranque primero se queda (resolve_race)."""
+    rdir = "%s/%s_alt" % (a.remote, name)
+    sh(a.host, "mkdir -p %s/logs" % rdir)
+    subprocess.run(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
+    job = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time)
+             ).strip().splitlines()[-1].split(";")[0]
+    log("%s: copia entera -> serafin job %s (compite)" % (name, job))
+    return [{"host": a.host, "job": job, "remote": rdir}]
+
+
+def resolve_race(a, st, k):
+    """Si hay copia alternativa: la primera que arranca gana, la otra se cancela."""
+    info = st["jobs"][str(k)]
+    alt = info.get("alt_parts")
+    if not alt:
+        return
+    started = lambda ps: any(job_state(p["host"], p["job"]) not in ("PENDING", "?") for p in ps)
+    main_on, alt_on = started(info["parts"]), started(alt)
+    if not (main_on or alt_on):
+        return
+    lose, win = (alt, info["parts"]) if main_on else (info["parts"], alt)
+    for p in lose:
+        sh(p["host"], "scancel %s" % p["job"], check=False)
+    info["parts"], info["race"] = win, "gano %s" % win[0]["host"].split("@")[1].split(".")[0]
+    info.pop("alt_parts")
+    kmc_planner.save(st, a.state)
+    log("tanda %d: %s; cancelado %s" % (k, info["race"], ",".join(p["job"] for p in lose)))
+
+
 def submit(a, st, k, pts):
     here = os.path.dirname(a.state)
     csv_local = os.path.join(here, "tanda_%02d.csv" % k)
     parts = launch(a, "%s_t%02d" % (a.tag, k), rows_for(st, pts), csv_local)
     st.setdefault("jobs", {})[str(k)] = {"parts": parts, "n": len(pts), "sent": time.time()}
+    if a.race and not any(a.host == p["host"] for p in parts):
+        st["jobs"][str(k)]["alt_parts"] = launch_alt(a, "%s_t%02d" % (a.tag, k), csv_local)
     st["pending"] = [list(p) for p in pts]
     if len(st["rounds"]) < k:
         st["rounds"].append({"n": len(pts), "file": os.path.basename(csv_local)})
@@ -253,6 +286,8 @@ def main():
     ap.add_argument("--poll", type=int, default=600)
     ap.add_argument("--reuse-job", help="job propio corriendo en --host cuyo nodo se reusa con srun --overlap")
     ap.add_argument("--reuse-cores", type=int, default=60)
+    ap.add_argument("--no-race", dest="race", action="store_false",
+                    help="no mandar la copia de la tanda a Serafin que compite con Mulatona")
     ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
     a = ap.parse_args()
@@ -262,6 +297,8 @@ def main():
         open_jobs = {int(k): v for k, v in st.get("jobs", {}).items() if "done" not in v}
         if open_jobs:
             k, info = min(open_jobs.items())
+            resolve_race(a, st, k)
+            info = st["jobs"][str(k)]
             if all_done(parts_of(info, a)):
                 collect(a, st, k)
             else:
