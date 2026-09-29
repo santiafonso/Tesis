@@ -163,11 +163,21 @@ def cmd_next(a):
 
 
 def monotone_fill(st, i, j, lower=0.0):
-    """Pseudo-valor para un punto sin resultado final: el SoC baja al subir l (mas corriente), asi
-    que SoC(i, j) >= SoC medido en la misma fila con l mayor. Devuelve max(cota, ese vecino) o None."""
-    right = [v for (ii, jj), v in st["known_d"].items() if ii == i and jj > j and (ii, jj) not in st_pseudo(st)]
-    v = max([lower] + right) if (right or lower > 0) else None
-    return None if v is None else float(np.clip(v, 0.0, 1.0))
+    """Pseudo-valor para un punto sin resultado final (cortado/desalojado, o SoC estancado): el SoC
+    baja al subir l (mas corriente), asi que SoC(i, j) >= SoC medido en la misma fila con l mayor.
+    Si ese vecino da 0 (debajo del acantilado) no informa: un punto que sigue corriendo esta ARRIBA
+    del acantilado (los de abajo cortan en segundos), y se usa el SoC medido mas cercano de arriba
+    del acantilado en las columnas de l mayor (continuidad de la altura del escalon). Si no, la cota
+    (que puede ser ~0 y confundirse con "debajo")."""
+    ps = st_pseudo(st)
+    right = [v for (ii, jj), v in st["known_d"].items() if ii == i and jj > j and (ii, jj) not in ps]
+    v = max([lower] + right)
+    if max(right, default=0.0) <= 0.05:
+        up = [(np.hypot(ii - i, jj - j), x) for (ii, jj), x in st["known_d"].items()
+              if jj > j and x > 0.05 and (ii, jj) not in ps]
+        if up:
+            v = max(v, min(up)[1])
+    return float(np.clip(v, 0.0, 1.0)) if v > 0 else None
 
 
 def st_pseudo(st):

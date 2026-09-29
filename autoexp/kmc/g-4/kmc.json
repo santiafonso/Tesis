@@ -44,12 +44,17 @@
   "76,53": 0.9259426666666667,
   "76,74": 0.0,
   "102,32": 0.0,
-  "102,10": 0.229015,
+  "102,10": 0.764669,
   "57,96": 0.137537,
   "70,74": 0.640788,
   "82,53": 0.8470165000000001,
   "95,32": 0.764669,
-  "108,10": 0.0
+  "108,10": 0.0,
+  "60,96": 0.115663,
+  "73,74": 0.5219905,
+  "85,53": 0.0,
+  "98,32": 0.0,
+  "105,10": 0.764669
  },
  "rounds": [
   {
@@ -67,6 +72,10 @@
   {
    "n": 5,
    "file": "tanda_04.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_05.csv"
   }
  ],
  "pseudo": [
@@ -88,6 +97,10 @@
   ],
   [
    102,
+   10
+  ],
+  [
+   105,
    10
   ]
  ],
@@ -143,51 +156,71 @@
    ],
    "n": 5,
    "sent": 1790616161.9075818,
+   "race": "gano mulatona",
+   "done": 1790689166.130886
+  },
+  "5": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299976",
+     "remote": "~/kmc/tandas/g-4_t05",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299977",
+     "remote": "~/kmc/tandas/g-4_t05_lentos",
+     "n": 3
+    }
+   ],
+   "n": 5,
+   "sent": 1790689178.3320634,
    "alt_parts": [
     {
      "host": "siaosorio@serafin.ccad.unc.edu.ar",
-     "job": "429500",
-     "remote": "~/kmc/tandas/g-4_t04_serafin"
+     "job": "429791",
+     "remote": "~/kmc/tandas/g-4_t05_alt"
     }
    ]
   }
  },
  "pending": [
   [
-   105,
+   106,
    10
   ],
   [
-   98,
+   96,
    32
   ],
   [
-   85,
+   83,
    53
   ],
   [
-   73,
+   74,
    74
   ],
   [
-   60,
+   62,
    96
   ]
  ],
  "largos": {
-  "job": "299897",
-  "host": "siaosorio@mulatona.ccad.unc.edu.ar",
-  "remote": "~/kmc/tandas/g-4_largos",
+  "job": "429790",
+  "host": "siaosorio@serafin.ccad.unc.edu.ar",
+  "remote": "~/kmc/tandas/g-4_largos2",
   "puntos": [
    [
     102,
     10
    ],
    [
-    12,
+    105,
     10
    ]
   ],
-  "nota": "tope 48 h, fuera del loop. (102,10) reemplaza al pseudo/cota en la reconstruccion final; (12,10) = chequeo del 'sospechoso' con 12 semillas | movido de Serafin 429089 a Mulatona mono (4 replicas por punto)"
+  "nota": "log l=-3.53 arriba del acantilado, ~1.5 dias por corrida. En Mulatona los desalojaron 4 veces (batch de la cuenta iate desaloja mono/short); Serafin no desaloja. Reemplazan a los pseudo antes de la reconstruccion final. El sospechoso (12,10) se reprodujo 4/4 (SoC 0 en ~3 min)."
  }
 }

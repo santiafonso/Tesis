@@ -167,16 +167,17 @@ def launch_alt(a, name, local_csv):
 
 
 def resolve_race(a, st, k):
-    """Si hay copia alternativa: la primera que arranca gana, la otra se cancela."""
+    """Si hay copia alternativa (Serafin), gana la que TERMINA primero y la otra se cancela. Se
+    decide al terminar y no al arrancar porque Mulatona desaloja (PreemptMode=REQUEUE: la particion
+    batch, de otra cuenta, tiene mas prioridad) y un job arrancado puede volver a la cola."""
     info = st["jobs"][str(k)]
     alt = info.get("alt_parts")
     if not alt:
         return
-    started = lambda ps: any(job_state(p["host"], p["job"]) not in ("PENDING", "?") for p in ps)
-    main_on, alt_on = started(info["parts"]), started(alt)
-    if not (main_on or alt_on):
+    main_done, alt_done = all_done(info["parts"]), all_done(alt)
+    if not (main_done or alt_done):
         return
-    lose, win = (alt, info["parts"]) if main_on else (info["parts"], alt)
+    lose, win = (alt, info["parts"]) if main_done else (info["parts"], alt)
     for p in lose:
         sh(p["host"], "scancel %s" % p["job"], check=False)
     info["parts"], info["race"] = win, "gano %s" % win[0]["host"].split("@")[1].split(".")[0]
