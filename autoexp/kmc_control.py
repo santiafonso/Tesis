@@ -8,7 +8,7 @@ tiene mapa completo contra el cual calcular PSNR).
 
 Los puntos se sortean (semilla fija) 70 % donde la reconstruccion da SoC > 0.05 (en la zona 0
 acertar es trivial) y 30 % uniformes en todo el mapa, lejos (>= 6 px) de los ya medidos, y
-con log l >= --min-logell: mas abajo el KMC no termina en el tope de la tanda.
+con log l >= --min-logell (def -2.2, <~4 h por corrida): mas abajo no termina en el tope de 8 h.
 """
 import argparse
 import csv
@@ -93,7 +93,7 @@ def main():
     p.add_argument("--state", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--n", type=int, default=10)
-    p.add_argument("--min-logell", type=float, default=-3.0)
+    p.add_argument("--min-logell", type=float, default=-2.2)
     p.add_argument("--seed", type=int, default=0)
     p = sp.add_parser("eval")
     p.add_argument("--state", required=True)
