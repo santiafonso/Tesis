@@ -69,3 +69,22 @@ python -m autoexp.kmc_planner add --state autoexp/kmc/g-4/kmc.json resultados.cs
 Estado del planificador para g=-4: `autoexp/kmc/g-4/` (kmc.json + tandas). El KMC siembra con
 `srand(time(0))`: el slurm lanza de a una corrida por segundo para que las réplicas difieran.
 Tiempo de corrida ~ 1/ℓ (piloto: 4 min en log ℓ=-0.5): log ℓ=-3.5 no entra en 48 h.
+
+## KMC real: estado y cómo retomar (30/9)
+
+- **g=-4 terminado**: 64 pts (56 medidos + 8 pseudo), mapa final `autoexp/kmc/g-4/dip/final.png`,
+  control con 10 puntos no usados `control.{json,png}`: fusión TPS+DIP RMS 0.027 (máx 0.068) vs TPS
+  0.043; el continuo usado como sustituto da 0.14. **Pendiente**: el job largo de Serafín
+  (`kmc.json["largos"]`, puntos (102,10),(105,10) de log ℓ=-3.53) → al terminar, `kmc_results` +
+  `kmc_planner add` (reemplazan los pseudo: hay que sacarlos de `pseudo` o forzar el valor) y rehacer
+  `kmc_dip prepare` / DIP en Mendieta / `fuse` y `kmc_control eval`.
+- **g=-3..4 en curso**: un loop por g (`autoexp/kmc/g<g>/`, `auto.log`), σ=0.005 (ruido medido entre
+  réplicas 0.002–0.006). `scripts/kmc_auto_all.sh` relanza los pendientes (crontab @reboot). Opciones por
+  g en `kmc.json["auto_args"]` (tag, race=false; g -3,-1,1,3 mandan los lentos a Serafín).
+- **Clusters**: Mulatona desaloja (partición `batch` de la cuenta `iate` pisa `mono`/`short`); Serafín no
+  (nodo entero, cola larga). Corridas de log ℓ ≤ -3 tardan 1.5–3 días: solo en Serafín, o pseudo.
+  Un job propio corriendo se puede reusar con `srun --jobid=<id> --overlap` (`--reuse-job`).
+- Estado de todo: `for d in autoexp/kmc/g*/; do tail -2 $d/auto.log; done`; figuras por g:
+  `estado.png`, `avance.png`, y al final `dip/final.png`, `control.png`.
+- Anomalía del KMC para consultar: log Ξ ≥ 1.4 y log ℓ ≤ -3.5 → SoC ≈ 0 en ~3 min (continuo ~1),
+  reproducible (6/6 semillas).
