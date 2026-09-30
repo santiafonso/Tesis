@@ -348,7 +348,8 @@ def step(a):
                         "--out", os.path.join(here, "mapa_kmc")], check=True)
         plot(a)
         log("presupuesto completo: %d puntos. Mapa TPS en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
-        final_dip(a, here)
+        if not os.path.exists(os.path.join(here, "dip", "final.npy")):  # al relanzar, no repetir DIP
+            final_dip(a, here)
         control(a, here)
         return True
     k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1

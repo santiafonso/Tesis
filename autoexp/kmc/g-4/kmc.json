@@ -307,5 +307,19 @@
    ]
   ],
   "nota": "log l=-3.53 arriba del acantilado, ~1.5 dias por corrida. En Mulatona los desalojaron 4 veces (batch de la cuenta iate desaloja mono/short); Serafin no desaloja. Reemplazan a los pseudo antes de la reconstruccion final. El sospechoso (12,10) se reprodujo 4/4 (SoC 0 en ~3 min)."
- }
+ },
+ "control_parts": [
+  {
+   "host": "siaosorio@serafin.ccad.unc.edu.ar",
+   "job": "429790.0",
+   "remote": "~/kmc/tandas/g-4_control_serafin",
+   "n": 7
+  },
+  {
+   "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+   "job": "300077",
+   "remote": "~/kmc/tandas/g-4_control_lentos",
+   "n": 3
+  }
+ ]
 }
