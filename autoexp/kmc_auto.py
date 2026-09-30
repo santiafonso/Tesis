@@ -224,6 +224,8 @@ def submit(a, st, k, pts):
 
 def collect(a, st, k):
     here = os.path.dirname(a.state)
+    for p in st["jobs"][str(k)].pop("alt_parts", []):  # copia que sobro (la carrera no se resolvio por un corte de red)
+        sh(p["host"], "scancel %s" % p["job"], check=False)
     local = os.path.join(a.scratch, "%s_t%02d" % (a.tag, k))
     fetch(parts_of(st["jobs"][str(k)], a), local)
     res = os.path.join(here, "resultados_t%02d.csv" % k)
