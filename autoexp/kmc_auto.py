@@ -73,15 +73,17 @@ def job_state(host, job):
 def write_rows(rows, path):
     with open(path, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["row", "col", "logxi", "logell", "xi", "ell"])
+        w.writerow(["row", "col", "logxi", "logell", "xi", "ell"] + (["g"] if rows and len(rows[0]) > 6 else []))
         w.writerows(rows)
 
 
 def rows_for(st, pts):
+    """Filas de tanda.csv; con st["g"] se agrega la columna g (4to argumento del KMC; sin ella, -4)."""
     out = []
     for i, j in pts:
         lx, le = kmc_planner.to_log(st, i, j)
-        out.append([i, j, "%.6f" % lx, "%.6f" % le, "%.6g" % 10 ** lx, "%.6g" % 10 ** le])
+        out.append([i, j, "%.6f" % lx, "%.6f" % le, "%.6g" % 10 ** lx, "%.6g" % 10 ** le]
+                   + (["%g" % st["g"]] if "g" in st else []))
     return out
 
 
@@ -317,6 +319,8 @@ def main():
     ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
     a = ap.parse_args()
+    for k, v in kmc_planner.load(a.state).get("auto_args", {}).items():  # opciones propias de este g
+        setattr(a, k, v)
 
     while True:
         try:

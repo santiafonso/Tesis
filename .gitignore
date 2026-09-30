@@ -49,3 +49,4 @@ autoexp/runs/
 # --- autoexp/kmc: log del loop automatico y pruebas de DIP (locales) ---
 autoexp/kmc/*/auto.log
 autoexp/kmc/*/dip_prueba*/
+autoexp/kmc/arranque.log

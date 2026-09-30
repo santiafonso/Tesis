@@ -134,6 +134,10 @@ def reconstruct(st):
 def cmd_init(a):
     st = {"res": a.res, "budget": a.budget, "sigma": a.sigma, "sampler_kw": SAMPLER_KW,
           "known": {}, "rounds": []}
+    if a.g is not None:
+        st["g"] = a.g
+    if a.auto_args:
+        st["auto_args"] = json.loads(a.auto_args)
     if a.axes_npz:
         ax = np.load(a.axes_npz)
         # dip.phase_diagram guarda xi ascendente (filas) y ell ascendente; la imagen tiene fila 0 = xi alto
@@ -267,6 +271,8 @@ def main():
     p.add_argument("--budget", type=int, default=64)
     p.add_argument("--sigma", type=float, default=0.0)
     p.add_argument("--axes-npz")
+    p.add_argument("--g", type=float, help="g del KMC (sin esto: -4, el del codigo original)")
+    p.add_argument("--auto-args", help="json con opciones de kmc_auto para este estado, ej. {\"race\": false}")
     p = sp.add_parser("next")
     p.add_argument("--state", required=True)
     p.add_argument("--out")

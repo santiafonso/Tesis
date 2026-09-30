@@ -36,9 +36,10 @@ def cmd_pick(a):
         pts.append((int(i), int(j)))
     with open(a.out, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["row", "col", "logxi", "logell", "xi", "ell"])
+        gcol = ["%g" % st["g"]] if "g" in st else []
+        w.writerow(["row", "col", "logxi", "logell", "xi", "ell"] + (["g"] if gcol else []))
         for i, j in pts:
-            w.writerow([i, j, "%.6f" % lx[i], "%.6f" % le[j], "%.6g" % 10 ** lx[i], "%.6g" % 10 ** le[j]])
+            w.writerow([i, j, "%.6f" % lx[i], "%.6f" % le[j], "%.6g" % 10 ** lx[i], "%.6g" % 10 ** le[j]] + gcol)
     print("%d puntos de control -> %s" % (len(pts), a.out))
 
 
