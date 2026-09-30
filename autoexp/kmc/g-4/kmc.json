@@ -63,7 +63,17 @@
   "63,96": 0.07219149999999999,
   "75,74": 0.0,
   "84,53": 0.7655970000000001,
-  "107,10": 0.0
+  "107,10": 0.0,
+  "0,64": 0.9275955,
+  "0,85": 0.461927,
+  "0,97": 0.17227900000000002,
+  "11,85": 0.4162045,
+  "21,73": 0.8871964999999999,
+  "24,64": 0.967298,
+  "25,81": 0.5587150000000001,
+  "0,0": 0.9275955,
+  "25,127": 0.0505255,
+  "51,111": 0.0509435
  },
  "rounds": [
   {
@@ -93,6 +103,14 @@
   {
    "n": 4,
    "file": "tanda_07.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_08.csv"
+  },
+  {
+   "n": 2,
+   "file": "tanda_09.csv"
   }
  ],
  "pseudo": [
@@ -123,6 +141,10 @@
   [
    106,
    10
+  ],
+  [
+   0,
+   0
   ]
  ],
  "jobs": {
@@ -231,33 +253,45 @@
    ],
    "n": 4,
    "sent": 1790780817.641943,
-   "alt_parts": [
+   "race": "gano mulatona",
+   "done": 1790782641.7076344
+  },
+  "8": {
+   "parts": [
     {
-     "host": "siaosorio@serafin.ccad.unc.edu.ar",
-     "job": "430045",
-     "remote": "~/kmc/tandas/g-4_t07_alt"
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300071",
+     "remote": "~/kmc/tandas/g-4_t08",
+     "n": 3
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300072",
+     "remote": "~/kmc/tandas/g-4_t08_lentos",
+     "n": 1
     }
-   ]
+   ],
+   "n": 4,
+   "sent": 1790782655.042279,
+   "race": "gano mulatona",
+   "done": 1790783877.8060622
+  },
+  "9": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300074",
+     "remote": "~/kmc/tandas/g-4_t09",
+     "n": 2
+    }
+   ],
+   "n": 2,
+   "sent": 1790783895.6398535,
+   "done": 1790783907.0659208,
+   "race": "gano mulatona (copia 430052 cancelada a mano)"
   }
  },
- "pending": [
-  [
-   0,
-   85
-  ],
-  [
-   0,
-   64
-  ],
-  [
-   11,
-   85
-  ],
-  [
-   0,
-   97
-  ]
- ],
+ "pending": [],
  "largos": {
   "job": "429790",
   "host": "siaosorio@serafin.ccad.unc.edu.ar",
