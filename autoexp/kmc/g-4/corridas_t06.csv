@@ -1,0 +1,9 @@
+run,g,row,col,rep,logxi,logell,value,E_final,filas,rc,segundos,status,nota
+r063_c096_k1,-4,63,96,1,-0.976378,0.535433,0.076872,-0.1464,16,0,7,terminado,
+r063_c096_k2,-4,63,96,2,-0.976378,0.535433,0.067511,-0.146053,14,0,7,terminado,
+r075_c074_k1,-4,75,74,1,-1.543307,-0.503937,0.0,,0,0,4,terminado,corte en el primer intervalo
+r075_c074_k2,-4,75,74,2,-1.543307,-0.503937,0.0,,0,0,5,terminado,corte en el primer intervalo
+r084_c053_k1,-4,84,53,1,-1.968504,-1.496063,0.772892,-0.143218,155,0,2890,terminado,
+r084_c053_k2,-4,84,53,2,-1.968504,-1.496063,0.758302,-0.14312,153,0,2841,terminado,
+r107_c010_k1,-4,107,10,1,-3.055118,-3.527559,0.0,,0,0,4,terminado,corte en el primer intervalo
+r107_c010_k2,-4,107,10,2,-3.055118,-3.527559,0.0,,0,0,5,terminado,corte en el primer intervalo

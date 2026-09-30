@@ -24,12 +24,30 @@ from autoexp import kmc_planner
 ACTIVE = ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING")
 
 
-def sh(host, cmd, check=True):
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host, cmd],
-                       capture_output=True, text=True)
+NET_FAIL = (255, 12, 30, 35)  # ssh/scp: 255; rsync: 12/30/35 (corte de red o timeout)
+
+
+def sh(host, cmd, check=True, tries=6):
+    for t in range(tries):
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host, cmd],
+                           capture_output=True, text=True)
+        if r.returncode != 255 or t == tries - 1:
+            break
+        time.sleep(30 * (t + 1))  # "Connection reset" del login: esperar y reintentar
     if check and r.returncode:
         raise RuntimeError("ssh %s: %s" % (cmd, r.stderr[-500:]))
     return r.stdout
+
+
+def net(args, tries=6):
+    """scp/rsync con reintentos ante cortes de red."""
+    for t in range(tries):
+        r = subprocess.run(args)
+        if r.returncode == 0:
+            return
+        if r.returncode not in NET_FAIL or t == tries - 1:
+            raise subprocess.CalledProcessError(r.returncode, args)
+        time.sleep(30 * (t + 1))
 
 
 def log(*a):
@@ -86,7 +104,7 @@ def reuse_step(a, name, local_csv):
         return None
     rdir = "%s/%s" % (a.remote, name)
     sh(a.host, "mkdir -p %s/logs" % rdir)
-    subprocess.run(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
+    net(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)])
     before = set(sh(a.host, "squeue -s -h -j %s -o %%i" % a.reuse_job).split())
     # ssh no vuelve mientras srun vive aunque este en segundo plano: se lanza sin esperar y se
     # suelta cuando aparece el step (srun sigue en el login con setsid). -c: nucleos que se usan,
@@ -130,7 +148,7 @@ def launch(a, name, rows, local_csv):
         tmp = local_csv + ".part"
         write_rows(sub, tmp)
         sh(host, "mkdir -p %s/logs" % rdir)
-        subprocess.run(["scp", "-q", tmp, "%s:%s/tanda.csv" % (host, rdir)], check=True)
+        net(["scp", "-q", tmp, "%s:%s/tanda.csv" % (host, rdir)])
         job = sh(host, "cd %s && sbatch --parsable %s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, opts)
                  ).strip().splitlines()[-1].split(";")[0]
         os.remove(tmp)
@@ -150,8 +168,8 @@ def all_done(parts):
 def fetch(parts, local):
     os.makedirs(local, exist_ok=True)
     for p in parts:
-        subprocess.run(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz",
-                        "%s:%s/" % (p["host"], p["remote"]), local + "/"], check=True)
+        net(["rsync", "-aq", "--exclude", "vmd-*", "--exclude", "*.xyz",
+             "%s:%s/" % (p["host"], p["remote"]), local + "/"])
 
 
 def launch_alt(a, name, local_csv):
@@ -159,7 +177,7 @@ def launch_alt(a, name, local_csv):
     Mulatona: la que arranque primero se queda (resolve_race)."""
     rdir = "%s/%s_alt" % (a.remote, name)
     sh(a.host, "mkdir -p %s/logs" % rdir)
-    subprocess.run(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)], check=True)
+    net(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)])
     job = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time)
              ).strip().splitlines()[-1].split(";")[0]
     log("%s: copia entera -> serafin job %s (compite)" % (name, job))
@@ -190,13 +208,18 @@ def submit(a, st, k, pts):
     here = os.path.dirname(a.state)
     csv_local = os.path.join(here, "tanda_%02d.csv" % k)
     parts = launch(a, "%s_t%02d" % (a.tag, k), rows_for(st, pts), csv_local)
+    # guardar YA: si despues se corta la red, la tanda queda registrada (antes quedaban jobs huerfanos)
     st.setdefault("jobs", {})[str(k)] = {"parts": parts, "n": len(pts), "sent": time.time()}
-    if a.race and not any(a.host == p["host"] for p in parts):
-        st["jobs"][str(k)]["alt_parts"] = launch_alt(a, "%s_t%02d" % (a.tag, k), csv_local)
     st["pending"] = [list(p) for p in pts]
     if len(st["rounds"]) < k:
         st["rounds"].append({"n": len(pts), "file": os.path.basename(csv_local)})
     kmc_planner.save(st, a.state)
+    if a.race and not any(a.host == p["host"] for p in parts):
+        try:
+            st["jobs"][str(k)]["alt_parts"] = launch_alt(a, "%s_t%02d" % (a.tag, k), csv_local)
+            kmc_planner.save(st, a.state)
+        except Exception as e:  # la copia es opcional
+            log("copia en Serafin no enviada (%s); sigue solo con Mulatona" % str(e)[-200:])
 
 
 def collect(a, st, k):
@@ -227,8 +250,8 @@ def final_dip(a, here):
     rel = os.path.relpath(out, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     subprocess.run([sys.executable, "-m", "autoexp.kmc_dip", "prepare", "--state", a.state, "--out", out], check=True)
     sh(a.dip_host, "mkdir -p ~/Tesis-autoexp/%s ~/Tesis-autoexp/slurm" % rel)
-    subprocess.run(["rsync", "-aq", out + "/", "%s:Tesis-autoexp/%s/" % (a.dip_host, rel)], check=True)
-    subprocess.run(["scp", "-q", "slurm/kmc_dip.slurm", "%s:Tesis-autoexp/slurm/" % a.dip_host], check=True)
+    net(["rsync", "-aq", out + "/", "%s:Tesis-autoexp/%s/" % (a.dip_host, rel)])
+    net(["scp", "-q", "slurm/kmc_dip.slurm", "%s:Tesis-autoexp/slurm/" % a.dip_host])
     job = sh(a.dip_host, "cd ~/Tesis-autoexp && sbatch --parsable --export=ALL,DIPDIR=%s slurm/kmc_dip.slurm"
              % rel).strip().split(";")[0]
     log("DIP final: job %s en Mendieta" % job)
@@ -242,8 +265,8 @@ def final_dip(a, here):
     if q != "COMPLETED":
         log("DIP final termino con %s: queda solo la TPS (mapa_kmc)" % q)
         return
-    subprocess.run(["rsync", "-aq", "--include=*/", "--include=restored.npy", "--include=dip.log", "--exclude=*",
-                    "%s:Tesis-autoexp/%s/" % (a.dip_host, rel), out + "/"], check=True)
+    net(["rsync", "-aq", "--include=*/", "--include=restored.npy", "--include=dip.log", "--exclude=*",
+                    "%s:Tesis-autoexp/%s/" % (a.dip_host, rel), out + "/"])
     subprocess.run([sys.executable, "-m", "autoexp.kmc_dip", "fuse", "--state", a.state, "--out", out], check=True)
     log("LISTO: mapa final TPS + DIP en %s/final.{npy,png}" % out)
 
@@ -294,29 +317,41 @@ def main():
     a = ap.parse_args()
 
     while True:
-        st = kmc_planner.load(a.state)
-        open_jobs = {int(k): v for k, v in st.get("jobs", {}).items() if "done" not in v}
-        if open_jobs:
-            k, info = min(open_jobs.items())
-            resolve_race(a, st, k)
-            info = st["jobs"][str(k)]
-            if all_done(parts_of(info, a)):
-                collect(a, st, k)
-            else:
-                time.sleep(a.poll)
-            continue
-        pts = kmc_planner.next_batch(st)
-        if not pts:
-            here = os.path.dirname(a.state)
-            subprocess.run([sys.executable, "-m", "autoexp.kmc_planner", "reconstruct", "--state", a.state,
-                            "--out", os.path.join(here, "mapa_kmc")], check=True)
-            plot(a)
-            log("presupuesto completo: %d puntos. Mapa TPS en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
-            final_dip(a, here)
-            control(a, here)
-            return
-        k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1
-        submit(a, st, k, pts)
+        try:
+            if step(a):
+                return
+        except Exception:
+            import traceback
+            log("ERROR (se reintenta en %d s):\n%s" % (a.poll, traceback.format_exc()[-1500:]))
+            time.sleep(a.poll)
+
+
+def step(a):
+    """Una vuelta del loop. Devuelve True cuando termino todo."""
+    st = kmc_planner.load(a.state)
+    open_jobs = {int(k): v for k, v in st.get("jobs", {}).items() if "done" not in v}
+    if open_jobs:
+        k, info = min(open_jobs.items())
+        resolve_race(a, st, k)
+        info = st["jobs"][str(k)]
+        if all_done(parts_of(info, a)):
+            collect(a, st, k)
+        else:
+            time.sleep(a.poll)
+        return False
+    pts = kmc_planner.next_batch(st)
+    if not pts:
+        here = os.path.dirname(a.state)
+        subprocess.run([sys.executable, "-m", "autoexp.kmc_planner", "reconstruct", "--state", a.state,
+                        "--out", os.path.join(here, "mapa_kmc")], check=True)
+        plot(a)
+        log("presupuesto completo: %d puntos. Mapa TPS en %s/mapa_kmc.{npy,png}" % (len(st["known_d"]), here))
+        final_dip(a, here)
+        control(a, here)
+        return True
+    k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1
+    submit(a, st, k, pts)
+    return False
 
 
 if __name__ == "__main__":

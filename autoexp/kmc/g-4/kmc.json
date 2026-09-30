@@ -54,7 +54,16 @@
   "73,74": 0.5219905,
   "85,53": 0.0,
   "98,32": 0.0,
-  "105,10": 0.764669
+  "105,10": 0.764669,
+  "62,96": 0.086232,
+  "74,74": 0.4495685,
+  "83,53": 0.8160345,
+  "96,32": 0.0,
+  "106,10": 0.764669,
+  "63,96": 0.07219149999999999,
+  "75,74": 0.0,
+  "84,53": 0.7655970000000001,
+  "107,10": 0.0
  },
  "rounds": [
   {
@@ -76,6 +85,14 @@
   {
    "n": 5,
    "file": "tanda_05.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_06.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_07.csv"
   }
  ],
  "pseudo": [
@@ -101,6 +118,10 @@
   ],
   [
    105,
+   10
+  ],
+  [
+   106,
    10
   ]
  ],
@@ -176,35 +197,65 @@
    ],
    "n": 5,
    "sent": 1790689178.3320634,
+   "race": "gano mulatona",
+   "done": 1790718238.9865448
+  },
+  "6": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300044",
+     "remote": "~/kmc/tandas/g-4_t06",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300045",
+     "remote": "~/kmc/tandas/g-4_t06_lentos",
+     "n": 2
+    }
+   ],
+   "n": 4,
+   "sent": 1790780796.2733297,
+   "nota": "registrada a mano: el loop se cayo por un corte de SSH despues de mandarla",
+   "done": 1790780808.4999056
+  },
+  "7": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300070",
+     "remote": "~/kmc/tandas/g-4_t07",
+     "n": 4
+    }
+   ],
+   "n": 4,
+   "sent": 1790780817.641943,
    "alt_parts": [
     {
      "host": "siaosorio@serafin.ccad.unc.edu.ar",
-     "job": "429791",
-     "remote": "~/kmc/tandas/g-4_t05_alt"
+     "job": "430045",
+     "remote": "~/kmc/tandas/g-4_t07_alt"
     }
    ]
   }
  },
  "pending": [
   [
-   106,
-   10
+   0,
+   85
   ],
   [
-   96,
-   32
+   0,
+   64
   ],
   [
-   83,
-   53
+   11,
+   85
   ],
   [
-   74,
-   74
-  ],
-  [
-   62,
-   96
+   0,
+   97
   ]
  ],
  "largos": {
