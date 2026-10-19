@@ -10,6 +10,48 @@ paréntesis). Lo más reciente va arriba. La tabla completa está en `leaderboar
 - physics-calibration (branch aparte), g=-4.0, 64 pts, 64×64: 34.1 dB. Ojo: la verdad sale
   del mismo modelo, así que es optimista.
 
+## 2026-10-04 (noche) — KMC: 96 puntos en todos los g
+
+- Se sube el presupuesto de 64 a 96 en los 9 g (antes solo g1 y g4). Motivo: en el continuo, 96 puntos
+  sin DIP dan 9/9 g >= 40 dB (`VAL9_96pts`, 44.4 media, peor 40.2), y g3 con 64 no quedo bien. El costo
+  en tiempo es chico (el relleno no va a log l < -3.3). Resultados de 64 en g-4 y g3: `*_64`.
+
+## 2026-10-04 — KMC: los pseudo eran cotas tratadas como valores; el relleno iba a log l = -4
+
+- g=+3 terminado (64 pts, 8 pseudo). Control (10 pts, todos en log l > -1): fusión RMS 0.021, TPS 0.039.
+  Pero el mapa tenía un escalón horizontal falso a log Xi = -1.6 en el borde izquierdo: 4 puntos de
+  relleno en log l = -4 (tanda 12) no terminaron en 8 h (0/8 réplicas) y entraron como pseudo 0.16
+  (una COTA: "vale al menos"), usada como valor. El control no lo veía porque nunca sortea en log l < -2.2.
+- El job largo de g=-4 (48 h, log l = -3.53) tampoco terminó: 0/16 réplicas, SoC 0.64 al corte.
+- Cambio: pseudo = max(cota, TPS de lo medido) con techo = máximo medido, más cota inferior en la
+  monotonía. Control TPS: g3 0.039 → 0.040, g-4 0.043 → 0.042 (igual), sin el escalón.
+- Cambio: `MIN_LOGELL_FILL = -3.3` en el relleno. Con la regla vieja la próxima tanda de 6 de los 7 g en
+  curso iba a log l = -4; las 7 tandas en vuelo se cancelaron y se relanzaron.
+- **La bisección no corría en g = -3, -2, 0, +1, +4** (sus 20-30 puntos post-grilla fueron relleno
+  genérico): el chequeo de forma la apagaba ante cualquier violación de monotonía en la grilla, y la franja
+  log Xi = 1.43 del KMC da menos que la de abajo (anomalía). Ahora solo cuenta un cero arriba/izquierda de
+  un valor alto. Los puntos ya medidos quedan; la bisección se suma encima. g1 y g4 pasan a 96 puntos.
+- Sin borde, `interp.cliff` devolvía la TPS sola (sin monotonía ni cotas ni techo). Ahora el tramo final
+  es común (`_finish`): mismo método para todos los g. Continuo g=+2: 34.34 → 34.69; g=+4: 35.22 → 35.59.
+- Pendiente: control en la zona izquierda de g3 (log l = -3, -2.5, -2; log Xi = -1.5, -2) y continuo
+  para g = +1, +3 (Mendieta 1179370-1).
+
+## 2026-10-03 — receta en los 11 g del continuo con ruido KMC, y g > 0 con más puntos
+
+Planificador de KMC (n1=30, nx=6, bisect + relleno LOO) contra el continuo, σ = 0.005, una tirada.
+
+| g | -4 | -3.5 | -3 | -2.5 | -2 | -1.5 | -1 | -0.5 | 0 | +2 | +4 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TPS sola | 23.9 | 24.1 | 24.2 | 26.4 | 27.4 | 29.1 | 30.5 | 31.4 | 32.5 | 34.8 | 36.3 |
+| `interp.auto` | 43.8 | 37.9 | 38.7 | 39.5 | 38.1 | 36.7 | 39.0 | 38.7 | 38.5 | 35.3 | 36.7 |
+
+- En g = +2 y +4 no se detecta borde (correcto: no hay acantilado) y queda TPS + monotonía.
+- **Más puntos donde no hay borde sí rinde**: g = +2: 64 → 35.3, 96 → 38.0, 128 → 41.4;
+  g = +4: 64 → 36.8, 96 → 42.0, 128 → 42.6. Para KMC: si tras grilla + bisección no aparece borde,
+  subir el presupuesto a ~96.
+- El ruido σ = 0.005 cuesta ~1.3 dB de media en los 9 g negativos (39.3 vs 40.6 sin ruido).
+- Figuras: `presentaciones/explicacion_autoexp/fig/tps_continuo_g.png`.
+
 ## 2026-09-25 — interp2d (lo que pidió el profe)
 
 `scipy.interpolate.interp2d` se eliminó en scipy 1.14 (tenemos 1.17). Con su motor interno sobre
