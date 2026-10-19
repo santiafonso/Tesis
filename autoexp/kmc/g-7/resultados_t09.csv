@@ -1,0 +1,5 @@
+g,row,col,logxi,logell,value,std,n_term,n_runs,status
+-7.0,0,21,2.0,-3.007874,,,0,4,sospechoso
+-7.0,0,38,2.0,-2.204724,,,0,4,sospechoso
+-7.0,0,45,2.0,-1.874016,,,0,4,sospechoso
+-7.0,7,44,1.669291,-1.92126,0.74146325,0.5036984132073312,4,4,terminado

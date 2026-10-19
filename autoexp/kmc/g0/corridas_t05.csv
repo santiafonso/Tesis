@@ -1,0 +1,33 @@
+run,g,row,col,rep,logxi,logell,value,E_final,filas,rc,segundos,status,nota
+g0_r000_c000_k1,0,0,0,1,2.0,-4.0,4e-05,0.379304,200,0,373,sospechoso,
+g0_r000_c000_k2,0,0,0,2,2.0,-4.0,2.2e-05,0.390265,200,0,371,sospechoso,
+g0_r000_c000_k3,0,0,0,3,2.0,-4.0,4.7e-05,0.389615,200,0,373,sospechoso,
+g0_r000_c000_k4,0,0,0,4,2.0,-4.0,-5.8e-05,0.373305,200,0,372,sospechoso,
+g0_r000_c000_k5,0,0,0,5,2.0,-4.0,-8.9e-05,0.375523,200,0,372,sospechoso,
+g0_r000_c000_k6,0,0,0,6,2.0,-4.0,5e-06,0.375167,200,0,372,sospechoso,
+g0_r000_c000_k7,0,0,0,7,2.0,-4.0,3.4e-05,0.382089,200,0,372,sospechoso,
+g0_r000_c000_k8,0,0,0,8,2.0,-4.0,3e-06,0.368441,200,0,372,sospechoso,
+g0_r075_c074_k1,0,75,74,1,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r075_c074_k2,0,75,74,2,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r075_c074_k3,0,75,74,3,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r075_c074_k4,0,75,74,4,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r075_c074_k5,0,75,74,5,-1.543307,-0.503937,0.0,,0,0,4,terminado,corte en el primer intervalo
+g0_r075_c074_k6,0,75,74,6,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r075_c074_k7,0,75,74,7,-1.543307,-0.503937,0.0,,0,0,4,terminado,corte en el primer intervalo
+g0_r075_c074_k8,0,75,74,8,-1.543307,-0.503937,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r076_c000_k1,0,76,0,1,-1.590551,-4.0,0.136627,0.019578,28,124,28800,cortado,
+g0_r076_c000_k2,0,76,0,2,-1.590551,-4.0,0.142437,0.018811,29,124,28800,cortado,
+g0_r076_c000_k3,0,76,0,3,-1.590551,-4.0,0.140051,0.019075,29,124,28800,cortado,
+g0_r076_c000_k4,0,76,0,4,-1.590551,-4.0,0.140148,0.019084,29,124,28800,cortado,
+g0_r076_c000_k5,0,76,0,5,-1.590551,-4.0,0.142985,0.018676,28,124,28800,cortado,
+g0_r076_c000_k6,0,76,0,6,-1.590551,-4.0,0.13834,0.019408,28,124,28800,cortado,
+g0_r076_c000_k7,0,76,0,7,-1.590551,-4.0,0.137387,0.019534,29,124,28800,cortado,
+g0_r076_c000_k8,0,76,0,8,-1.590551,-4.0,0.13831,0.019336,28,124,28800,cortado,
+g0_r098_c043_k1,0,98,43,1,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k2,0,98,43,2,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k3,0,98,43,3,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k4,0,98,43,4,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k5,0,98,43,5,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k6,0,98,43,6,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k7,0,98,43,7,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo
+g0_r098_c043_k8,0,98,43,8,-2.629921,-1.968504,0.0,,0,0,3,terminado,corte en el primer intervalo

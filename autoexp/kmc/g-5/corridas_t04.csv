@@ -1,0 +1,17 @@
+run,g,row,col,rep,logxi,logell,value,E_final,filas,rc,segundos,status,nota
+g-5_r060_c096_k1,-5,60,96,1,-0.834646,0.535433,0.112652,-0.142047,23,0,53,terminado,
+g-5_r060_c096_k2,-5,60,96,2,-0.834646,0.535433,0.119773,-0.144332,24,0,61,terminado,
+g-5_r060_c096_k3,-5,60,96,3,-0.834646,0.535433,0.117806,-0.141892,24,0,63,terminado,
+g-5_r060_c096_k4,-5,60,96,4,-0.834646,0.535433,0.118609,-0.143326,25,0,58,terminado,
+g-5_r073_c074_k1,-5,73,74,1,-1.448819,-0.503937,0.477492,-0.142438,97,0,300,terminado,
+g-5_r073_c074_k2,-5,73,74,2,-1.448819,-0.503937,0.456907,-0.142387,92,0,293,terminado,
+g-5_r073_c074_k3,-5,73,74,3,-1.448819,-0.503937,0.468074,-0.140733,93,0,296,terminado,
+g-5_r073_c074_k4,-5,73,74,4,-1.448819,-0.503937,0.488817,-0.139639,99,0,311,terminado,
+g-5_r085_c053_k1,-5,85,53,1,-2.015748,-1.496063,0.0,,0,0,5,terminado,corte en el primer intervalo
+g-5_r085_c053_k2,-5,85,53,2,-2.015748,-1.496063,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-5_r085_c053_k3,-5,85,53,3,-2.015748,-1.496063,0.0,,0,0,5,terminado,corte en el primer intervalo
+g-5_r085_c053_k4,-5,85,53,4,-2.015748,-1.496063,0.0,,0,0,7,terminado,corte en el primer intervalo
+g-5_r098_c032_k1,-5,98,32,1,-2.629921,-2.488189,0.0,,0,0,7,terminado,corte en el primer intervalo
+g-5_r098_c032_k2,-5,98,32,2,-2.629921,-2.488189,0.0,,0,0,6,terminado,corte en el primer intervalo
+g-5_r098_c032_k3,-5,98,32,3,-2.629921,-2.488189,0.0,,0,0,6,terminado,corte en el primer intervalo
+g-5_r098_c032_k4,-5,98,32,4,-2.629921,-2.488189,0.0,,0,0,6,terminado,corte en el primer intervalo

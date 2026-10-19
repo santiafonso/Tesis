@@ -1,0 +1,325 @@
+{
+ "res": 128,
+ "budget": 64,
+ "sigma": 0.02,
+ "sampler_kw": {
+  "n1": 30,
+  "nx": 6,
+  "target": "zero",
+  "fill": "loo",
+  "batch": 4
+ },
+ "known": {
+  "12,32": 0.929121,
+  "12,53": 0.935129,
+  "12,74": 0.8641734999999999,
+  "12,96": 0.175896,
+  "12,117": 0.0601215,
+  "38,32": 0.9762175,
+  "38,53": 0.9851719999999999,
+  "38,74": 0.82425,
+  "38,96": 0.1653045,
+  "38,117": 0.053239499999999995,
+  "64,32": 0.988056,
+  "64,53": 0.9677765,
+  "64,74": 0.7203444999999999,
+  "64,96": 0.0,
+  "64,117": 0.0,
+  "89,32": 0.9074415,
+  "89,53": 0.0,
+  "89,74": 0.0,
+  "89,96": 0.0,
+  "89,117": 0.0,
+  "115,10": 0.0,
+  "115,32": 0.0,
+  "115,53": 0.0,
+  "115,74": 0.0,
+  "115,96": 0.0,
+  "115,117": 0.0,
+  "12,10": 0.935129,
+  "38,10": 0.9851719999999999,
+  "64,10": 0.988056,
+  "89,10": 0.9074415,
+  "51,96": 0.15310275,
+  "76,53": 0.9259426666666667,
+  "76,74": 0.0,
+  "102,32": 0.0,
+  "102,10": 0.764669,
+  "57,96": 0.137537,
+  "70,74": 0.640788,
+  "82,53": 0.8470165000000001,
+  "95,32": 0.764669,
+  "108,10": 0.0,
+  "60,96": 0.115663,
+  "73,74": 0.5219905,
+  "85,53": 0.0,
+  "98,32": 0.0,
+  "105,10": 0.764669,
+  "62,96": 0.086232,
+  "74,74": 0.4495685,
+  "83,53": 0.8160345,
+  "96,32": 0.0,
+  "106,10": 0.764669,
+  "63,96": 0.07219149999999999,
+  "75,74": 0.0,
+  "84,53": 0.7655970000000001,
+  "107,10": 0.0,
+  "0,64": 0.9275955,
+  "0,85": 0.461927,
+  "0,97": 0.17227900000000002,
+  "11,85": 0.4162045,
+  "21,73": 0.8871964999999999,
+  "24,64": 0.967298,
+  "25,81": 0.5587150000000001,
+  "0,0": 0.9275955,
+  "25,127": 0.0505255,
+  "51,111": 0.0509435
+ },
+ "rounds": [
+  {
+   "n": 30,
+   "file": "tanda_01.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_02.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_03.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_04.csv"
+  },
+  {
+   "n": 5,
+   "file": "tanda_05.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_06.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_07.csv"
+  },
+  {
+   "n": 4,
+   "file": "tanda_08.csv"
+  },
+  {
+   "n": 2,
+   "file": "tanda_09.csv"
+  }
+ ],
+ "pseudo": [
+  [
+   12,
+   10
+  ],
+  [
+   38,
+   10
+  ],
+  [
+   64,
+   10
+  ],
+  [
+   89,
+   10
+  ],
+  [
+   102,
+   10
+  ],
+  [
+   105,
+   10
+  ],
+  [
+   106,
+   10
+  ],
+  [
+   0,
+   0
+  ]
+ ],
+ "jobs": {
+  "2": {
+   "parts": [
+    {
+     "host": "siaosorio@serafin.ccad.unc.edu.ar",
+     "job": "428862.0",
+     "remote": "~/kmc/tandas/g-4_t02",
+     "n": 5
+    }
+   ],
+   "n": 5,
+   "sent": 1790448297.405629,
+   "nota": "step dentro del job 428862 (nodo de la tanda 1); 429064 cancelado",
+   "done": 1790525423.252387
+  },
+  "3": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299893",
+     "remote": "~/kmc/tandas/g-4_t03",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299896",
+     "remote": "~/kmc/tandas/g-4_t03_lentos",
+     "n": 3
+    }
+   ],
+   "n": 5,
+   "sent": 1790525435.0827558,
+   "nota": "parte lenta movida de Serafin (429121, cola hasta 29/9) a Mulatona mono (arranco al instante)",
+   "done": 1790616148.7926636
+  },
+  "4": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299948",
+     "remote": "~/kmc/tandas/g-4_t04",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299949",
+     "remote": "~/kmc/tandas/g-4_t04_lentos",
+     "n": 3
+    }
+   ],
+   "n": 5,
+   "sent": 1790616161.9075818,
+   "race": "gano mulatona",
+   "done": 1790689166.130886
+  },
+  "5": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299976",
+     "remote": "~/kmc/tandas/g-4_t05",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "299977",
+     "remote": "~/kmc/tandas/g-4_t05_lentos",
+     "n": 3
+    }
+   ],
+   "n": 5,
+   "sent": 1790689178.3320634,
+   "race": "gano mulatona",
+   "done": 1790718238.9865448
+  },
+  "6": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300044",
+     "remote": "~/kmc/tandas/g-4_t06",
+     "n": 2
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300045",
+     "remote": "~/kmc/tandas/g-4_t06_lentos",
+     "n": 2
+    }
+   ],
+   "n": 4,
+   "sent": 1790780796.2733297,
+   "nota": "registrada a mano: el loop se cayo por un corte de SSH despues de mandarla",
+   "done": 1790780808.4999056
+  },
+  "7": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300070",
+     "remote": "~/kmc/tandas/g-4_t07",
+     "n": 4
+    }
+   ],
+   "n": 4,
+   "sent": 1790780817.641943,
+   "race": "gano mulatona",
+   "done": 1790782641.7076344
+  },
+  "8": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300071",
+     "remote": "~/kmc/tandas/g-4_t08",
+     "n": 3
+    },
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300072",
+     "remote": "~/kmc/tandas/g-4_t08_lentos",
+     "n": 1
+    }
+   ],
+   "n": 4,
+   "sent": 1790782655.042279,
+   "race": "gano mulatona",
+   "done": 1790783877.8060622
+  },
+  "9": {
+   "parts": [
+    {
+     "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+     "job": "300074",
+     "remote": "~/kmc/tandas/g-4_t09",
+     "n": 2
+    }
+   ],
+   "n": 2,
+   "sent": 1790783895.6398535,
+   "done": 1790783907.0659208,
+   "race": "gano mulatona (copia 430052 cancelada a mano)"
+  }
+ },
+ "pending": [],
+ "largos": {
+  "job": "429790",
+  "host": "siaosorio@serafin.ccad.unc.edu.ar",
+  "remote": "~/kmc/tandas/g-4_largos2",
+  "puntos": [
+   [
+    102,
+    10
+   ],
+   [
+    105,
+    10
+   ]
+  ],
+  "nota": "log l=-3.53 arriba del acantilado, ~1.5 dias por corrida. En Mulatona los desalojaron 4 veces (batch de la cuenta iate desaloja mono/short); Serafin no desaloja. Reemplazan a los pseudo antes de la reconstruccion final. El sospechoso (12,10) se reprodujo 4/4 (SoC 0 en ~3 min)."
+ },
+ "control_parts": [
+  {
+   "host": "siaosorio@serafin.ccad.unc.edu.ar",
+   "job": "429790.0",
+   "remote": "~/kmc/tandas/g-4_control_serafin",
+   "n": 7
+  },
+  {
+   "host": "siaosorio@mulatona.ccad.unc.edu.ar",
+   "job": "300077",
+   "remote": "~/kmc/tandas/g-4_control_lentos",
+   "n": 3
+  }
+ ]
+}

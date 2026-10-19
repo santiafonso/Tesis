@@ -1,0 +1,11 @@
+{
+ "n_terminados": 3597,
+ "rms": 0.23066763170221583,
+ "mae": 0.06293607465673141,
+ "psnr_equiv": 12.74026686635025,
+ "rms_sin_franja_anomala": 0.11557042245712301,
+ "psnr_sin_franja": 18.74306598392476,
+ "cotas_violadas": 0,
+ "n_cotas": 499,
+ "puntos_reconstruccion": 96
+}

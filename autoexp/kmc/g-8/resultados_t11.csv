@@ -1,0 +1,5 @@
+g,row,col,logxi,logell,value,std,n_term,n_runs,status
+-8.0,0,29,2.0,-2.629921,,,0,4,sospechoso
+-8.0,4,36,1.811024,-2.299213,,,0,4,sospechoso
+-8.0,6,15,1.716535,-3.291339,,,0,4,sospechoso
+-8.0,23,15,0.913386,-3.291339,0.7517,,0,4,cota

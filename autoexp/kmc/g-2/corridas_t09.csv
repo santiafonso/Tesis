@@ -1,0 +1,33 @@
+run,g,row,col,rep,logxi,logell,value,E_final,filas,rc,segundos,status,nota
+g-2_r000_c106_k1,-2,0,106,1,2.0,1.007874,0.116061,-0.097011,29,0,8,terminado,
+g-2_r000_c106_k10,-2,0,106,10,2.0,1.007874,0.122855,-0.093714,35,0,9,terminado,
+g-2_r000_c106_k11,-2,0,106,11,2.0,1.007874,0.124746,-0.078057,39,0,10,terminado,
+g-2_r000_c106_k12,-2,0,106,12,2.0,1.007874,0.112875,-0.072901,30,0,9,terminado,
+g-2_r000_c106_k13,-2,0,106,13,2.0,1.007874,0.110681,-0.075376,31,0,9,terminado,
+g-2_r000_c106_k14,-2,0,106,14,2.0,1.007874,0.116939,-0.091471,34,0,8,terminado,
+g-2_r000_c106_k15,-2,0,106,15,2.0,1.007874,0.118493,-0.081527,33,0,9,terminado,
+g-2_r000_c106_k16,-2,0,106,16,2.0,1.007874,0.118996,-0.088965,34,0,10,terminado,
+g-2_r000_c106_k2,-2,0,106,2,2.0,1.007874,0.108186,-0.063666,29,0,8,terminado,
+g-2_r000_c106_k3,-2,0,106,3,2.0,1.007874,0.124297,-0.082701,32,0,9,terminado,
+g-2_r000_c106_k4,-2,0,106,4,2.0,1.007874,0.121539,-0.090966,34,0,11,terminado,
+g-2_r000_c106_k5,-2,0,106,5,2.0,1.007874,0.118944,-0.071401,32,0,9,terminado,
+g-2_r000_c106_k6,-2,0,106,6,2.0,1.007874,0.122499,-0.078759,35,0,10,terminado,
+g-2_r000_c106_k7,-2,0,106,7,2.0,1.007874,0.117343,-0.071791,32,0,9,terminado,
+g-2_r000_c106_k8,-2,0,106,8,2.0,1.007874,0.121662,-0.07123,35,0,10,terminado,
+g-2_r000_c106_k9,-2,0,106,9,2.0,1.007874,0.115613,-0.078481,34,0,10,terminado,
+g-2_r127_c015_k1,-2,127,15,1,-4.0,-3.291339,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-2_r127_c015_k10,-2,127,15,10,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k11,-2,127,15,11,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k12,-2,127,15,12,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k13,-2,127,15,13,-4.0,-3.291339,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-2_r127_c015_k14,-2,127,15,14,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k15,-2,127,15,15,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k16,-2,127,15,16,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k2,-2,127,15,2,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k3,-2,127,15,3,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k4,-2,127,15,4,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k5,-2,127,15,5,-4.0,-3.291339,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-2_r127_c015_k6,-2,127,15,6,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k7,-2,127,15,7,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k8,-2,127,15,8,-4.0,-3.291339,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-2_r127_c015_k9,-2,127,15,9,-4.0,-3.291339,0.0,,0,0,4,terminado,corte en el primer intervalo

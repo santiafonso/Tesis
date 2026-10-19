@@ -1,0 +1,80 @@
+=====================================================================
+ 0) CÓMO SE CORRIÓ EL CRUDO 64x64 (g = -4)
+=====================================================================
+
+slurm/kmc/kmc_tanda.slurm, en nodos de Serafín, 1 corrida por núcleo:
+
+    for cada punto de tanda.csv:
+      timeout "$tope" ~/kmc/kmc_fast "$logxi" "$logell" "$rep" "$g"
+      echo "rc=$?" > estado.txt          # 0 = terminó, 124 = cortada
+
+4096 puntos, 1 réplica. Código: KMC-Galvanostatic_noclus_param_claude.cpp
+
+
+=====================================================================
+ 1) ERROR 1 — TASAS DE SUPERFICIE VIEJAS  (causa del SoC ~ 0)
+=====================================================================
+
+Las tasas de ads/des de cada sitio de superficie dependen de mui:
+
+    ads = KADS_FACTOR * exp(( mui - E_ads) / 2kT);
+    des = KADS_FACTOR * exp(-(E_des + mui) / 2kT);
+
+DÓNDE:
+    l.312-317  potencial(); Velocidades();   // tasas de TODA la superficie,
+                                             // una sola vez, con E ~ +0.35 V
+    l.326      potencial();                  // <<< mui nuevo, pero no se
+                                             //     recalculan las tasas
+    l.416-418  VelocidadesAds(ii);           // <<< solo actualiza el sitio
+                                             //     y sus vecinos
+
+MOTIVO: los sitios que no se tocan quedan con las tasas del inicio
+(casi sin adsorción). Con Xi alto el ion que entra se va antes de
+difundir -> SoC ~ 0 y nunca llega al corte.
+
+ARREGLO: recalcular toda la superficie cada vez que cambia mui:
+
+    l.326:  if (g_need_potencial) { potencial(); ...; RefrescarSuperficie(); }
+
+PRUEBA (40 puntos del 64x64 con el arreglo):
+    zona SoC ~ 0  (log Xi 2, log l -2):   0.00 -> 0.97   (continuo 0.99)
+    log Xi <= 1.1:                        cambia 0.00-0.04
+    log Xi alto, log l -0.5:              baja 0.03-0.08
+    vs reconstrucción de 96 pts:          RMS 0.03
+    costo: 2 a 20 veces más lento
+
+
+=====================================================================
+ 2) ERROR 2 — ESCRITURA FUERA DEL ARREGLO  (de acá salen los NaN)
+=====================================================================
+
+DÓNDE (l.337-348): los arreglos tienen 200 intervalos (Nbins), que
+cubren hasta el tiempo nominal. Si la corrida lo pasa sin tocar el
+corte, sigue escribiendo en el 200, 201, ... :
+
+    MUs[Time_i]  /= TiempoBin[Time_i][1];   // <<< Time_i >= 200
+    tita[Time_i] /= TiempoBin[Time_i][1];   //     pisa otras variables
+
+MOTIVO: a los ~6 intervalos mui queda en NaN; NaN < muoff da falso,
+el while sale y la corrida figura como terminada (rc = 0).
+    -> filas basura al final de los datos (SoC 0, E inf/nan)
+    -> 41 de 67 corridas revisadas terminan así, no por el corte
+    -> todos los NaN observados salen de acá (ninguno dentro de los 200)
+El NaN NO causa el SoC ~ 0: ese SoC ya era ~0 antes del NaN.
+
+ARREGLO (como el continuo, que corre hasta vcut sin tope de tiempo):
+agrandar los arreglos y dejar un tope de seguridad:
+
+    l.320:  while (mui < muoff && Time_i < NbinsMax) {   // NbinsMax = 2*Nbins
+
+
+=====================================================================
+ 3) PREGUNTAS
+=====================================================================
+
+  1. ¿Lo corregimos recalculando toda la superficie?
+  2. ¿Qué zonas del mapa hay que volver a correr? ¿Todas?
+  3. ¿Este mismo error explica la franja log Xi 0.9-1.8, donde el SoC
+     queda 10-15 % por debajo de la corriente impuesta?
+  4. Pasado el tiempo nominal sin tocar el corte: ¿seguir hasta el corte
+     (como el continuo) o cortar ahí?

@@ -1,0 +1,28 @@
+╭────────────────────────────────────────────────────╮
+│ Si tiene problemas para ingresar, consulte:        │
+│ https://wiki.ccad.unc.edu.ar/empezar/conexion.html │
+╰────────────────────────────────────────────────────╯
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/siaosorio/Tesis-autoexp/autoexp/kmc_control.py", line 188, in <module>
+    main()
+  File "/home/siaosorio/Tesis-autoexp/autoexp/kmc_control.py", line 184, in main
+    {"pick": cmd_pick, "eval": cmd_eval}[a.cmd](a)
+  File "/home/siaosorio/Tesis-autoexp/autoexp/kmc_control.py", line 110, in cmd_eval
+    final = np.load(a.final)
+            ^^^^^^^^^^^^^^^^
+  File "/home/siaosorio/micromamba/envs/galpy/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 454, in load
+    fid = stack.enter_context(open(os.fspath(file), "rb"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'autoexp/kmc/g3/dip/final.npy'
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/siaosorio/Tesis-autoexp/autoexp/kmc_control_zona.py", line 70, in <module>
+    main()
+  File "/home/siaosorio/Tesis-autoexp/autoexp/kmc_control_zona.py", line 64, in main
+    subprocess.run([sys.executable, "-m", "autoexp.kmc_control", "eval", "--state", z.state, "--results", res,
+  File "/home/siaosorio/micromamba/envs/galpy/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/siaosorio/venv-autoexp/bin/python', '-m', 'autoexp.kmc_control', 'eval', '--state', 'autoexp/kmc/g3/kmc.json', '--results', 'autoexp/kmc/g3/resultados_control_zona.csv', '--final', 'autoexp/kmc/g3/dip/final.npy', '--out', 'autoexp/kmc/g3/control_zona']' returned non-zero exit status 1.

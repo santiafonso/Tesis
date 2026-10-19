@@ -1,0 +1,66 @@
+run,g,row,col,rep,logxi,logell,value,E_final,filas,rc,segundos,status,nota
+g-3_r051_c085_k1,-3,51,85,1,-0.409449,0.015748,0.46124,-0.128557,93,0,52,terminado,
+g-3_r051_c085_k2,-3,51,85,2,-0.409449,0.015748,0.449764,-0.137311,90,0,49,terminado,
+g-3_r102_c000_k1,-3,102,0,1,-2.818898,-4.0,0.127697,-0.095277,26,124,28197,cortado,
+g-3_r102_c000_k10,-3,102,0,10,-2.818898,-4.0,0.12509,-0.095294,26,124,28167,cortado,
+g-3_r102_c000_k11,-3,102,0,11,-2.818898,-4.0,0.126551,-0.095285,26,124,28163,cortado,
+g-3_r102_c000_k12,-3,102,0,12,-2.818898,-4.0,0.12638,-0.095283,26,124,28160,cortado,
+g-3_r102_c000_k13,-3,102,0,13,-2.818898,-4.0,0.12805,-0.095275,26,124,28157,cortado,
+g-3_r102_c000_k14,-3,102,0,14,-2.818898,-4.0,0.127544,-0.095279,26,124,28153,cortado,
+g-3_r102_c000_k15,-3,102,0,15,-2.818898,-4.0,0.125419,-0.095289,26,124,28150,cortado,
+g-3_r102_c000_k16,-3,102,0,16,-2.818898,-4.0,0.12874,-0.095272,26,124,28146,cortado,
+g-3_r102_c000_k17,-3,102,0,17,-2.818898,-4.0,0.126372,-0.095283,26,124,28143,cortado,
+g-3_r102_c000_k18,-3,102,0,18,-2.818898,-4.0,0.129418,-0.095263,26,124,28140,cortado,
+g-3_r102_c000_k19,-3,102,0,19,-2.818898,-4.0,0.12575,-0.095286,26,124,28136,cortado,
+g-3_r102_c000_k2,-3,102,0,2,-2.818898,-4.0,0.127349,-0.095279,26,124,28193,cortado,
+g-3_r102_c000_k20,-3,102,0,20,-2.818898,-4.0,0.129227,-0.095273,27,124,28133,cortado,
+g-3_r102_c000_k21,-3,102,0,21,-2.818898,-4.0,0.127456,-0.09528,26,124,28130,cortado,
+g-3_r102_c000_k3,-3,102,0,3,-2.818898,-4.0,0.125535,-0.095289,26,124,28190,cortado,
+g-3_r102_c000_k4,-3,102,0,4,-2.818898,-4.0,0.132357,-0.09525,26,124,28187,cortado,
+g-3_r102_c000_k5,-3,102,0,5,-2.818898,-4.0,0.131156,-0.095258,27,124,28183,cortado,
+g-3_r102_c000_k6,-3,102,0,6,-2.818898,-4.0,0.12908,-0.095269,26,124,28180,cortado,
+g-3_r102_c000_k7,-3,102,0,7,-2.818898,-4.0,0.130074,-0.095265,26,124,28177,cortado,
+g-3_r102_c000_k8,-3,102,0,8,-2.818898,-4.0,0.126806,-0.095279,26,124,28173,cortado,
+g-3_r102_c000_k9,-3,102,0,9,-2.818898,-4.0,0.123301,-0.095303,25,124,28170,cortado,
+g-3_r102_c021_k1,-3,102,21,1,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k10,-3,102,21,10,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k11,-3,102,21,11,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k12,-3,102,21,12,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k13,-3,102,21,13,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k14,-3,102,21,14,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k15,-3,102,21,15,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k16,-3,102,21,16,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k17,-3,102,21,17,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k18,-3,102,21,18,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k19,-3,102,21,19,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k2,-3,102,21,2,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k20,-3,102,21,20,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k21,-3,102,21,21,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k3,-3,102,21,3,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k4,-3,102,21,4,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k5,-3,102,21,5,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k6,-3,102,21,6,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k7,-3,102,21,7,-2.818898,-3.007874,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r102_c021_k8,-3,102,21,8,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r102_c021_k9,-3,102,21,9,-2.818898,-3.007874,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k1,-3,127,0,1,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k10,-3,127,0,10,-4.0,-4.0,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r127_c000_k11,-3,127,0,11,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k12,-3,127,0,12,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k13,-3,127,0,13,-4.0,-4.0,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r127_c000_k14,-3,127,0,14,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k15,-3,127,0,15,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k16,-3,127,0,16,-4.0,-4.0,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r127_c000_k17,-3,127,0,17,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k18,-3,127,0,18,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k19,-3,127,0,19,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k2,-3,127,0,2,-4.0,-4.0,0.0,,0,0,4,terminado,corte en el primer intervalo
+g-3_r127_c000_k20,-3,127,0,20,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k21,-3,127,0,21,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k3,-3,127,0,3,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k4,-3,127,0,4,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k5,-3,127,0,5,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k6,-3,127,0,6,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k7,-3,127,0,7,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k8,-3,127,0,8,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
+g-3_r127_c000_k9,-3,127,0,9,-4.0,-4.0,0.0,,0,0,3,terminado,corte en el primer intervalo
