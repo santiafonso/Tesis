@@ -1,5 +1,6 @@
 """Lee una tanda de KMC corrida con slurm/kmc/kmc_tanda.slurm y da, por punto, el SoC final
-promediado sobre las replicas que terminaron.
+de las replicas que terminaron (mediana: con replicas bimodales -unas intercalan y otras
+se quedan en ~0- el promedio da un valor que ninguna corrida dio; esas quedan con bimodal=1).
 
 Estructura de la tanda: runs/r<row>_c<col>_k<rep>/ con datos-*.dat (salida del KMC:
 `SoC E[V] Tiempo logChi logEle`, una fila por intervalo) y estado.txt (lo escribe el slurm):
@@ -47,6 +48,13 @@ def read_datos(path):
             continue  # encabezado
         if all(np.isfinite(v)):
             rows.append(v)
+    # Algunas corridas siguen escribiendo despues del final: un bloque de filas con SoC ~0 (0, -0.008, -0.22,
+    # 0.010...) y E 0, 0.001 o +-inf, con t que salta. Las no finitas ya se descartaron; las otras se tomaban por
+    # la ultima (SoC ~0 donde el real es 0.83-0.97). El SoC no baja durante la descarga: se saca la caida final.
+    top = max((r[0] for r in rows), default=0.0)
+    if top > SOC_MIN:
+        while rows and rows[-1][0] < 0.5 * top:
+            rows.pop()
     return rows
 
 
@@ -81,6 +89,12 @@ def read_run(d):
     return r
 
 
+def bimodal(ok, hi=0.5, lo=0.05):
+    """Replicas partidas: unas intercalan (>= hi) y otras se quedan en ~0 (g=-8, log Xi alto: 0.99/0.99/0.99/0.00).
+    El promedio da un valor que ninguna corrida dio; por eso el valor del punto es la mediana."""
+    return len(ok) > 1 and max(ok) >= hi and min(ok) < lo
+
+
 def aggregate(runs):
     by = defaultdict(list)
     for r in runs:
@@ -89,10 +103,15 @@ def aggregate(runs):
     for (g, i, j), rs in sorted(by.items()):
         ok = [r["value"] for r in rs if r["status"] == "terminado"]
         lb = [r["value"] for r in rs if r["status"] in ("cortado", "en_curso") and r["filas"]]
+        # Replicas terminadas por debajo de lo que ya alcanzaron las cortadas (zona bimodal de log Xi alto):
+        # el valor terminado no representa el punto -> cota con el mayor SoC visto.
+        bajo_cota = bool(ok and lb and max(lb) > float(np.median(ok)) + 0.05)
+        if bajo_cota:
+            lb, ok = lb + ok, []
         pts.append({"g": g, "row": i, "col": j, "logxi": next((r["logxi"] for r in rs if r["logxi"] != ""), ""),
                     "logell": next((r["logell"] for r in rs if r["logell"] != ""), ""),
-                    "value": float(np.mean(ok)) if ok else (max(lb) if lb else ""), "std": float(np.std(ok, ddof=1)) if len(ok) > 1 else "",
-                    "n_term": len(ok), "n_runs": len(rs), "status": "terminado" if ok else "cota" if lb else
+                    "value": float(np.median(ok)) if ok else (max(lb) if lb else ""), "std": float(np.std(ok, ddof=1)) if len(ok) > 1 else "",
+                    "n_term": len(ok), "n_runs": len(rs), "bimodal": int(bimodal(ok)), "status": "terminado" if ok else "cota" if lb else
                     "/".join(sorted({r["status"] for r in rs}))})
     return pts
 
@@ -109,7 +128,7 @@ def main():
     runs = [read_run(d) for d in dirs]
     pts = aggregate(runs)
 
-    cols = ["g", "row", "col", "logxi", "logell", "value", "std", "n_term", "n_runs", "status"]
+    cols = ["g", "row", "col", "logxi", "logell", "value", "std", "n_term", "n_runs", "status", "bimodal"]
     with open(a.out, "w", newline="") as f:
         w = csv.DictWriter(f, cols)
         w.writeheader()

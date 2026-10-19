@@ -262,7 +262,7 @@ def noise_params(sigma):
 
 def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg="auto", base="rbf_tps",
           smoothing=1e-4, outlier_px=3.0, along=0.5, band=15.0, vert=0.6, mono=True,
-          adapt=True, bounds=True, sigma=0.0):
+          adapt=True, bounds=True, sigma=0.0, lower=None, vmax=None, honor=None):
     """Reconstruccion con acantilado a cero (sin mirar la imagen real).
 
     Modelo: debajo del acantilado el mapa vale 0; arriba es suave. El acantilado se ubica
@@ -276,6 +276,12 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
     acantilado real; lo que lo distingue de la cola suave de la zona que se desvanece es
     que un poco mas arriba ya es alto). El ajuste se
     repite una vez sin los puntos a mas de outlier_px de la primera recta.
+    lower=(ij, v): puntos que son solo COTAS INFERIORES (KMC cortado por tiempo: "vale al menos
+    v"). No se interpolan como valores; solo suben la cota L de la monotonia (bounds=True).
+    vmax: techo del mapa. Donde no hay datos (borde izquierdo, franja de arriba) la TPS se extrapola
+    por encima de todo lo medido y deja bloques al chocar con la cota U de los puntos.
+    honor=tol: los puntos medidos mandan sobre el modelo (cotas sin los pares contradictorios + correccion
+    por residuos, `honor_points`). KMC real: en g=-8 la monotonia aplastaba puntos de 0.98 a 0.67.
     """
     from scipy.spatial import Delaunay
 
@@ -299,7 +305,9 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
             if (v[a] < eps) != (v[b] < eps) and np.linalg.norm(ij[a] - ij[b]) <= max_len
             and steep(a, b)]
     if len(mids) < (1 if deg == "auto" else deg) + 2:
-        return reconstruct(ij, v, shape, base, smoothing), None
+        # sin borde: la misma receta salvo el corte a 0 (TPS + cotas + monotonia + techo)
+        rec = reconstruct(ij, v, shape, base, smoothing)
+        return _finish(rec, ij, v, shape, None, bounds, mono, lower, vmax, honor), None
     mids = np.array(mids)
     coef = _robust_line(mids, deg, outlier_px)
     if deg == "auto":
@@ -364,13 +372,50 @@ def cliff(ij, v, shape, eps=0.004, steep_min=0.1, steep_r=5.0, max_len=4.0, deg=
         w = np.exp(-(np.abs(q[:, 1]).reshape(H, W) / band) ** 2)
         rec = w * ani + (1 - w) * rec
     rec[below] = 0.0
+    return _finish(rec, ij, v, shape, below, bounds, mono, lower, vmax, honor), (coef, mids)
+
+
+def _finish(rec, ij, v, shape, below, bounds, mono, lower, vmax, honor=None):
+    """Ultimo tramo comun de cliff (con o sin borde): cotas exactas por monotonia (+ pseudo como
+    cota inferior), proyeccion monotona y techo. honor=tol: los puntos medidos mandan (ver honor_points)."""
     if bounds:  # recorte a las cotas exactas por monotonia, antes de proyectar
-        L, U = monotone_bounds(ij, v, shape)
+        if honor:  # los pares que se contradicen no ponen cotas (KMC g=-8: franja de log Xi alto mas baja)
+            ok = ~monotone_violators(ij, v, honor)
+            L, U = monotone_bounds(np.asarray(ij)[ok], np.asarray(v)[ok], shape)
+        else:
+            L, U = monotone_bounds(ij, v, shape)
+        if lower is not None and len(lower[0]):
+            L = np.maximum(L, monotone_bounds(lower[0], lower[1], shape)[0])
         rec = np.minimum(np.maximum(rec, L), U)
     if mono:
         rec = monotone_2d(np.clip(rec, 0, 1))
-        rec[below] = 0.0
-    return np.clip(rec, 0, 1), (coef, mids)
+        if below is not None:
+            rec[below] = 0.0
+    if vmax is not None:  # el minimo con una constante conserva la monotonia
+        rec = np.minimum(rec, vmax)
+    if honor:
+        rec = honor_points(rec, ij, v, honor, below)
+    return np.clip(rec, 0, 1)
+
+
+def honor_points(rec, ij, v, tol, below=None):
+    """Prioridad a los puntos medidos: si el mapa se aparta de alguno mas de tol, le suma la TPS de
+    los residuos (vale ~0 en los puntos que ya ajustaban, asi que la correccion queda local). Rompe la
+    monotonia solo donde los datos la rompen. below: pixeles que vuelven a 0 (debajo del acantilado)."""
+    ij = np.asarray(ij, int)
+    v = np.asarray(v, float)
+    r = v - rec[ij[:, 0], ij[:, 1]]
+    if np.abs(r).max() <= tol:
+        return rec
+    H, W = rec.shape
+    yy, xx = np.mgrid[0:H, 0:W]
+    s_ = max(H, W)
+    corr = RBFInterpolator(ij / s_, r, kernel="thin_plate_spline")(
+        np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W)
+    out = np.clip(rec + corr, 0, 1)
+    if below is not None:
+        out[below] = 0.0
+    return out
 
 
 def _pava_dec(y):
@@ -431,6 +476,27 @@ def monotone_violations(ij, v, tol):
     le = (ij[:, None, 0] <= ij[None, :, 0]) & (ij[:, None, 1] <= ij[None, :, 1])
     np.fill_diagonal(le, False)
     return int((le & (v[:, None] < v[None, :] - tol)).sum())
+
+
+def monotone_violators(ij, v, tol):
+    """Mascara de los puntos que participan en algun par que viola la monotonia por mas de tol."""
+    ij = np.asarray(ij, int)
+    v = np.asarray(v, float)
+    le = (ij[:, None, 0] <= ij[None, :, 0]) & (ij[:, None, 1] <= ij[None, :, 1])
+    np.fill_diagonal(le, False)
+    bad = le & (v[:, None] < v[None, :] - tol)
+    return bad.any(axis=1) | bad.any(axis=0)
+
+
+def zero_violations(ij, v, eps, high):
+    """Pares que contradicen el modelo de acantilado: un punto ~0 (v < eps) arriba-izquierda
+    (fila <=, columna <=) de uno alto (v >= high). Las violaciones de monotonia entre valores no
+    nulos (ruido, o la franja de log Xi alto del KMC) no cuentan."""
+    ij = np.asarray(ij, int)
+    v = np.asarray(v, float)
+    le = (ij[:, None, 0] <= ij[None, :, 0]) & (ij[:, None, 1] <= ij[None, :, 1])
+    np.fill_diagonal(le, False)
+    return int((le & (v[:, None] < eps) & (v[None, :] >= high)).sum())
 
 
 def auto(ij, v, shape, sigma=0.0, tol=0.02, loo_verts=(1.0, 0.8, 0.6, 0.4), loo_extra=None, verbose=False):

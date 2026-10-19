@@ -24,11 +24,12 @@ from autoexp.oracle import load_truth
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", required=True)
-    ap.add_argument("--g", default="-4.0")
+    ap.add_argument("--g", help="continuo de fondo (def.: el g del estado)")
     ap.add_argument("--out")
     a = ap.parse_args()
     st = kmc_planner.load(a.state)
     out = a.out or a.state.replace("kmc.json", "estado.png")
+    g = a.g or "%.1f" % st.get("g", -4.0)
     lx, le = kmc_planner.axes(st)
     ext = [le[0], le[-1], lx[-1], lx[0]]
     pseudo = set(map(tuple, st.get("pseudo", [])))
@@ -39,8 +40,13 @@ def main():
 
     fig, axs = plt.subplots(1, 2, figsize=(11.5, 5), constrained_layout=True)
     kw = dict(cmap="viridis", vmin=0, vmax=1, extent=ext, aspect="auto")
-    axs[0].imshow(load_truth(a.g), alpha=0.55, **kw)
-    axs[0].set_title("Puntos KMC (%d medidos, %d pseudo) sobre el continuo g=%s" % (len(meas), len(ps), a.g))
+    try:  # no hay mapa del continuo para todos los g (p. ej. 1 y 3)
+        axs[0].imshow(load_truth(g), alpha=0.55, **kw)
+        fondo = "sobre el continuo g=%s" % g
+    except (FileNotFoundError, ValueError):
+        axs[0].imshow(np.full((st["res"],) * 2, np.nan), **kw)
+        fondo = "(g=%s, sin mapa del continuo)" % g
+    axs[0].set_title("Puntos KMC (%d medidos, %d pseudo) %s" % (len(meas), len(ps), fondo))
     if len(ij) >= 4:
         rec, _ = kmc_planner.reconstruct(st)
         im = axs[1].imshow(rec, **kw)
@@ -70,6 +76,9 @@ def main():
         axs[0].plot([], [], "^", c="gray", label="pseudo (cota + monotonía en ℓ)")
     axs[0].legend(loc="lower left", fontsize=8, framealpha=0.85)
     fig.savefig(out, dpi=140)
+    n = sum("done" in j for j in st.get("jobs", {}).values())
+    if n and not a.out:  # copia por tanda, para ver la evolucion
+        fig.savefig(out.replace("estado.png", "estado_t%02d.png" % n), dpi=140)
     print("->", out)
 
 

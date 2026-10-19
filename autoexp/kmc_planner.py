@@ -34,6 +34,8 @@ import numpy as np
 
 from autoexp import interp, sampling
 
+MIN_LOGELL_FILL = -3.3
+MAX_LOGXI_FILL = 1.4  # el relleno no elige log Xi >= esto (KMC: corridas sospechosas/bimodales, g<=-5)
 SAMPLER_KW = {"n1": 30, "nx": 6, "target": "zero", "fill": "loo", "batch": 4}
 
 
@@ -116,6 +118,11 @@ def next_batch(st):
     kw = dict(st["sampler_kw"])
     if st.get("sigma"):
         kw["sigma"] = st["sigma"]
+    # el relleno no elige log l < MIN_LOGELL_FILL: esas corridas no terminan en el tope de la tanda
+    # (g=+3: 4 de relleno en log l = -4 quedaron como cota 0.16; g=-4: ni 48 h alcanzan en -3.5)
+    kw["min_col"] = int(np.searchsorted(axes(st)[1], MIN_LOGELL_FILL))
+    kw["min_row"] = int((axes(st)[0] >= MAX_LOGXI_FILL).sum())  # fila 0 = log Xi maximo
+    kw["skip"] = [tuple(int(x) for x in p[:2]) for p in st.get("pseudo", [])]  # pseudo: sin error LOO
     try:
         sampling.sample(orc, "bisect", st["budget"], **kw)
     except NeedPoints as e:
@@ -123,10 +130,46 @@ def next_batch(st):
     return []
 
 
+def split(st):
+    """(ij, v) medidos y (ij, v) pseudo. Los pseudo (KMC cortado por tiempo) son cotas inferiores:
+    sirven para el muestreo (el ReplayOracle los devuelve) pero NO como valores a interpolar."""
+    ps = {tuple(int(x) for x in p[:2]) for p in st.get("pseudo", [])}
+    m = [(k, x) for k, x in st["known_d"].items() if k not in ps]
+    p = [(k, x) for k, x in st["known_d"].items() if k in ps]
+    arr = lambda l: (np.array([k for k, _ in l], int).reshape(-1, 2), np.array([x for _, x in l], float))  # noqa: E731
+    return arr(m), arr(p)
+
+
+def recon_kw(st):
+    """kwargs de interp.cliff para un estado de KMC: umbrales por ruido, pseudo como cotas (lower) y
+    techo = maximo medido (sin datos, la TPS se extrapola por encima y deja bloques)."""
+    (ij, v), low = split(st)
+    top = max(float(np.max(v)), float(np.max(low[1])) if len(low[1]) else 0.0) if len(v) else None  # no pisar cotas
+    return {"sigma": st.get("sigma", 0.0), "lower": low, "vmax": top, "honor": honor_tol(st)}
+
+
+def honor_tol(st):
+    """Tolerancia con la que la reconstruccion tiene que pasar por los puntos medidos (2 sigma de KMC)."""
+    return max(2 * st.get("sigma", 0.0), 0.01)
+
+
+def recon_points(st):
+    """Puntos para reconstruir: los medidos + los pseudo con un valor ajustado. Un pseudo es una
+    cota ("vale al menos v"); su valor pasa a ser max(v, TPS de los medidos en ese punto), con techo
+    en el maximo medido. Asi la cota no arrastra el mapa hacia abajo (g=+3: 0.16 donde la rampa
+    vale ~0.5) ni la extrapolacion sin datos se dispara hacia arriba (g=-4: ~1 a la izquierda)."""
+    (ij, v), (ijp, vp) = split(st)
+    if not len(ijp):
+        return ij, v
+    sig = st.get("sigma", 0.0)
+    base, _ = interp.cliff(ij, v, (st["res"], st["res"]), sigma=sig, vmax=float(v.max()), honor=honor_tol(st))
+    vp2 = np.minimum(np.maximum(vp, base[ijp[:, 0], ijp[:, 1]]), max(float(v.max()), float(vp.max())))
+    return np.vstack([ij, ijp]), np.concatenate([v, vp2])
+
+
 def reconstruct(st):
-    ij = np.array(list(st["known_d"].keys()), int)
-    v = np.array(list(st["known_d"].values()))
-    rec, info = interp.cliff(ij, v, (st["res"], st["res"]), sigma=st.get("sigma", 0.0))
+    ij, v = recon_points(st)
+    rec, info = interp.cliff(ij, v, (st["res"], st["res"]), **recon_kw(st))
     return rec, info
 
 

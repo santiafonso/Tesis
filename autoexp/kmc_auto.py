@@ -21,7 +21,9 @@ import time
 
 from autoexp import kmc_planner
 
-ACTIVE = ("?", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING")
+# LOST: step que ya no figura en sacct porque su job contenedor se reencolo (NODE_FAIL -> requeue
+# borra los steps de la instancia anterior). No esta terminado: migrate() lo relanza.
+ACTIVE = ("?", "LOST", "PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING")
 
 
 NET_FAIL = (255, 12, 30, 35)  # ssh/scp: 255; rsync: 12/30/35 (corte de red o timeout)
@@ -61,13 +63,13 @@ def job_state(host, job):
     r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", host,
                         "sacct -n -P -j %s -o JobID,State%s" % (job, "" if step else " -X")],
                        capture_output=True, text=True)
-    if r.returncode or not r.stdout.strip():
+    if r.returncode:
         return "?"  # red caida
     for line in r.stdout.strip().splitlines():
         jid, state = line.split("|")[:2]
         if jid == str(job) or not step:
             return state.split()[0]
-    return "?"
+    return "LOST" if step else "?"
 
 
 def write_rows(rows, path):
@@ -95,16 +97,47 @@ def to_secs(t):
     return x + int(d or 0) * 86400
 
 
-def reuse_step(a, name, local_csv):
-    """Si --reuse-job es un job propio corriendo con tiempo de sobra (> tope + 30 min), corre la
-    tanda entera como step (srun --overlap) en su nodo: sin cola. Devuelve la parte o None."""
+def job_left(a, job):
+    """(estado, segundos que le quedan) de un job en --host, o (None, 0) si ya no esta en la cola."""
+    out = sh(a.host, "squeue -h -j %s -o '%%T %%L'" % job, check=False).split()
+    if len(out) < 2:
+        return None, 0
+    return out[0], (to_secs(out[1]) if out[1][0].isdigit() else 0)
+
+
+def holder(a):
+    """Estado del job "contenedor" --reuse-job: "run" si corre y le queda tiempo para una tanda
+    (> tope + 30 min), "wait" si esta en cola, None si no hay o ya no sirve (se lanza normal).
+    Relevo (auto_args.reuse_next): cuando el contenedor actual ya no sirve y el siguiente corre,
+    se pasa a ese; mientras el siguiente espera en cola, "wait" (no se paga otra cola)."""
     if not a.reuse_job:
         return None
-    left = sh(a.host, "squeue -h -j %s -o %%L" % a.reuse_job, check=False).strip()
-    tope = to_secs(a.time)
-    if not left or not left[0].isdigit() or to_secs(left) < tope + 1800:
-        return None
+    state, left = job_left(a, a.reuse_job)
+    if state == "RUNNING" and left >= to_secs(a.time) + 1800:
+        return "run"
+    nxt = getattr(a, "reuse_next", None)
+    if nxt and nxt != a.reuse_job:
+        nstate, _ = job_left(a, nxt)
+        if nstate == "RUNNING":
+            log("relevo: contenedor %s -> %s" % (a.reuse_job, nxt))
+            a.reuse_job = nxt
+            return holder(a)
+        if nstate == "PENDING":
+            return "wait"
+    return "wait" if state == "PENDING" else None
+
+
+def kmc_env(a):
+    """Variables extra para kmc_tanda.slurm: KMC_DIR elige el binario (auto_args.kmc_dir, p. ej.
+    ~/kmc/refresco = KMC corregido); sin eso, el de ~/kmc."""
+    return ",KMC_DIR=%s" % a.kmc_dir if a.kmc_dir else ""
+
+
+def run_step(a, name, local_csv):
+    """Corre local_csv como step (srun --overlap, -c --reuse-cores) en el nodo del job --reuse-job:
+    sin cola. Devuelve la parte."""
     rdir = "%s/%s" % (a.remote, name)
+    tope = to_secs(a.time)
     sh(a.host, "mkdir -p %s/logs" % rdir)
     net(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)])
     before = set(sh(a.host, "squeue -s -h -j %s -o %%i" % a.reuse_job).split())
@@ -112,9 +145,9 @@ def reuse_step(a, name, local_csv):
     # suelta cuando aparece el step (srun sigue en el login con setsid). -c: nucleos que se usan,
     # dejando lugar a lo que el job ya tenga corriendo.
     pr = subprocess.Popen(["ssh", "-o", "BatchMode=yes", a.host,
-                           'cd %s && nohup setsid srun --jobid=%s --overlap -N1 -n1 -c%d --export=ALL,TOPE_MAX=%d '
+                           'cd %s && nohup setsid srun --jobid=%s --overlap -N1 -n1 -c%d --export=ALL,TOPE_MAX=%d%s '
                            'bash ~/kmc/kmc_tanda.slurm tanda.csv > logs/step.out 2> logs/step.err < /dev/null &'
-                           % (rdir, a.reuse_job, a.reuse_cores, tope)],
+                           % (rdir, a.reuse_job, a.reuse_cores, tope, kmc_env(a))],
                           stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for _ in range(12):
         time.sleep(5)
@@ -130,6 +163,35 @@ def reuse_step(a, name, local_csv):
     raise RuntimeError("no aparecio el step en el job %s" % a.reuse_job)
 
 
+def reuse_step(a, name, local_csv):
+    """Si --reuse-job es un job propio corriendo con tiempo de sobra, corre la tanda entera como
+    step en su nodo. Devuelve la parte o None."""
+    if holder(a) != "run":
+        return None
+    return run_step(a, name, local_csv)
+
+
+def migrate(a, st, k):
+    """Partes de la tanda k que esperan en cola (PENDING, o "hold": canceladas a mano para
+    moverlas) pasan como un step al job contenedor cuando corre: no se paga otra cola."""
+    info = st["jobs"][str(k)]
+    stuck = [p for p in info["parts"] if p.get("hold") or job_state(p["host"], p["job"]) in ("PENDING", "LOST")]
+    if not stuck or holder(a) != "run":
+        return
+    rows = []
+    for p in stuck:
+        if not p.get("hold") and "." not in str(p["job"]):  # un step LOST ya no existe
+            sh(p["host"], "scancel %s" % p["job"], check=False)
+        rows += [r for r in csv.reader(sh(p["host"], "cat %s/tanda.csv" % p["remote"]).splitlines()[1:]) if r]
+    tmp = os.path.join(os.path.dirname(a.state), "tanda_%02d_mov.csv" % k)
+    write_rows(rows, tmp)
+    part = dict(run_step(a, "%s_t%02d_mov%d" % (a.tag, k, int(time.time()) % 100000), tmp), n=len(rows))
+    info["parts"] = [p for p in info["parts"] if p not in stuck] + [part]
+    kmc_planner.save(st, a.state)
+    log("tanda %d: %d puntos movidos de %s al job %s" % (k, len(rows), ",".join(p["job"] for p in stuck),
+                                                        a.reuse_job))
+
+
 def launch(a, name, rows, local_csv):
     """Parte las filas por costo y manda cada parte a su cluster (o todo a un job propio con
     tiempo, ver reuse_step). Devuelve la lista de partes."""
@@ -140,9 +202,12 @@ def launch(a, name, rows, local_csv):
     fast = [r for r in rows if float(r[3]) > a.fast_logell]
     slow = [r for r in rows if float(r[3]) <= a.fast_logell]
     parts = []
-    slow_opts = ("-p mono --time=%s -c %d --export=ALL,NREP=2" % (a.time, min(32, 2 * len(slow)))
-                 if "mulatona" in a.slow_host else "--time=%s" % a.time)
-    for host, sub, opts, sfx in ((a.fast_host, fast, "-p short --time=00:59:00 -c %d" % min(32, max(2, 2 * len(fast))), ""),
+    slow_opts = ("-p mono --time=%s -c %d --export=ALL,NREP=2%s" % (a.time, min(32, 2 * len(slow)), kmc_env(a))
+                 if "mulatona" in a.slow_host else "--time=%s --export=ALL%s" % (a.time, kmc_env(a)))
+    fast_opts = ("-p short --time=00:59:00" + ("" if "serafin" in a.fast_host else  # Serafin: nodo entero si o si
+                                               " -c %d" % min(32, max(2, 2 * len(fast))))
+                 + " --export=ALL%s" % kmc_env(a))
+    for host, sub, opts, sfx in ((a.fast_host, fast, fast_opts, ""),
                                  (a.slow_host, slow, slow_opts, "_lentos")):
         if not sub:
             continue
@@ -164,7 +229,7 @@ def parts_of(info, a):
 
 
 def all_done(parts):
-    return all(job_state(p["host"], p["job"]) not in ACTIVE for p in parts)
+    return all(not p.get("hold") and job_state(p["host"], p["job"]) not in ACTIVE for p in parts)
 
 
 def fetch(parts, local):
@@ -180,7 +245,8 @@ def launch_alt(a, name, local_csv):
     rdir = "%s/%s_alt" % (a.remote, name)
     sh(a.host, "mkdir -p %s/logs" % rdir)
     net(["scp", "-q", local_csv, "%s:%s/tanda.csv" % (a.host, rdir)])
-    job = sh(a.host, "cd %s && sbatch --parsable --time=%s ~/kmc/kmc_tanda.slurm tanda.csv" % (rdir, a.time)
+    job = sh(a.host, "cd %s && sbatch --parsable --time=%s --export=ALL%s ~/kmc/kmc_tanda.slurm tanda.csv"
+             % (rdir, a.time, kmc_env(a))
              ).strip().splitlines()[-1].split(";")[0]
     log("%s: copia entera -> serafin job %s (compite)" % (name, job))
     return [{"host": a.host, "job": job, "remote": rdir}]
@@ -276,7 +342,7 @@ def final_dip(a, here):
 
 
 def control(a, here):
-    """Tanda de control: 10 puntos no usados (kmc_control pick), KMC, error contra el mapa final."""
+    """Tanda de control: 32 puntos no usados, 3/4 en los lugares criticos (kmc_control pick), KMC, error contra el mapa final."""
     final = os.path.join(here, "dip", "final.npy")
     if not os.path.exists(final):
         final = os.path.join(here, "mapa_kmc.npy")
@@ -317,6 +383,7 @@ def main():
     ap.add_argument("--no-race", dest="race", action="store_false",
                     help="no mandar la copia de la tanda a Serafin que compite con Mulatona")
     ap.add_argument("--dip-host", default="siaosorio@mendieta.ccad.unc.edu.ar")
+    ap.add_argument("--kmc-dir", help="carpeta del binario en el cluster (KMC_DIR de kmc_tanda.slurm)")
     ap.add_argument("--scratch", default=os.path.expanduser("~/.cache/kmc_auto"))
     a = ap.parse_args()
     for k, v in kmc_planner.load(a.state).get("auto_args", {}).items():  # opciones propias de este g
@@ -339,6 +406,7 @@ def step(a):
     if open_jobs:
         k, info = min(open_jobs.items())
         resolve_race(a, st, k)
+        migrate(a, st, k)
         info = st["jobs"][str(k)]
         if all_done(parts_of(info, a)):
             collect(a, st, k)
@@ -356,6 +424,9 @@ def step(a):
             final_dip(a, here)
         control(a, here)
         return True
+    if holder(a) == "wait":  # el contenedor esta por arrancar: esperarlo antes que pagar otra cola
+        time.sleep(a.poll)
+        return False
     k = max([len(st["rounds"])] + [int(x) for x in st.get("jobs", {})]) + 1
     submit(a, st, k, pts)
     return False

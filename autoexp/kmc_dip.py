@@ -13,7 +13,7 @@ Pasos:
         -> dip/s<seed>/gkmc/restored.npy
     python -m autoexp.kmc_dip fuse --state autoexp/kmc/g-4/kmc.json --out autoexp/kmc/g-4/dip
         -> dip/final.npy, dip/final.png (TPS | DIP | fusion con los puntos)
-Los pseudo-puntos del planificador (cotas + monotonia) entran como puntos.
+Los pseudo-puntos (KMC cortado por tiempo) son cotas: entran con valor max(cota, TPS de lo medido) y como cota inferior (lower).
 """
 import argparse
 import json
@@ -31,9 +31,8 @@ N_ZERO, BAND, B = 4096, 6, 20.0
 
 
 def points(st):
-    ij = np.array(list(st["known_d"].keys()), int)
-    v = np.array(list(st["known_d"].values()), float)
-    return ij, v
+    """Medidos + pseudo con valor ajustado (kmc_planner.recon_points); los pseudo ademas son cotas (lower)."""
+    return kmc_planner.recon_points(st)
 
 
 def cmd_prepare(a):
@@ -41,7 +40,7 @@ def cmd_prepare(a):
     sigma = st.get("sigma", 0.0)
     ij, v = points(st)
     H = W = st["res"]
-    target, info = interp.cliff(ij, v, (H, W), sigma=sigma)
+    target, info = interp.cliff(ij, v, (H, W), **kmc_planner.recon_kw(st))
     mask = np.zeros((H, W), bool)
     mask[ij[:, 0], ij[:, 1]] = True
     below = np.zeros((H, W), bool)
@@ -79,7 +78,7 @@ def cmd_fuse(a):
 
     st = kmc_planner.load(a.state)
     sigma = st.get("sigma", 0.0)
-    rk = {"sigma": sigma}
+    rk = kmc_planner.recon_kw(st)
     srcs = [os.path.join(a.out, "s%d" % s) for s in SEEDS]
     for s in srcs:  # post_zero como en trial.run (la salida de DIP trae el pad de 1 px)
         g = os.path.join(s, "gkmc")
@@ -93,10 +92,17 @@ def cmd_fuse(a):
     fin = os.path.join(a.out, "fusion")
     fuse.fuse_run(best, fin, B=B, guard=0.02 + 2 * sigma, recon_kw=rk)
     final = np.load(os.path.join(fin, "gkmc", "restored.npy"))
-    np.save(os.path.join(a.out, "final.npy"), final)
-
+    if rk.get("vmax") is not None:  # DIP tambien se pasa del maximo medido entre puntos (g=+3: ~1 vs 0.91)
+        final = np.minimum(final, rk["vmax"])  # el minimo con una constante conserva la monotonia
     ij, v = points(st)
-    tps, _ = interp.cliff(ij, v, final.shape, sigma=sigma)
+    tps, info = interp.cliff(ij, v, final.shape, **rk)
+    if rk.get("honor"):  # la fusion termina en una proyeccion monotona: los puntos medidos vuelven a mandar
+        below = None
+        if info is not None:
+            yy, xx = np.mgrid[0:final.shape[0], 0:final.shape[1]]
+            below = yy > interp.edge(info[0], xx)
+        final = interp.honor_points(final, ij, v, rk["honor"], below)
+    np.save(os.path.join(a.out, "final.npy"), final)
     dip = np.load(os.path.join(best, "gkmc", "restored.npy"))
     lx, le = kmc_planner.axes(st)
     ext = [le[0], le[-1], lx[-1], lx[0]]

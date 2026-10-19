@@ -34,11 +34,12 @@
 #
 # Submit:  PYBIN=~/micromamba/envs/galpy/bin/python sbatch --export=ALL slurm/phase_diagram_g.slurm
 #          RES=64 ... sbatch ...   # mas rapido / mas grueso
+#          GS_LIST="-5.0 -6.0 -7.0 -8.0" ... sbatch --array=0-3 ...   # otra lista de g
 cd "${REPO_DIR:-${SLURM_SUBMIT_DIR:-$PWD}}" || exit 1
 
 PYBIN="${PYBIN:-./venv/bin/python}"
 RES="${RES:-128}"
-GS=(-4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 2.0 4.0)
+read -ra GS <<< "${GS_LIST:--4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 2.0 4.0}"
 g=${GS[${SLURM_ARRAY_TASK_ID:-0}]}
 
 OUT_DIR="results/phase_diagram_g/g${g}"

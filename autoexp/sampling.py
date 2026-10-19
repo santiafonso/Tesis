@@ -87,7 +87,8 @@ def adaptive(oracle, n, n1=32, batch=8, first="grid", recon="rbf_tps", power=1.0
 
 
 def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adaptive", target="mid", eps=0.004,
-           cliff_min=0.05, sigma=0.0, check_shape=True, refine=3, refine_half=6, **kw):
+           cliff_min=0.05, sigma=0.0, check_shape=True, refine=3, refine_half=6, min_col=0, min_row=0, skip=None,
+           **kw):
     """Grilla gruesa + busqueda binaria vertical del frente en cada columna con salto.
 
     1. `n1` puntos en grilla (nx columnas).
@@ -102,6 +103,9 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
     donde el lado no nulo es >= cliff_min (en la zona que se desvanece arriba a la
     derecha los valores bajan suave hasta ~0.02 y eso no es un acantilado). En todos los g el perfil vertical es meseta
     -> rampa suave -> salto a 0; el nivel medio caia dentro de la rampa.
+
+    min_col: no se biseca ni se rellena a la izquierda de esta columna (KMC: log l bajo no termina).
+    min_row, skip: ver loo_fill (KMC: franja de log Xi alto y pseudo-puntos).
     """
     if sigma:  # umbrales robustos a ruido (ver interp.noise_params); el salto real escala con sigma
         eps = max(eps, 3 * sigma)
@@ -110,14 +114,19 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
     grid(oracle, min(n1, n), nx=nx, offset=offset)
     ij, v = oracle.observed()
     val = {(int(i), int(j)): x for (i, j), x in zip(ij, v)}
-    if check_shape and target == "zero" and interp.monotone_violations(ij, v, 0.02 + 3 * sigma) > 0:
-        # la grilla ya viola la monotonia: el modelo de acantilado no aplica (no sabemos la
-        # forma de antemano). Sin biseccion; todo el resto al relleno LOO generico.
-        loo_fill(oracle, n, sigma=sigma, generic=True, **{k: x for k, x in kw.items() if k in ("batch", "power")})
+    if check_shape and target == "zero" and interp.zero_violations(ij, v, eps, cliff_min) > 0:
+        # la grilla tiene un CERO arriba/izquierda de un valor alto: el modelo de acantilado no
+        # aplica (no sabemos la forma de antemano). Sin biseccion; todo al relleno LOO generico.
+        # (Antes se miraba cualquier violacion de monotonia: en KMC la franja log Xi >= 1.4 da un
+        # poco menos que la de abajo -0.74 vs 0.98- y eso apagaba la biseccion en 5 de 9 g.)
+        loo_fill(oracle, n, sigma=sigma, generic=True, min_col=min_col, min_row=min_row, skip=skip,
+                 **{k: x for k, x in kw.items() if k in ("batch", "power")})
         return
     ys = sorted(set(ij[:, 0].tolist()))
     br = []
     for x in sorted(set(ij[:, 1].tolist())):
+        if x < min_col:
+            continue
         col = [(y, val[(y, x)]) for y in ys if (y, x) in val]
         for (y0, v0), (y1, v1) in zip(col, col[1:]):
             if target == "zero":
@@ -176,7 +185,7 @@ def bisect(oracle, n, n1=36, jump=0.25, tol=1, nx=None, offset=0.5, fill="adapti
     elif oracle.remaining > 0 and fill == "cliff":
         cliff_fill(oracle, n, **kw)
     elif oracle.remaining > 0 and fill == "loo":
-        loo_fill(oracle, n, **kw)
+        loo_fill(oracle, n, min_col=min_col, min_row=min_row, skip=skip, **kw)
     elif oracle.remaining > 0 and fill == "mix":  # mitad adaptativo (pegado al borde), mitad cliff
         adaptive(oracle, oracle.n_used + oracle.remaining // 2, n1=0)
         cliff_fill(oracle, n, **kw)
@@ -210,11 +219,16 @@ def cliff_fill(oracle, n, batch=4, power=1.0, gap=2.0, **kw):
         oracle.query(new)
 
 
-def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, **kw):
+def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, min_col=0, min_row=0, skip=None,
+             **kw):
     """Relleno por validacion cruzada: cada punto de arriba del acantilado se predice
     con interp.cliff sin el; |error LOO| se interpola (TPS) a toda la imagen y los puntos
     nuevos van donde ese error es alto y lejos de lo consultado. Fuera: debajo del borde y
-    una franja de `gap` px arriba de el (ya resuelto por la biseccion)."""
+    una franja de `gap` px arriba de el (ya resuelto por la biseccion). min_col: columnas a la
+    izquierda que no se eligen nunca (KMC: log l bajo no termina en el tope de la tanda). min_row: idem
+    con las filas de arriba, que ademas no aportan error LOO (KMC g=-8: la franja de log Xi alto da corridas
+    sospechosas/bimodales y el error LOO ahi atraia 30 de 47 puntos de relleno). skip: puntos (i, j) que siguen como datos pero no aportan
+    error LOO (pseudo-puntos: su valor es una regla, no una medicion)."""
     from scipy.interpolate import RBFInterpolator
 
     H, W = oracle.shape
@@ -225,10 +239,10 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, 
         info = None if generic else interp.cliff(ij, v, oracle.shape, **kw)[1]
         if info is None:
             # LOO generico (sin supuestos de forma): TPS comun, todo el mapa
-            _generic_loo_batch(oracle, n, batch, power, kw.get("sigma", 0.0))
+            _generic_loo_batch(oracle, n, batch, power, kw.get("sigma", 0.0), min_col, min_row, skip)
             continue
         line = lambda r, c: interp.edge(info[0], c) - r  # > 0: arriba del borde
-        up = np.where(line(ij[:, 0], ij[:, 1]) > gap)[0]
+        up = np.where((line(ij[:, 0], ij[:, 1]) > gap) & ~_in(ij, skip) & (ij[:, 0] >= min_row))[0]
         field = np.ones((H, W))
         if crit in ("loo", "loo*bounds"):
             errs = []
@@ -247,6 +261,8 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, 
             field = field * (Ub - Lb)
         field[line(yy, xx) <= gap] = 0.0
         d2 = np.full((H, W), np.inf)
+        d2[:, :min_col] = 0.0  # puntaje 0: nunca se eligen
+        d2[:min_row, :] = 0.0
         for i, j in ij:
             d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
         new = []
@@ -258,7 +274,13 @@ def loo_fill(oracle, n, batch=4, gap=4.0, power=1.0, crit="loo", generic=False, 
         oracle.query(new)
 
 
-def _generic_loo_batch(oracle, n, batch, power, sigma=0.0):
+def _in(ij, pts):
+    """Mascara: que filas de ij estan en el conjunto pts de (i, j)."""
+    pts = {(int(a), int(b)) for a, b in (pts or [])}
+    return np.array([(int(i), int(j)) in pts for i, j in ij], bool)
+
+
+def _generic_loo_batch(oracle, n, batch, power, sigma=0.0, min_col=0, min_row=0, skip=None):
     from scipy.interpolate import RBFInterpolator
 
     H, W = oracle.shape
@@ -266,15 +288,18 @@ def _generic_loo_batch(oracle, n, batch, power, sigma=0.0):
     ij, v = oracle.observed()
     sm = 1e-4 if sigma else 0.0
     errs = []
-    for k in range(len(ij)):
+    use = np.where(~_in(ij, skip) & (ij[:, 0] >= min_row))[0]
+    for k in use:
         m = np.ones(len(ij), bool)
         m[k] = False
         rec = interp.reconstruct(ij[m], v[m], oracle.shape, "rbf_tps", smoothing=sm)
         errs.append(abs(rec[ij[k, 0], ij[k, 1]] - v[k]))
     s_ = float(max(H, W))
-    field = np.clip(RBFInterpolator(ij / s_, np.array(errs), kernel="linear")(
+    field = np.clip(RBFInterpolator(ij[use] / s_, np.array(errs), kernel="linear")(
         np.column_stack([yy.ravel(), xx.ravel()]) / s_).reshape(H, W), 0, None)
     d2 = np.full((H, W), np.inf)
+    d2[:, :min_col] = 0.0
+    d2[:min_row, :] = 0.0
     for i, j in ij:
         d2 = np.minimum(d2, (yy - i) ** 2 + (xx - j) ** 2)
     new = []

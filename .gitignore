@@ -50,3 +50,24 @@ autoexp/runs/
 autoexp/kmc/*/auto.log
 autoexp/kmc/*/dip_prueba*/
 autoexp/kmc/arranque.log
+autoexp/kmc/dip_prueba*/
+
+# --- autoexp/kmc: árboles crudos de corridas (estado.txt, kmc.out, datos por réplica); lo que vale queda
+# resumido en resultados_*.csv / res_*.csv. Y la copia de estados que trae tendencia/todos_finales.py ---
+autoexp/kmc/**/runs/
+autoexp/kmc/tendencia/kmc/
+
+# --- `!presentaciones/**` de arriba vuelve a incluir los caches de Python de los generadores ---
+presentaciones/**/__pycache__/
+
+# --- editor ---
+.vscode/
+
+# --- investigacion_soc0: binarios compilados y carpetas de corridas de prueba (los datos-*.dat ya se ignoran) ---
+autoexp/kmc/investigacion_soc0/kmc_ef
+autoexp/kmc/investigacion_soc0/kmc_ef_rand
+autoexp/kmc/investigacion_soc0/kmc_orig
+autoexp/kmc/investigacion_soc0/kmc_refresco
+autoexp/kmc/investigacion_soc0/version_vieja/kmc_vieja
+autoexp/kmc/investigacion_soc0/run_*/
+autoexp/kmc/investigacion_soc0/comparacion_ef/r[0-9]*/

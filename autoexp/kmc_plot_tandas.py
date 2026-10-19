@@ -62,7 +62,7 @@ def main():
                label="borde punteado = pseudo (cota + monotonía)")
     ax.set_xlabel(r"$\log(\ell)$")
     ax.set_ylabel(r"$\log(\Xi)$")
-    ax.set_title("KMC g=-4: %d de %d puntos, por tanda" % (len(st["known_d"]), st["budget"]))
+    ax.set_title("KMC g=%g: %d de %d puntos, por tanda" % (st.get("g", -4.0), len(st["known_d"]), st["budget"]))
     fig.colorbar(im, ax=ax, label="SoC reconstruido (fondo)", shrink=0.85)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=2, fontsize=8, frameon=False)
     fig.savefig(out, dpi=140)
