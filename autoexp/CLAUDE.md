@@ -330,3 +330,7 @@ Tiempo de corrida ~ 1/ℓ (piloto: 4 min en log ℓ=-0.5): log ℓ=-3.5 no entra
   433757 = g -8,-4,0,4 · 433758 = g -7,-3,1 · 433759 = g -6,-2,2 · 433760 = g -5,-1,3. Los 26 jobs sueltos de la tanda 1
   (433731-56) quedaron con `scontrol hold` para que arranquen primero los contenedores; los loops (relanzados) los migran
   como steps. 433574 (prueba g4) sigue en cola normal y va a tomar uno de los 4 lugares.
+- **19/10: el fin por NaN (error 2) sigue con el binario corregido.** En el adelanto del crudo corregido, 7 de 153 corridas
+  terminadas llegan al tiempo nominal sin tocar el corte y terminan por NaN: todas en log ℓ -2 con log Ξ alto (2, 1.62,
+  1.05...), con SoC 0.87-0.97 y E +0.01 a +0.04 V en el último intervalo válido (corte -0.149). Las normales terminan
+  por corte en el intervalo que no se imprime. Preguntas para los profes en la sesión del 19/10.

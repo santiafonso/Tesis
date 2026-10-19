@@ -1,0 +1,30 @@
+<section id="nominal" data-section="Error 2 y estado actual" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 2 · antes, el tiempo nominal</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">El tiempo nominal: capacidad / corriente</h2>
+<div style="display:flex;gap:32px;padding:24px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#15233B;border-radius:14px;padding:32px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;color:#F6F5F0">t_nominal = capacidad / corriente</p>
+<p style="font-size:26px;color:#BFC9D6">Cuánto tardaría en llenarse el electrodo si todo lo que se empuja entrara. Botella de 1 litro, 1 litro por hora → 1 hora.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:32px">
+<p style="font-size:26px;color:#3E4A5C"><b>C-rate:</b> 0.1C → 10 h · 1C → 1 h · 2C → 30 min</p>
+<p style="font-size:26px;color:#3E4A5C">En el KMC la C-rate sale de ℓ: <b>ℓ alto = corriente alta = tiempo nominal corto</b>. Por eso las corridas de ℓ bajo tardan días.</p>
+</div>
+</div>
+<p style="font-size:26px;color:#5B6B82;padding:20px 0 0 0">El tiempo nominal se parte en 200 intervalos; al final de cada uno se escribe una fila de datos.</p>
+<div style="display:flex;align-items:center;gap:16px">
+<p style="width:150px;font-size:26px;font-weight:600;color:#2563A6">Lo normal</p>
+<div style="flex:6;height:44px;background:#2563A6;border-radius:8px 0 0 8px"></div>
+<p style="font-size:24px;font-weight:600;color:#15233B;background:#F0A35E;padding:6px 14px;border-radius:8px">corte: SoC 0.6</p>
+<div style="flex:4;height:44px;background:#DCE1E8;border-radius:0 8px 8px 0"></div>
+<p style="width:240px;font-size:24px;color:#5B6B82">tiempo nominal (200)</p>
+</div>
+<div style="display:flex;align-items:center;gap:16px">
+<p style="width:150px;font-size:26px;font-weight:600;color:#A8480E">Lo raro</p>
+<div style="flex:10;height:44px;background:#2563A6;border-radius:8px"></div>
+<div style="width:180px;height:44px;border:3px dashed #D9661F;border-radius:8px"></div>
+<p style="width:240px;font-size:24px;color:#A8480E;font-weight:600">201, 202… → NaN</p>
+</div>
+<p style="font-size:26px;color:#15233B;background:#FFF4EA;border-left:6px solid #D9661F;padding:18px 24px;border-radius:8px">Con el binario corregido, <b>7 de 153</b> corridas llegan al tiempo nominal con SoC 0.87–0.97 y E ≈ +0.03 V (corte: −0.149 V). Si todo lo empujado hubiera entrado, el SoC sería 1 y ya habría cortado: <b>entró menos de lo que dice la corriente</b>.</p>
+<aside>En el código (kmc_ckpt_refresco_ef.cpp:263-270): Crate = D·ℓ·3600/L², dt = capacidad/corriente = 3600/Crate segundos, pasobin = dt/200. Lo normal es que el corte llegue antes del tiempo nominal: la superficie se satura antes de que los iones lleguen al fondo y el SoC queda por debajo de 1. Las 7 corridas raras están todas arriba del mapa (log Ξ alto) con log ℓ = −2. Pregunta de fondo para los profes: ¿puede pasar en el modelo, o hay algo más que está mal?</aside>
+</section>
