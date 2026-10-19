@@ -1,7 +1,7 @@
 # presentacion8_19_10 — Errores del KMC (reunión 19/10/2026)
 
 Deck: https://claude.ai/artifact/Qzd1TnWtQjA8J7nu7FbL99 (privado; compartir desde Share, y desde ahí
-Export → .pptx / PDF). Bajar el .pptx a esta carpeta como `presentacion8_19_10.pptx`.
+Export → .pptx / PDF). El .pptx exportado está acá: `presentacion8_19_10.pptx`.
 
 - `deck/` — fuente del deck (`deck.json` + una `slides/<id>.html` por filmina, con notas del orador en `<aside>`).
 - `fig/` — figuras usadas o de respaldo:
