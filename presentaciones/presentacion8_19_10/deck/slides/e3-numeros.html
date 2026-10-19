@@ -1,0 +1,26 @@
+<section id="e3-numeros" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 3 · cuánto pesa</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Un J1 de más en todos los saltos: un factor fijo exp(−g/12)</h2>
+<div style="display:flex;gap:64px;padding:40px 0 0 0;align-items:start">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#15233B;border-radius:14px;padding:32px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F6F5F0">ΔE_código = ΔE_correcto + J1</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F6F5F0">tasa_código = tasa_correcta · exp(−J1/2kT)</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F0A35E">            = tasa_correcta · exp(−g/12)</p>
+</div>
+<p style="font-size:26px;color:#3E4A5C"><b>El ejemplo de la filmina anterior con g = −4</b> (J1 = −0.67 kT):</p>
+<p style="font-size:26px;color:#3E4A5C">correcto: ΔE = −J1 = +0.67 kT → tasa = 0.72 · K_dif<br>código: ΔE = 0 → tasa = 1.00 · K_dif → <b>1.40 veces más rápido</b></p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<table style="font-size:30px;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif">
+<tr><th style="width:22%;text-align:left">g</th><th style="width:30%;text-align:right">J1</th><th style="width:48%;text-align:right">saltos en el código</th></tr>
+<tr style="background:#FBE9DC"><td style="text-align:left">−8</td><td style="text-align:right">−1.33 kT</td><td style="text-align:right">×1.95 más rápidos</td></tr>
+<tr style="background:#FBE9DC"><td style="text-align:left">−4</td><td style="text-align:right">−0.67 kT</td><td style="text-align:right">×1.40 más rápidos</td></tr>
+<tr><td style="text-align:left">0</td><td style="text-align:right">0</td><td style="text-align:right">×1 (sin error)</td></tr>
+<tr style="background:#E1EAF5"><td style="text-align:left">+4</td><td style="text-align:right">+0.67 kT</td><td style="text-align:right">×0.72 más lentos</td></tr>
+</table>
+<p style="font-size:26px;color:#3E4A5C">No depende de cuántos vecinos haya: el J1 extra es siempre uno, el del propio ion. Por eso es el mismo factor en todos los saltos.</p>
+</div>
+</div>
+<aside>Con g = 0 no hay interacción (J1 = 0), así que el error 3 no existe: el mapa de g = 0 solo tenía el error 1. Cuanto más negativo es g, más pesa: en g = −8 los saltos iban casi al doble de velocidad.</aside>
+</section>

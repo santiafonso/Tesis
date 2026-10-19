@@ -1,0 +1,23 @@
+<section id="basico" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Antes de empezar</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Ion, electrodo, potencial: lo mínimo para seguir</h2>
+<div style="display:flex;gap:32px;padding:36px 0 24px 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:32px">
+<h3 style="font-size:34px;font-weight:600;color:#15233B">Ion</h3>
+<p style="font-size:26px;color:#3E4A5C">Un átomo con carga. <b>Li⁺</b> = litio que perdió un electrón. Flota en el electrolito, el líquido de la batería.</p>
+<p style="font-size:26px;color:#3E4A5C">Cargar el electrodo = meter Li⁺ en sus huecos. Cada ion que entra es una carga que pasó por el cable: <b>corriente = iones por segundo</b>.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:32px">
+<h3 style="font-size:34px;font-weight:600;color:#15233B">Potencial μ</h3>
+<p style="font-size:26px;color:#3E4A5C">Cuánto "empuja" el electrodo a que los iones entren.</p>
+<p style="font-size:26px;color:#3E4A5C">El electrodo es un conductor: tiene <b>un solo potencial para todo el material</b>. No hay un μ por sitio; lo que cambia de sitio a sitio son los vecinos.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFF4EA;border:3px solid #D9661F;border-radius:14px;padding:32px">
+<h3 style="font-size:34px;font-weight:600;color:#15233B">Galvanostático = velocidad crucero</h3>
+<p style="font-size:26px;color:#3E4A5C">La corriente está fija (la velocidad). μ es el <b>acelerador</b>: se ajusta solo.</p>
+<p style="font-size:26px;color:#3E4A5C">Cuanto más llena la superficie, más hay que apretar. Cuando llega al corte, termina: eso es el <b>SoC máx</b> del mapa.</p>
+</div>
+</div>
+<p style="font-size:28px;color:#15233B;background:#EAE8E0;padding:24px 32px;border-radius:12px"><b>El signo:</b> en el código, μ más alto → entran más iones. El voltaje que se imprime es <b>E = −μ</b>, así que E más bajo → entran más. Durante una carga, E baja hasta el corte (−0.149 V).</p>
+<aside>Cadena de un evento: entra un ion → cambia la superficie (un hueco menos, sus vecinos tienen un vecino más) → el código recalcula el μ que hace falta para mantener la corriente fija → como μ es uno solo, cambia la tasa de entrar y salir de TODOS los sitios de la superficie. El error 1 fue que ese último paso solo se hacía en el sitio tocado y sus vecinos. En el código: ads = K·exp((μ − E_ads)/2kT), des = K·exp(−(E_des + μ)/2kT); mui en meV, E[V] = −mui/1000.</aside>
+</section>

@@ -1,0 +1,37 @@
+<section id="galvano" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Primero: el modelo</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Galvanostático: la corriente está fija y el potencial se acomoda</h2>
+<div style="display:flex;align-items:center;gap:12px;padding:40px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<h3 style="font-size:30px;font-weight:600;color:#15233B">Ocurre un evento</h3>
+<p style="font-size:24px;color:#3E4A5C">se sortea según las tasas</p>
+</div>
+<x-connector style="width:48px;color:#5B6B82;border-width:3px" head="end"></x-connector>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<h3 style="font-size:30px;font-weight:600;color:#15233B">Cambia la superficie</h3>
+<p style="font-size:24px;color:#3E4A5C">entra, sale o se mueve un ion</p>
+</div>
+<x-connector style="width:48px;color:#5B6B82;border-width:3px" head="end"></x-connector>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<h3 style="font-size:30px;font-weight:600;color:#15233B">Se recalcula μ</h3>
+<p style="font-size:24px;color:#3E4A5C">el μ que hace adsorción − desorción = I impuesta</p>
+</div>
+<x-connector style="width:48px;color:#5B6B82;border-width:3px" head="end"></x-connector>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;background:#FFF4EA;border:3px solid #D9661F;border-radius:14px;padding:24px">
+<h3 style="font-size:30px;font-weight:600;color:#15233B">Se actualizan las tasas</h3>
+<p style="font-size:24px;color:#A8480E;font-weight:600">acá estaba el error 1</p>
+</div>
+</div>
+<p style="font-size:24px;color:#5B6B82;text-align:right">…y vuelve a empezar, millones de veces por corrida</p>
+<div style="display:flex;gap:48px;padding:24px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#EAE8E0;border-radius:14px;padding:36px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:30px;color:#15233B">ads = K · exp( (μ − E_ads) / 2kT)</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:30px;color:#15233B">des = K · exp(−(E_des + μ) / 2kT)</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;color:#3E4A5C"><b>μ</b> (<span style="color:#A8480E">mui</span> en el código) es el potencial del electrodo. Todas las tasas de adsorción y desorción dependen de μ.</p>
+<p style="font-size:28px;color:#3E4A5C">El electrodo es un conductor: <b>todos los sitios de la superficie ven el mismo μ al mismo tiempo.</b></p>
+</div>
+</div>
+<aside>Galvanostático = se impone la corriente. El código busca en cada paso (método de Brent, función potencial) el μ con el que la corriente esperada iguala la impuesta. Ese μ entra en las tasas de adsorción y desorción de todos los sitios de la superficie.</aside>
+</section>

@@ -1,0 +1,36 @@
+<section id="e3-energia" data-section="Error 3: el ion que salta se cuenta a sí mismo" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 3 · antes, cómo entra g</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Cada vecino ocupado suma J1 a la energía de un sitio</h2>
+<div style="display:flex;gap:96px;padding:48px 0 0 0;align-items:center">
+<div style="display:flex;flex-direction:column;gap:24px;align-items:center">
+<div style="display:grid;grid-template-columns:repeat(3, 120px);gap:16px">
+<div style="width:120px;height:120px"></div>
+<div style="width:120px;height:120px;border-radius:50%;background:#15233B"></div>
+<div style="width:120px;height:120px"></div>
+<div style="width:120px;height:120px;border-radius:50%;background:#15233B"></div>
+<div style="width:120px;height:120px;border-radius:50%;background:#D9661F;display:flex;align-items:center;justify-content:center"><p style="font-size:44px;font-weight:700;color:#F6F5F0">A</p></div>
+<div style="width:120px;height:120px;border-radius:50%;background:#15233B"></div>
+<div style="width:120px;height:120px"></div>
+<div style="width:120px;height:120px;border-radius:50%;border:4px dashed #8A96A8"></div>
+<div style="width:120px;height:120px"></div>
+</div>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:36px;color:#15233B">E(A) = 3 · J1</p>
+<p style="font-size:24px;color:#5B6B82">corte 2D: en 3D cada sitio tiene 6 vecinos</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<div style="background:#15233B;border-radius:14px;padding:32px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:40px;color:#F6F5F0">J1 = (g / 6) · kT</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-size:32px;font-weight:600;color:#15233B">g &lt; 0: los iones se atraen</h3>
+<p style="font-size:26px;color:#3E4A5C">J1 &lt; 0: tener vecinos baja la energía; los iones tienden a agruparse y la transición es abrupta.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-size:32px;font-weight:600;color:#15233B">g &gt; 0: los iones se repelen</h3>
+<p style="font-size:26px;color:#3E4A5C">J1 &gt; 0: tener vecinos sube la energía.</p>
+</div>
+<p style="font-size:28px;color:#15233B;background:#EAE8E0;padding:20px 28px;border-radius:12px">Ejemplo, g = −4: J1 = −0.67 kT por vecino ocupado.</p>
+</div>
+</div>
+<aside>g es el parámetro de interacción de Frumkin del modelo continuo; en la red sale de la energía entre primeros vecinos. Con 6 vecinos, 6·J1 = g·kT. La energía de interacción es entre PARES de iones distintos: un ion no interactúa consigo mismo. Eso es lo que rompe el error 3.</aside>
+</section>

@@ -1,0 +1,30 @@
+<section id="e1-porque" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 1</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Por qué eso daba SoC ≈ 0: el paso a paso</h2>
+<div style="display:flex;gap:24px;padding:28px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<p style="width:44px;height:44px;border-radius:50%;background:#15233B;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">1</p>
+<p style="font-size:24px;color:#3E4A5C">Al arrancar, con la superficie vacía, se resuelve μ: <b>E ≈ +0.35 V</b>. Con ese μ se calculan las tasas de toda la superficie.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<p style="width:44px;height:44px;border-radius:50%;background:#15233B;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">2</p>
+<p style="font-size:24px;color:#3E4A5C">A ese potencial la adsorción es <b>casi nula</b>. Los sitios que nunca se tocan se quedan congelados así.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;border:2px solid #D5D9DF;border-radius:14px;padding:24px">
+<p style="width:44px;height:44px;border-radius:50%;background:#15233B;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">3</p>
+<p style="font-size:24px;color:#3E4A5C">Si un ion logra entrar, su sitio sí toma el μ nuevo y su desorción es rápida: <b>se va antes de difundir</b> hacia adentro.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FFF4EA;border:3px solid #D9661F;border-radius:14px;padding:24px">
+<p style="width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">4</p>
+<p style="font-size:24px;color:#3E4A5C">El cálculo de μ "cree" que la superficie carga, pero los eventos se sortean con tasas viejas: <b>el electrodo no se carga</b>.</p>
+</div>
+</div>
+<p style="font-size:28px;font-weight:600;color:#15233B;padding:28px 0 4px 0">Punto log Ξ = 2, log ℓ = −1.33, g = −4: SoC durante la corrida</p>
+<table style="font-size:28px;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif">
+<tr><th style="width:34%;text-align:left">intervalo</th><th style="width:16%;text-align:right">2</th><th style="width:16%;text-align:right">12</th><th style="width:16%;text-align:right">25</th><th style="width:18%;text-align:right">final</th></tr>
+<tr><td style="text-align:left">esperado (corriente impuesta)</td><td style="text-align:right">0.010</td><td style="text-align:right">0.060</td><td style="text-align:right">0.125</td><td style="text-align:right">—</td></tr>
+<tr style="background:#FBE9DC"><td style="text-align:left">código viejo</td><td style="text-align:right">0.0004</td><td style="text-align:right">0.0004</td><td style="text-align:right">0.0004</td><td style="text-align:right">0.0004</td></tr>
+<tr style="background:#E1EAF5"><td style="text-align:left">corregido</td><td style="text-align:right">0.011</td><td style="text-align:right">0.055</td><td style="text-align:right">0.141</td><td style="text-align:right">0.957</td></tr>
+</table>
+<aside>La versión vieja sin optimizar tiene la misma lógica (tasas viejas), pero calcula las tasas iniciales con μ = 0, es decir E = 0 V, donde sí se adsorbe; por eso ahí "andaba". La optimizada las calcula con el μ resuelto con la superficie vacía, E ≈ +0.35 V. El problema de fondo es el mismo: el resultado dependía de un μ inicial arbitrario. No son NaN: el SoC ya era ≈ 0 antes de cualquier NaN.</aside>
+</section>

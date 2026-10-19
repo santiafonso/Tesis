@@ -1,0 +1,56 @@
+<section id="e3-salto" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 3</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Al saltar de A a B, el ion se contaba como vecino de B</h2>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:30px;color:#15233B;background:#EAE8E0;padding:16px 24px;border-radius:12px">tasa(A→B) = K_dif · exp(−ΔE / 2kT)     ΔE = E(B) − E(A)</p>
+<div style="display:flex;gap:48px;padding:24px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#FFF4EA;border:3px solid #D9661F;border-radius:14px;padding:32px">
+<h3 style="font-size:32px;font-weight:600;color:#A8480E">Lo que hacía el código</h3>
+<div style="display:flex;gap:40px;align-items:center">
+<div style="display:grid;grid-template-columns:repeat(4, 84px);gap:18px">
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B;box-shadow:0 0 0 7px #F0A35E"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#D9661F;box-shadow:0 0 0 7px #F0A35E;display:flex;align-items:center;justify-content:center"><p style="font-size:36px;font-weight:700;color:#F6F5F0">A</p></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #5B6B82;display:flex;align-items:center;justify-content:center"><p style="font-size:36px;font-weight:700;color:#15233B">B</p></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px">
+<p style="font-size:26px;color:#3E4A5C">A todavía figura ocupado cuando se cuentan los vecinos de B.</p>
+<p style="font-size:26px;color:#3E4A5C">Vecinos de B contados (anillo): <b>2</b></p>
+</div>
+</div>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#15233B">E(A) = 2·J1   E(B) = 2·J1<br>ΔE = 0</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#E9F0F8;border:3px solid #2563A6;border-radius:14px;padding:32px">
+<h3 style="font-size:32px;font-weight:600;color:#2563A6">Lo correcto</h3>
+<div style="display:flex;gap:40px;align-items:center">
+<div style="display:grid;grid-template-columns:repeat(4, 84px);gap:18px">
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B;box-shadow:0 0 0 7px #7FA6D6"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#D9661F;display:flex;align-items:center;justify-content:center"><p style="font-size:36px;font-weight:700;color:#F6F5F0">A</p></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #5B6B82;display:flex;align-items:center;justify-content:center"><p style="font-size:36px;font-weight:700;color:#15233B">B</p></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;background:#15233B"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+<div style="width:84px;height:84px;border-radius:50%;border:3px dashed #B8C0CC"></div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px">
+<p style="font-size:26px;color:#3E4A5C">El ion que salta no puede ser su propio vecino: se descuenta.</p>
+<p style="font-size:26px;color:#3E4A5C">Vecinos de B contados (anillo): <b>1</b></p>
+</div>
+</div>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#15233B">E(A) = 2·J1   E(B) = 1·J1<br>ΔE = −J1</p>
+</div>
+</div>
+<aside>A tiene dos vecinos ocupados (arriba y abajo). B tiene uno propio (arriba) más A. Para la energía en B después del salto, A ya no está ahí: el ion se mudó a B. El código contaba a A igual, porque en ese momento Ocup[A] seguía en 1. En el código el arreglo es una línea: dE = (CalcularEf(i, jv) − J1) − Esitio.</aside>
+</section>

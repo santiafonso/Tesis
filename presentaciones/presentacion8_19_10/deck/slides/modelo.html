@@ -1,0 +1,62 @@
+<section id="modelo" data-section="Qué simula el KMC y cómo se ajusta el potencial" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Primero: el modelo</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Qué simula el KMC: iones que entran, salen y saltan</h2>
+<div style="position:absolute;left:128px;top:320px;width:760px;height:96px;background:#DCE6F2;border-radius:12px"></div>
+<p style="position:absolute;left:150px;top:346px;width:240px;font-size:26px;color:#2B4A72;font-weight:600">electrolito</p>
+<div style="position:absolute;left:168px;top:440px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:288px;top:440px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:408px;top:440px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:528px;top:440px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:648px;top:440px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:768px;top:440px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:168px;top:552px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:288px;top:552px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:408px;top:552px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:528px;top:552px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:648px;top:552px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:768px;top:552px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:168px;top:664px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:288px;top:664px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:408px;top:664px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:528px;top:664px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:648px;top:664px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:768px;top:664px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:168px;top:776px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:288px;top:776px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:408px;top:776px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:528px;top:776px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<div style="position:absolute;left:648px;top:776px;width:64px;height:64px;border-radius:50%;border:3px dashed #8A96A8"></div>
+<div style="position:absolute;left:768px;top:776px;width:64px;height:64px;border-radius:50%;background:#15233B"></div>
+<x-connector x1="440" y1="350" x2="440" y2="434" head="end" style="color:#D9661F;border-width:4px"></x-connector>
+<x-connector x1="680" y1="436" x2="680" y2="352" head="end" style="color:#D9661F;border-width:4px"></x-connector>
+<x-connector x1="476" y1="584" x2="524" y2="584" head="end" style="color:#D9661F;border-width:4px"></x-connector>
+<p style="position:absolute;left:452px;top:356px;width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">1</p>
+<p style="position:absolute;left:694px;top:356px;width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">2</p>
+<p style="position:absolute;left:478px;top:618px;width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">3</p>
+<p style="position:absolute;left:128px;top:872px;width:760px;font-size:24px;color:#5B6B82">Corte del electrodo. Fila de arriba = superficie (en la simulación, 1600 sitios). ● ion · ◌ sitio vacío</p>
+<div style="position:absolute;left:960px;top:320px;width:832px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;gap:20px;align-items:start">
+<p style="width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">1</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px">
+<h3 style="font-size:32px;font-weight:600;color:#15233B">Adsorción</h3>
+<p style="font-size:26px;color:#3E4A5C">un Li⁺ del electrolito entra a un sitio vacío de la superficie</p>
+</div>
+</div>
+<div style="display:flex;gap:20px;align-items:start">
+<p style="width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">2</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px">
+<h3 style="font-size:32px;font-weight:600;color:#15233B">Desorción</h3>
+<p style="font-size:26px;color:#3E4A5C">un ion de la superficie vuelve al electrolito</p>
+</div>
+</div>
+<div style="display:flex;gap:20px;align-items:start">
+<p style="width:44px;height:44px;border-radius:50%;background:#D9661F;color:#F6F5F0;font-size:26px;font-weight:700;text-align:center;line-height:1.7">3</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px">
+<h3 style="font-size:32px;font-weight:600;color:#15233B">Salto (difusión)</h3>
+<p style="font-size:26px;color:#3E4A5C">un ion pasa a un sitio vecino vacío; así avanza hacia adentro</p>
+</div>
+</div>
+<p style="font-size:28px;color:#15233B;background:#EAE8E0;padding:24px 28px;border-radius:12px">Cada evento tiene una <b>tasa</b>. En cada paso se sortea cuál ocurre, con probabilidad proporcional a su tasa. Por eso la tabla de tasas tiene que estar <b>al día</b>.</p>
+</div>
+<aside>El KMC no integra ecuaciones: sortea eventos. Si una tasa está mal o vieja, ese evento ocurre con la frecuencia equivocada. Los dos errores importantes son justamente tasas mal calculadas: el 1 en adsorción/desorción, el 3 en los saltos.</aside>
+</section>

@@ -1,0 +1,19 @@
+<section id="e1-xi" style="background:#EAE8E0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 1</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Por qué solo pasaba arriba del mapa (Ξ alto)</h2>
+<p style="font-size:30px;color:#3E4A5C;padding:16px 0 0 0">Ξ mide qué tan rápida es la reacción en la superficie (constante k₀) comparada con la difusión hacia adentro.</p>
+<div style="display:flex;gap:32px;padding:24px 0 0 0">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#F6F5F0;border-top:6px solid #D9661F;border-radius:14px;padding:36px">
+<p style="font-size:30px;color:#A8480E;font-weight:600">log Ξ = 2 (arriba)</p>
+<p style="font-size:64px;font-weight:700;color:#15233B;line-height:1.1">K_ads ≈ K_dif</p>
+<p style="font-size:26px;color:#3E4A5C">Entrar y salir de la superficie es tan rápido como difundir. Lo que pasa en la superficie decide todo, y sus tasas estaban viejas.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#F6F5F0;border-top:6px solid #2563A6;border-radius:14px;padding:36px">
+<p style="font-size:30px;color:#2563A6;font-weight:600">log Ξ = 0</p>
+<p style="font-size:64px;font-weight:700;color:#15233B;line-height:1.1">K_ads 100× menor</p>
+<p style="font-size:26px;color:#3E4A5C">La reacción es lenta: el ion que entra tiene tiempo de difundir antes de salir, y el error casi no se nota.</p>
+</div>
+</div>
+<p style="font-size:28px;color:#15233B;padding:28px 0 0 0"><b>Medido con el arreglo (40 puntos de g = −4):</b> zona de SoC 0 → 0.97 · log Ξ ≤ 1.1 cambia ≤ 0.04 · log Ξ alto con log ℓ −0.5 baja 0.03–0.08</p>
+<aside>En el código: KADS_FACTOR = k0/ds con k0 proporcional a Ξ·sqrt(ℓ); KDIF_FACTOR = D/a² ≈ 3.5e4 s⁻¹. En log Ξ = 2, log ℓ = −1.33, KADS ≈ 3.8e4 s⁻¹. La explicación de por qué con Ξ bajo casi no importa es mi lectura; lo medido es lo de la última línea.</aside>
+</section>

@@ -277,7 +277,63 @@ def fig_resumen():
     return _save(fig, "resumen.png")
 
 
+def fig_vs_random():
+    """Procedimiento del KMC (96 puntos elegidos) vs 96 puntos al azar, en el continuo con ruido tipo
+    KMC (σ = 0.005). Datos de autoexp/kmc_vs_random.py (psnr.csv, ejemplos.npz)."""
+    import csv as _csv
+    d = os.path.join(REPO, "autoexp", "kmc", "comparacion_random")
+    rows = sorted(_csv.DictReader(open(os.path.join(d, "psnr.csv"))), key=lambda r: float(r["g"]))
+    g = np.array([float(r["g"]) for r in rows])
+    proc = np.array([float(r["psnr_procedimiento"]) for r in rows])
+    m = np.array([float(r["psnr_azar_media"]) for r in rows])
+    sd = np.array([float(r["psnr_azar_std"]) for r in rows])
+    ej = np.load(os.path.join(d, "ejemplos.npz"))
+
+    fig = plt.figure(figsize=(14, 5.2))
+    gs = fig.add_gridspec(2, 4, width_ratios=[1.55, 1, 1, 1], wspace=0.08, hspace=0.22)
+    ax = fig.add_subplot(gs[:, 0])
+    ax.plot(g, proc, "-s", color=C1, lw=2, ms=8, label="96 puntos del procedimiento")
+    ax.fill_between(g, m - sd, m + sd, color=C2, alpha=0.2, lw=0)
+    ax.plot(g, m, "-o", color=C2, lw=2, ms=8, label="96 puntos al azar (media ± desvío, 10 sorteos)")
+    for k, (x, a, b) in enumerate(zip(g, proc, m)):
+        dip = 0 < k < len(g) - 1 and a < min(proc[k - 1], proc[k + 1])  # minimo local: etiqueta abajo
+        ax.annotate("+%.0f" % (a - b), (x, a), textcoords="offset points", xytext=(0, -16 if dip else 8),
+                    ha="center", fontsize=9, color=INK2)
+    ax.set_xticks(g)
+    ax.set_xlabel("g")
+    ax.set_ylabel("PSNR contra el continuo [dB]")
+    ax.set_ylim(15, 53)
+    ax.legend(loc="lower right", fontsize=9)
+    ax.set_title("Ganancia por elegir los puntos (dB sobre el azar)", loc="left", fontsize=12)
+
+    ext = [-4, 2, -4, 2]
+    kw = dict(cmap="viridis", vmin=0, vmax=1, extent=ext, aspect="auto")
+    for r, gv in enumerate((-4, 4)):
+        k = "g%g" % gv
+        pp, pr = ej[k + "_psnr"]
+        lx, le = np.linspace(2, -4, 128), np.linspace(-4, 2, 128)
+        for c, (img, pts, tit) in enumerate(((ej[k + "_truth"], None, "continuo g = %g" % gv),
+                                             (ej[k + "_proc"], ej[k + "_pts_proc"], "procedimiento: %.1f dB" % pp),
+                                             (ej[k + "_azar"], ej[k + "_pts_azar"], "al azar: %.1f dB" % pr))):
+            a = fig.add_subplot(gs[r, c + 1])
+            a.imshow(img, **kw)
+            if pts is not None:
+                a.scatter(le[pts[:, 1]], lx[pts[:, 0]], s=7, c="w", edgecolors=INK, linewidths=0.4)
+            a.set_title(tit, fontsize=10)
+            a.set_xticks([])
+            a.set_yticks([])
+            a.grid(False)
+    return _save(fig, "vs_random.png")
+
+
 # --------------------------------------------------------- helpers pptx --------
+def fade(slide):
+    """Transicion de fundido: en las secuencias paso a paso, el panel nuevo aparece suave."""
+    from pptx.oxml import parse_xml
+    slide._element.append(parse_xml('<p:transition xmlns:p="http://schemas.openxmlformats.org/'
+                                    'presentationml/2006/main" spd="med"><p:fade/></p:transition>'))
+
+
 def _title(slide, text, size=26):
     tb = slide.shapes.add_textbox(Inches(0.6), Inches(0.35), Inches(12.1), Inches(0.9))
     tb.text_frame.word_wrap = True
@@ -332,7 +388,7 @@ def _fit(img, max_w, max_h):
     return w, h
 
 
-def add_image_slide(prs, title, img, caption=None, width=None):
+def add_image_slide(prs, title, img, caption=None, width=None, transition=False):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     _title(s, title)
     top, bot = 1.4, (6.7 if caption else 7.25)
@@ -348,6 +404,9 @@ def add_image_slide(prs, title, img, caption=None, width=None):
         cp.font.italic = True
         cp.font.color.rgb = GREY
         cp.alignment = PP_ALIGN.CENTER
+    if transition:
+        fade(s)
+    return s
 
 
 def add_text_image_slide(prs, title, bullets, img, img_w=7.4, body_size=14):
@@ -666,6 +725,31 @@ def main():
         "DIP suma más (sobre todo SSIM). Hay que estimar σ de KMC con corridas repetidas.",
         "- Guarda de DIP: si DIP no ajusta los puntos reales, se usa solo la TPS (o se relanza DIP con otra semilla).",
     ], body_size=16)
+
+
+    # ---- KMC real, g = -4 (figuras de explicacion_autoexp/figuras_kmc.py) ----
+    sys.path.insert(0, os.path.join(REPO, "presentaciones", "explicacion_autoexp"))
+    import figuras_kmc
+    fk = figuras_kmc.FIG
+    kd = os.path.join(REPO, "autoexp", "kmc", "g-4")
+    add_image_slide(prs, "KMC real, g = −4: 64 puntos en 9 tandas", os.path.join(kd, "avance.png"),
+                    "Cada número es la tanda del punto: 1 = grilla de 30; 2-6 = bisección del borde; 7-9 = relleno. "
+                    "56 medidos + 8 pseudo (corridas de log ℓ ≈ −3.5 que no terminan: cota por monotonía).", width=7.2)
+    for k, c in enumerate(figuras_kmc.CAP_TANDAS, 1):
+        add_image_slide(prs, "Cómo se va armando el mapa, tanda a tanda (g = −4, KMC)",
+                        os.path.join(fk, "kmc_tandas_g-4_%d.png" % k), c, transition=True)
+    for k, c in enumerate(figuras_kmc.CAP_PASOS, 1):
+        add_image_slide(prs, "De los 64 puntos al mapa final, paso a paso (g = −4, KMC)",
+                        os.path.join(fk, "kmc_pasos_g-4_%d.png" % k), c, transition=True)
+    add_image_slide(prs, "Control: 10 puntos de KMC que no se usaron para reconstruir",
+                    os.path.join(kd, "control.png"),
+                    "Error RMS en los 10 puntos: TPS + DIP 0.027 (máx 0.068) · TPS con restricciones sola 0.043 · "
+                    "mapa del continuo (g = −4) como sustituto 0.14.")
+    add_image_slide(prs, "¿Sirve elegir los puntos? Procedimiento vs. el mismo número al azar",
+                    fig_vs_random(),
+                    "Continuo, ruido tipo KMC (σ = 0.005), misma reconstrucción. Con g < 0 (frente abrupto) elegir suma "
+                    "14-32 dB; con g ≥ 2 (mapa suave), 3-5 dB. Una TPS común sobre el azar da igual (±0.4 dB): lo que "
+                    "cuenta es dónde caen los puntos.")
 
     out = os.path.join(OUT_DIR, PRES_NAME + ".pptx")
     prs.save(out)

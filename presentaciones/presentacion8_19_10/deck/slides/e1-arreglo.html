@@ -1,0 +1,31 @@
+<section id="e1-arreglo" style="background:#F6F5F0;color:#1B2A41;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;color:#D9661F;font-weight:600;letter-spacing:2px;text-transform:uppercase">Error 1 · arreglo</p>
+<h2 style="font-size:60px;font-weight:600;line-height:1.1;color:#15233B">Cada vez que cambia μ, se refresca toda la superficie</h2>
+<div style="display:flex;gap:48px;padding:40px 0 0 0;align-items:start">
+<div style="flex:3;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px;background:#15233B;border-radius:14px;padding:36px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F6F5F0">if (g_need_potencial) {</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F6F5F0">    potencial();           <span style="color:#9FB3CC">// μ nuevo</span></p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F0A35E">    RefrescarSuperficie(); <span style="color:#9FB3CC">// nuevo</span></p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#F6F5F0">}</p>
+</div>
+<p style="font-size:28px;color:#3E4A5C">RefrescarSuperficie() recalcula la adsorción y la desorción de los 1600 sitios de la superficie con el μ actual. Solo se hace cuando se recalcula el potencial.</p>
+<p style="font-size:28px;color:#15233B;border-left:6px solid #2563A6;padding:8px 0 8px 24px"><i>“Idealmente la actualización siempre es local, a menos que necesite recalcular el potencial […] para el potencial necesitás todas las tasas.”</i> — Maxi, 16/10</p>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<p style="font-size:64px;font-weight:700;color:#2563A6;line-height:1.05">0.0004 → 0.957</p>
+<p style="font-size:26px;color:#3E4A5C">SoC final en el punto anómalo (continuo: 0.99)</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<p style="font-size:64px;font-weight:700;color:#15233B;line-height:1.05">≈ 0.96</p>
+<p style="font-size:26px;color:#3E4A5C">punto normal (log Ξ 0, log ℓ −1): 0.965 antes, 0.962 después</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<p style="font-size:64px;font-weight:700;color:#A8480E;line-height:1.05">2–20×</p>
+<p style="font-size:26px;color:#3E4A5C">más lento por corrida (el costo del arreglo)</p>
+</div>
+</div>
+</div>
+<aside>El punto normal no cambia: el arreglo no rompe lo que estaba bien. El costo: el punto anómalo pasó de 338 s a 7062 s, y el normal de 1660 s a 3034 s.</aside>
+</section>
