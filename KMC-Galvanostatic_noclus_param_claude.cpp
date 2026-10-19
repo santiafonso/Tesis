@@ -7,12 +7,17 @@
 ///  - potencial() lazy: solo se recalcula cuando cambia la superficie                  ///
 ///  - has_surface_neighbor[] precomputado para decidir si recalcular potencial         ///
 ///  - Sin clusters(): elimina BFS O(N) y acumuladores PNN2/NN2 por paso               ///
+///  Checkpoint (solo con KMC_CKPT=1 en el entorno): guarda el estado completo en       ///
+///  ckpt-<...>-<numValue>.bin cada KMC_CKPT_EVERY s (def 600) y al recibir SIGTERM     ///
+///  (sale con rc 3; bajo `timeout` el rc es 124). Relanzar en la misma carpeta retoma  ///
+///  exacto (misma trayectoria bit a bit que sin cortar). Al terminar se borra.         ///
 ///-------------------------------------------------------------------------------------///
 
 #include "acumulador_claude.h"
 
 #include <algorithm>
 #include <cerrno>
+#include <csignal>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -22,6 +27,8 @@
 #include <omp.h>
 #include <vector>
 #include <string>
+#include <fstream>
+#include <unistd.h>
 
 #ifdef TIMING
 #include <chrono>
@@ -158,6 +165,14 @@ static int Ntita[Nbins][Ncel_y_int];
 static Acumulador<double>* g_acumulador = nullptr;
 static bool g_need_potencial = true;
 
+// Checkpoint (KMC_CKPT=1): g_ckpt vacio = desactivado
+static std::string g_ckpt;
+static bool g_resume = false;
+static volatile sig_atomic_t g_stop = 0;
+static void OnSignal(int) { g_stop = 1; }
+static void GuardarCheckpoint();
+static void CargarCheckpoint();
+
 /// DECLARACIONES DE FUNCIONES
 void Caja();
 void CajaC();
@@ -263,6 +278,16 @@ int main(int argc, char *argv[]) {
           (double)muoff, omp_get_max_threads(), numValue);
   fclose(archivo);
 
+  if (getenv("KMC_CKPT") && atoi(getenv("KMC_CKPT")) != 0) {
+    g_ckpt = "ckpt-40x20x40-xi" + xi_tag + "-el" + el_tag + "-g" + g_tag + "-" +
+             std::to_string(numValue) + ".bin";
+    g_resume = access(g_ckpt.c_str(), F_OK) == 0;
+    signal(SIGTERM, OnSignal);
+    signal(SIGINT, OnSignal);
+  }
+  const double ckpt_every = getenv("KMC_CKPT_EVERY") ? atof(getenv("KMC_CKPT_EVERY")) : 600.0;
+  time_t ckpt_last = time(0);
+
   Caja();
   Vecinos();
   Inicial(numValue);
@@ -287,13 +312,18 @@ int main(int argc, char *argv[]) {
     mui = MU = muoff - 1.0;
 
     CB = kads * exp(-Eaads);
-    potencial();
+    potencial();   // BUG 1: tasas de TODA la superficie, una sola vez (E ~ +0.35 V)
     g_need_potencial = false;
-    Velocidades();
+    Velocidades();   // BUG 1: (Velocidades() solo se llama aca)
+    if (g_resume) CargarCheckpoint();
 
-    while (mui < muoff) {
+    while (mui < muoff) {   // BUG 2: sin tope de Time_i (Nbins = 200)
+      if (g_stop) {  // SIGTERM/SIGINT: entre pasos el estado es consistente
+        if (!g_ckpt.empty()) GuardarCheckpoint();
+        return 3;
+      }
       Kk++;
-      if (g_need_potencial) { potencial(); g_need_potencial = false; }
+      if (g_need_potencial) { potencial(); g_need_potencial = false; }   // BUG 1: mui nuevo, pero no se recalculan las tasas de la superficie
       Proceso();
 
 #ifdef TIMING
@@ -306,10 +336,10 @@ int main(int argc, char *argv[]) {
 
       if (Tiempo > timestep) {
         MU = MUi / counter;
-        MUs[Time_i] /= TiempoBin[Time_i][1];
-        tita[Time_i] /= TiempoBin[Time_i][1];
+        MUs[Time_i] /= TiempoBin[Time_i][1];   // BUG 2: Time_i >= 200 escribe fuera del arreglo
+        tita[Time_i] /= TiempoBin[Time_i][1];   // BUG 2: pisa otras variables -> mui = NaN
 
-        if (TiempoBin[Time_i][1] == 0) {
+        if (TiempoBin[Time_i][1] == 0) {   // BUG 3: chequeo DESPUES de dividir y solo arregla tita: intervalo vacio -> MUs = 0/0 = NaN (columna E)
           tita[Time_i] = 0.0;
         }
 
@@ -318,10 +348,15 @@ int main(int argc, char *argv[]) {
         Time_i++;
         timestep += pasobin;
         counter = MUi = 0.0;
+        if (!g_ckpt.empty() && difftime(time(0), ckpt_last) >= ckpt_every) {
+          GuardarCheckpoint();
+          ckpt_last = time(0);
+        }
       }
     }
     Vmd(numValue);
   }
+  if (!g_ckpt.empty()) remove(g_ckpt.c_str());
 
   return 0;
 }
@@ -378,8 +413,8 @@ static void Proceso() {
 
   sumaI = 0.0;
   switch (kk) {
-  case Nevento - 2: { VelocidadesAds(ii); } break;
-  case Nevento - 1: { VelocidadesAds(ii); } break;
+  case Nevento - 2: { VelocidadesAds(ii); } break;   // BUG 1: solo actualiza el sitio y sus vecinos
+  case Nevento - 1: { VelocidadesAds(ii); } break;   // BUG 1: idem
   default:          { VelocidadesDif(ii, kk); } break;
   }
 }
@@ -394,9 +429,11 @@ void Inicial(int numValue) {
   Na = Nd = 0;
 
   std::string nombreArchivo = grabadif_en + std::to_string(numValue) + ".dat";
-  FILE *archivo = AbrirArchivo(nombreArchivo.c_str(), "a");
-  fprintf(archivo, "SoC E[V] Tiempo logChi logEle\n");
-  fclose(archivo);
+  if (!g_resume) {
+    FILE *archivo = AbrirArchivo(nombreArchivo.c_str(), "a");
+    fprintf(archivo, "SoC E[V] Tiempo logChi logEle\n");
+    fclose(archivo);
+  }
 
   a = 0.0;
   for (int i = 0; i <= Nbins; i++) {
@@ -587,7 +624,7 @@ static double CalcularEf(int i, int jj) {
 static void Actualizar(int i, int m, double Esitio) {
   int jv = numvec[i][m];
   if (!Ocup[jv]) {
-    double dE = CalcularEf(i, jv) - Esitio;
+    double dE = CalcularEf(i, jv) - J1 - Esitio;
     Energia[i][m] = dE;
     Evento[i][m] = KDIF_FACTOR * exp(-dE * INV_DOSKT);
     g_acumulador->Actualizar(i * Nevento + m, Evento[i][m]);
@@ -774,6 +811,71 @@ void Inicializa_generador(void) {
   for (int i = 0; i < 256; ++i) seed[i] = rand();
   r = seed[0];
   for (int i = 0; i < 70000; ++i) r = seed[irr++] += seed[r >> 24];
+}
+
+// -------------------------------------------------------------------------
+// CHECKPOINT: todo lo que Proceso() y el bloque de bins leen o acumulan. Energia[][] no hace falta
+// (solo se escribe). Se escribe a .tmp y se renombra: un corte a mitad de escritura no lo rompe.
+// -------------------------------------------------------------------------
+static const int CKPT_VERSION = 1;
+
+template <typename T>
+static bool Rw(FILE *f, T *p, size_t n, bool escribir) {
+  return (escribir ? fwrite(p, sizeof(T), n, f) : fread(p, sizeof(T), n, f)) == n;
+}
+
+static bool CheckpointIO(FILE *f, bool escribir) {
+  int ver = CKPT_VERSION, npt = Npt, nb = Nbins;
+  double prm[3] = {xi_val, el_val, g_pot};
+  bool ok = Rw(f, &ver, 1, escribir) && Rw(f, &npt, 1, escribir) && Rw(f, &nb, 1, escribir) &&
+            Rw(f, prm, 3, escribir);
+  if (!ok || ver != CKPT_VERSION || npt != Npt || nb != Nbins || prm[0] != xi_val ||
+      prm[1] != el_val || prm[2] != g_pot) {
+    fprintf(stderr, "checkpoint %s: no corresponde a esta corrida\n", g_ckpt.c_str());
+    return false;
+  }
+  return Rw(f, seed, 256, escribir) && Rw(f, &r, 1, escribir) && Rw(f, &irr, 1, escribir) &&
+         Rw(f, Ocup, Npt, escribir) && Rw(f, &Evento[0][0], (size_t)Npt * Nevento, escribir) &&
+         Rw(f, &Tiempo, 1, escribir) && Rw(f, &timestep, 1, escribir) &&
+         Rw(f, &Time_i, 1, escribir) && Rw(f, &counter, 1, escribir) && Rw(f, &MUi, 1, escribir) &&
+         Rw(f, &MU, 1, escribir) && Rw(f, &mui, 1, escribir) && Rw(f, &Nconst, 1, escribir) &&
+         Rw(f, &Nint, 1, escribir) && Rw(f, &Ndint, 1, escribir) && Rw(f, &Ndif, 1, escribir) &&
+         Rw(f, &Na, 1, escribir) && Rw(f, &Nd, 1, escribir) &&
+         Rw(f, &TiempoBin[0][0], (size_t)(Nbins + 1) * 2, escribir) && Rw(f, MUs, Nbins, escribir) &&
+         Rw(f, tita, Nbins, escribir) && Rw(f, &g_need_potencial, 1, escribir) &&
+         (escribir ? g_acumulador->Guardar(f) : g_acumulador->Cargar(f));
+}
+
+static void GuardarCheckpoint() {
+  std::string tmp = g_ckpt + ".tmp";
+  FILE *f = AbrirArchivo(tmp.c_str(), "wb");
+  bool ok = CheckpointIO(f, true);
+  ok = (fclose(f) == 0) && ok;
+  if (!ok || rename(tmp.c_str(), g_ckpt.c_str()) != 0) {
+    fprintf(stderr, "Error grabando checkpoint %s\n", g_ckpt.c_str());
+    remove(tmp.c_str());
+  }
+}
+
+static void CargarCheckpoint() {
+  FILE *f = AbrirArchivo(g_ckpt.c_str(), "rb");
+  if (!CheckpointIO(f, false)) {
+    fprintf(stderr, "Error leyendo checkpoint %s\n", g_ckpt.c_str());
+    exit(1);
+  }
+  fclose(f);
+  // datos-*.dat: encabezado + los Time_i bins grabados al momento del checkpoint (lo que se haya
+  // grabado despues se vuelve a calcular)
+  std::string nombre = grabadif_en + std::to_string(numValue_global) + ".dat";
+  std::ifstream in(nombre);
+  std::vector<std::string> lineas;
+  std::string l;
+  while ((int)lineas.size() < Time_i + 1 && std::getline(in, l)) lineas.push_back(l);
+  in.close();
+  std::ofstream out(nombre, std::ios::trunc);
+  for (auto &x : lineas) out << x << "\n";
+  fprintf(stderr, "retomado de %s: bin %d, SoC %.4f, t=%g s\n", g_ckpt.c_str(), Time_i,
+          (double)Nconst / Npt, Tiempo);
 }
 
 void Vmd(int numValue) {

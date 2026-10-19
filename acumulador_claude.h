@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cstdio>
 #include <vector>
 
 // Fenwick tree (Binary Indexed Tree) para KMC:
@@ -43,6 +44,19 @@ public:
     }
 
     T TotalAcumulado() const { return total_; }
+
+    // Checkpoint: estado interno tal cual (el arbol reconstruido con Preparar no da las mismas
+    // sumas parciales bit a bit que el incremental, y la trayectoria se separaria)
+    bool Guardar(FILE* f) const {
+        return fwrite(&total_, sizeof(T), 1, f) == 1 &&
+               fwrite(tree_.data(), sizeof(T), tree_.size(), f) == tree_.size() &&
+               fwrite(vals_.data(), sizeof(T), vals_.size(), f) == vals_.size();
+    }
+    bool Cargar(FILE* f) {
+        return fread(&total_, sizeof(T), 1, f) == 1 &&
+               fread(tree_.data(), sizeof(T), tree_.size(), f) == tree_.size() &&
+               fread(vals_.data(), sizeof(T), vals_.size(), f) == vals_.size();
+    }
 
     // Menor índice (0-based) donde la suma acumulada supera umbral — O(log N)
     int Buscar(T umbral) const {
